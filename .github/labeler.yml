@@ -1,0 +1,11 @@
+documentation:
+- docs/**/*
+- '*.md'
+
+dependencies:
+- go.mod
+- go.sum
+
+build:
+- .github/workflows/*
+- Makefile

@@ -1,0 +1,34 @@
+name: Build
+on: [push]
+
+jobs:
+  linux-build:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/hairyhenderson/gomplate-ci-build:latest
+    steps:
+      - run: |
+          git config --global user.email "bogus@example.com"
+          git config --global user.name "Someone"
+      - uses: actions/checkout@v2
+      - run: make test
+  windows-build:
+    runs-on: windows-latest
+    env:
+      TMP: D:\tmp
+    steps:
+      - uses: actions/setup-go@v1
+        with:
+          go-version: 1.16.x
+      - run: |
+          git config --global user.email "bogus@example.com"
+          git config --global user.name "Someone"
+      - uses: actions/checkout@v2
+      - run: make test
+  lint:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/hairyhenderson/gomplate-ci-build:latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: make ci-lint
