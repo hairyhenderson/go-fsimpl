@@ -203,18 +203,6 @@ func TestGitFS(t *testing.T) {
 	u, _ := url.Parse("git+file:///repo")
 	fsys := GitFS(u)
 
-	// err := fs.WalkDir(fsys, ".", func(path string, d fs.DirEntry, err error) error {
-	// 	fi, derr := d.Info()
-	// 	if derr != nil {
-	// 		return derr
-	// 	}
-
-	// 	t.Logf("path: %s, size: %d, err: %v", path, fi.Size(), err)
-
-	// 	return err
-	// })
-	// assert.NoError(t, err)
-
 	require.NoError(t, fstest.TestFS(fsys, "foo/bar/hi.txt", "secondfile.txt"))
 }
 

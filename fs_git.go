@@ -16,6 +16,7 @@ import (
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/transport"
+	"github.com/go-git/go-git/v5/plumbing/transport/client"
 	githttp "github.com/go-git/go-git/v5/plumbing/transport/http"
 	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
 	"github.com/go-git/go-git/v5/storage/memory"
@@ -65,6 +66,13 @@ var (
 	_ withHeaderer  = (*gitFS)(nil)
 )
 
+func (f gitFS) WithHTTPClient(client *http.Client) fs.FS {
+	fsys := f
+	fsys.client = client
+
+	return &fsys
+}
+
 func (f gitFS) WithContext(ctx context.Context) fs.FS {
 	fsys := f
 	fsys.ctx = ctx
@@ -103,6 +111,10 @@ func (f *gitFS) clone() (fs.FS, error) {
 			// we can't do shallow clones for filesystem repos apparently
 			depth = 0
 		}
+
+		hc := githttp.NewClient(f.client)
+		client.InstallProtocol("http", hc)
+		client.InstallProtocol("https", hc)
 
 		bfs, _, err := gitClone(f.ctx, *f.repo, depth)
 		if err != nil {
