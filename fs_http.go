@@ -212,30 +212,10 @@ type httpFileInfo struct {
 	size        int64
 }
 
-func (fi httpFileInfo) ModTime() time.Time {
-	return fi.modTime
-}
-
-func (fi httpFileInfo) Mode() fs.FileMode {
-	return 0o644
-}
-
-func (fi httpFileInfo) IsDir() bool {
-	return fi.Mode().IsDir()
-}
-
-func (fi httpFileInfo) Name() string {
-	return fi.name
-}
-
-func (fi httpFileInfo) Size() int64 {
-	return fi.size
-}
-
-func (fi httpFileInfo) Sys() interface{} {
-	return nil
-}
-
-func (fi httpFileInfo) ContentType() string {
-	return fi.contentType
-}
+func (fi httpFileInfo) ContentType() string { return fi.contentType }
+func (fi httpFileInfo) IsDir() bool         { return fi.Mode().IsDir() }
+func (fi httpFileInfo) Mode() fs.FileMode   { return 0o644 }
+func (fi httpFileInfo) ModTime() time.Time  { return fi.modTime }
+func (fi httpFileInfo) Name() string        { return fi.name }
+func (fi httpFileInfo) Size() int64         { return fi.size }
+func (fi httpFileInfo) Sys() interface{}    { return nil }
