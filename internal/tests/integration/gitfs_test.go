@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"testing"
 	"time"
@@ -122,6 +123,10 @@ func TestGitFS_File(t *testing.T) {
 }
 
 func TestGitFS_Daemon(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("not running on Windows")
+	}
+
 	addr := startGitDaemon(t)
 
 	u, _ := url.Parse("git://" + addr + "/repo//dir")

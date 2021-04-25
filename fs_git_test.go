@@ -8,6 +8,8 @@ import (
 	"io/fs"
 	"net/url"
 	"os"
+	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 	"testing/fstest"
@@ -198,12 +200,16 @@ func setupGitRepo(t *testing.T) map[string]string {
 }
 
 func TestGitFS(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("not running on Windows yet...")
+	}
+
 	_ = setupGitRepo(t)
 
 	u, _ := url.Parse("git+file:///repo")
 	fsys := GitFS(u)
 
-	require.NoError(t, fstest.TestFS(fsys, "foo/bar/hi.txt", "secondfile.txt"))
+	require.NoError(t, fstest.TestFS(fsys, filepath.Join("foo", "bar", "hi.txt"), "secondfile.txt"))
 }
 
 func TestGitFS_Clone(t *testing.T) {
