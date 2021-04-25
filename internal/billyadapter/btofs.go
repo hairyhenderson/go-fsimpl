@@ -58,14 +58,6 @@ func (f *billyFS) Open(name string) (fs.File, error) {
 	return file, nil
 }
 
-// func (f *billyFS) Sub(name string) (fs.FS, error) {
-// 	return nil, nil
-// }
-
-// func (f *billyFS) ReadFile(name string) ([]byte, error) {
-// 	return nil, nil
-// }
-
 func (f *billyFS) ReadDir(name string) ([]fs.DirEntry, error) {
 	if !fs.ValidPath(name) {
 		return nil, &fs.PathError{Op: "readdir", Path: name, Err: fs.ErrInvalid}

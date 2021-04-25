@@ -115,6 +115,10 @@ func (f *gitFS) Open(name string) (fs.File, error) {
 }
 
 func (f *gitFS) ReadDir(name string) ([]fs.DirEntry, error) {
+	if !fs.ValidPath(name) {
+		return nil, &fs.PathError{Op: "readdir", Path: name, Err: fs.ErrInvalid}
+	}
+
 	fsys, err := f.clone()
 	if err != nil {
 		return nil, fmt.Errorf("readdir: failed to clone: %w", err)
