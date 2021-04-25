@@ -158,32 +158,6 @@ Instead of using a non-authenticated Consul connection, you can authenticate wit
 - `consul:///foo/` - filesystem that accesses the server running at
     `http://localhost:8500`, making only keys prefixed by `/foo/` available.
 
-
-### `env`
-
-The _env_ filesystem provides access to environment variable values as a virtual
-filesystem. Hierarchy semantics are optionally provided by using the underscore
-(`_`) as a path separator.
-
-The _scheme_, _path_, and _query_ components are used by this filesystem.
-
-- _scheme_ must be `env`
-- _path_ is optional, and if specified will be interpreted as the prefix to
-    use for variables. The character `_` will be placed between the root prefix
-    and names.
-- _query_ can be used to provide parameters to configure the filesystem:
-  - `hier`: enable hierarchy semantics. Disabled by default. If set to `true`,
-    variable names like `foo_bar_baz` will be interpreted as a path like
-    `/foo/bar/baz`. The filesystem will need to be walked to discover all names
-    in this mode.
-
-#### Examples
-
-- `env:///` - provides access to all environment variables (reading the file
-    `env:///USER` returns the value of `$USER`)
-- `env:///CONSUL` - provides access to only environment variables that begin
-    with `CONSUL_`
-
 ### `file`
 
 The _scheme_ and _path_ components are used by this filesystem.
