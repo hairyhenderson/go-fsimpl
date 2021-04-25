@@ -39,4 +39,10 @@ func TestLookupFS(t *testing.T) {
 	assert.IsType(t, &httpFS{}, fsys)
 	assert.Equal(t, "example.com", fsys.(*httpFS).base.Host)
 	assert.Equal(t, "/path", fsys.(*httpFS).base.Path)
+
+	fsys, err = LookupFS("git+ssh://localhost:1234/foo/bar.git//baz#refs/tags/foo")
+	assert.NoError(t, err)
+	assert.IsType(t, &gitFS{}, fsys)
+	assert.Equal(t, "ssh", fsys.(*gitFS).repo.Scheme)
+	assert.Equal(t, "/baz", fsys.(*gitFS).root)
 }

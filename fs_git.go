@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io/fs"
-	"net/http"
 	"net/url"
 	"path"
 	"strings"
@@ -16,7 +15,6 @@ import (
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/transport"
-	"github.com/go-git/go-git/v5/plumbing/transport/client"
 	githttp "github.com/go-git/go-git/v5/plumbing/transport/http"
 	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
 	"github.com/go-git/go-git/v5/storage/memory"
@@ -25,9 +23,7 @@ import (
 )
 
 type gitFS struct {
-	ctx     context.Context
-	client  *http.Client
-	headers http.Header
+	ctx context.Context
 
 	repofs fs.FS
 
@@ -36,13 +32,15 @@ type gitFS struct {
 }
 
 // GitFS provides a file system (an fs.FS) for the git repository indicated by
-// the given URL. Valid schemes are "git", "git+file", "git+http", "git+https",
-// "git+ssh", "file", "http", "https", and "ssh".
+// the given URL. Valid schemes are "git", "file", "http", "https", "ssh", and
+// the same prefixed with "git+" (e.g. "git+ssh://...")
 //
 // A context can be given by using WithContextFS.
-// HTTP Headers can be provided by using WithHeaderFS.
 func GitFS(base *url.URL) fs.FS {
 	repoURL := *base
+
+	repoURL.Scheme = strings.TrimPrefix(repoURL.Scheme, "git+")
+
 	repoPath, root := splitRepoPath(repoURL.Path)
 	repoURL.Path = repoPath
 
@@ -51,11 +49,9 @@ func GitFS(base *url.URL) fs.FS {
 	}
 
 	return &gitFS{
-		ctx:     context.Background(),
-		client:  http.DefaultClient,
-		repo:    &repoURL,
-		root:    root,
-		headers: http.Header{},
+		ctx:  context.Background(),
+		repo: &repoURL,
+		root: root,
 	}
 }
 
@@ -63,34 +59,11 @@ var (
 	_ fs.FS         = (*gitFS)(nil)
 	_ fs.ReadDirFS  = (*gitFS)(nil)
 	_ withContexter = (*gitFS)(nil)
-	_ withHeaderer  = (*gitFS)(nil)
 )
-
-func (f gitFS) WithHTTPClient(client *http.Client) fs.FS {
-	fsys := f
-	fsys.client = client
-
-	return &fsys
-}
 
 func (f gitFS) WithContext(ctx context.Context) fs.FS {
 	fsys := f
 	fsys.ctx = ctx
-
-	return &fsys
-}
-
-func (f gitFS) WithHeader(headers http.Header) fs.FS {
-	fsys := f
-	if len(fsys.headers) == 0 {
-		fsys.headers = headers
-	} else {
-		for k, vs := range fsys.headers {
-			for _, v := range vs {
-				fsys.headers.Add(k, v)
-			}
-		}
-	}
 
 	return &fsys
 }
@@ -107,14 +80,10 @@ func validPath(p string) string {
 func (f *gitFS) clone() (fs.FS, error) {
 	if f.repofs == nil {
 		depth := 1
-		if f.repo.Scheme == "git+file" {
+		if f.repo.Scheme == schemeFile {
 			// we can't do shallow clones for filesystem repos apparently
 			depth = 0
 		}
-
-		hc := githttp.NewClient(f.client)
-		client.InstallProtocol("http", hc)
-		client.InstallProtocol("https", hc)
 
 		bfs, _, err := gitClone(f.ctx, *f.repo, depth)
 		if err != nil {
@@ -196,11 +165,6 @@ func gitClone(ctx context.Context, repoURL url.URL, depth int) (billy.Filesystem
 		return nil, nil, err
 	}
 
-	if strings.HasPrefix(u.Scheme, "git+") {
-		scheme := u.Scheme[len("git+"):]
-		u.Scheme = scheme
-	}
-
 	ref := refFromURL(u)
 	u.Fragment = ""
 	u.RawQuery = ""
@@ -221,7 +185,7 @@ func gitClone(ctx context.Context, repoURL url.URL, depth int) (billy.Filesystem
 
 	repo, err := git.CloneContext(ctx, storer, bfs, &opts)
 
-	if u.Scheme == "file" && err == transport.ErrRepositoryNotFound && !strings.HasSuffix(u.Path, ".git") {
+	if u.Scheme == schemeFile && err == transport.ErrRepositoryNotFound && !strings.HasSuffix(u.Path, ".git") {
 		// maybe this has a `.git` subdirectory...
 		u = repoURL
 		u.Path = path.Join(u.Path, ".git")
@@ -243,12 +207,14 @@ auth methods:
 - ssh agent auth (preferred)
 - http basic auth (for github, gitlab, bitbucket tokens)
 - http token auth (bearer token, somewhat unusual)
+
+scheme be stripped of any 'git+' prefix.
 */
 func auth(u url.URL) (transport.AuthMethod, error) {
 	user := u.User.Username()
 
 	switch u.Scheme {
-	case "git+http", "git+https":
+	case schemeHTTP, schemeHTTPS:
 		var auth transport.AuthMethod
 		if pass, ok := u.User.Password(); ok {
 			auth = &githttp.BasicAuth{Username: user, Password: pass}
@@ -260,7 +226,7 @@ func auth(u url.URL) (transport.AuthMethod, error) {
 		}
 
 		return auth, nil
-	case "git+ssh":
+	case schemeSSH:
 		k := env.Getenv("GIT_SSH_KEY")
 		if k != "" {
 			key, err := base64.StdEncoding.DecodeString(k)
@@ -272,9 +238,9 @@ func auth(u url.URL) (transport.AuthMethod, error) {
 		}
 
 		return ssh.NewSSHAgentAuth(user)
-	case "git", "git+file":
+	case schemeGit, schemeFile:
 		return nil, nil
 	default:
-		return nil, fmt.Errorf("auth: unsupported scheme %q", u.Scheme)
+		return nil, fmt.Errorf("unsupported scheme %q", u.Scheme)
 	}
 }

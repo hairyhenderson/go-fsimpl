@@ -6,6 +6,19 @@ import (
 	"net/url"
 )
 
+// constants for supported URL schemes
+const (
+	schemeFile     = "file"
+	schemeHTTP     = "http"
+	schemeHTTPS    = "https"
+	schemeGit      = "git"
+	schemeGitFile  = "git+file"
+	schemeGitHTTP  = "git+http"
+	schemeGitHTTPS = "git+https"
+	schemeGitSSH   = "git+ssh"
+	schemeSSH      = "ssh"
+)
+
 // LookupFS returns an appropriate filesystem implementation for the given URL.
 // If a filesystem can't be found for the provided URL's scheme, an error will
 // be returned.
@@ -22,13 +35,14 @@ func LookupFS(u string) (fs.FS, error) {
 	case "aws+sm":
 	case "boltdb":
 	case "consul", "consul+http", "consul+https":
-	case "file":
+	case schemeFile:
 		return FileFS(base.Path), nil
-	case "http", "https":
+	case schemeHTTP, schemeHTTPS:
 		return HTTPFS(base), nil
 	case "vault", "vault+http", "vault+https":
 	case "s3", "gs":
-	case "git", "git+file", "git+http", "git+https", "git+ssh":
+	case schemeGit, schemeGitFile, schemeGitHTTP, schemeGitHTTPS, schemeGitSSH:
+		return GitFS(base), nil
 	default:
 		return nil, fmt.Errorf("no filesystem available for scheme %q", base.Scheme)
 	}

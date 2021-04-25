@@ -210,7 +210,7 @@ func TestGitFS_Clone(t *testing.T) {
 	ctx := context.Background()
 	testHashes := setupGitRepo(t)
 
-	fsys, _, err := gitClone(ctx, mustParseURL("git+file:///repo"), 0)
+	fsys, _, err := gitClone(ctx, mustParseURL("file:///repo"), 0)
 	assert.NoError(t, err)
 
 	f, err := fsys.Open("/foo/bar/hi.txt")
@@ -219,21 +219,21 @@ func TestGitFS_Clone(t *testing.T) {
 	b, _ := io.ReadAll(f)
 	assert.Equal(t, "hello world", string(b))
 
-	_, repo, err := gitClone(ctx, mustParseURL("git+file:///repo#master"), 0)
+	_, repo, err := gitClone(ctx, mustParseURL("file:///repo#master"), 0)
 	assert.NoError(t, err)
 
 	ref, err := repo.Reference(plumbing.NewBranchReferenceName("master"), true)
 	assert.NoError(t, err)
 	assert.Equal(t, "refs/heads/master", ref.Name().String())
 
-	_, repo, err = gitClone(ctx, mustParseURL("git+file:///repo#refs/tags/v1"), 0)
+	_, repo, err = gitClone(ctx, mustParseURL("file:///repo#refs/tags/v1"), 0)
 	assert.NoError(t, err)
 
 	ref, err = repo.Head()
 	assert.NoError(t, err)
 	assert.Equal(t, testHashes["v1"], ref.Hash().String())
 
-	_, repo, err = gitClone(ctx, mustParseURL("git+file:///repo/#mybranch"), 0)
+	_, repo, err = gitClone(ctx, mustParseURL("file:///repo/#mybranch"), 0)
 	assert.NoError(t, err)
 
 	ref, err = repo.Head()
@@ -246,7 +246,7 @@ func TestGitFS_Clone_BareFileRepo(t *testing.T) {
 	ctx := context.Background()
 	_ = setupGitRepo(t)
 
-	fsys, _, err := gitClone(ctx, mustParseURL("git+file:///bare.git"), 0)
+	fsys, _, err := gitClone(ctx, mustParseURL("file:///bare.git"), 0)
 	assert.NoError(t, err)
 
 	f, err := fsys.Open("/hello.txt")
@@ -294,22 +294,22 @@ func TestGitFS_ReadDir(t *testing.T) {
 
 //nolint:funlen
 func TestGitFS_Auth(t *testing.T) {
-	a, err := auth(mustParseURL("git+file:///bare.git"))
+	a, err := auth(mustParseURL("file:///bare.git"))
 	assert.NoError(t, err)
 	assert.Equal(t, nil, a)
 
-	a, err = auth(mustParseURL("git+https://example.com/foo"))
+	a, err = auth(mustParseURL("https://example.com/foo"))
 	assert.NoError(t, err)
 	assert.Nil(t, a)
 
-	a, err = auth(mustParseURL("git+https://user:swordfish@example.com/foo"))
+	a, err = auth(mustParseURL("https://user:swordfish@example.com/foo"))
 	assert.NoError(t, err)
 	assert.EqualValues(t, &http.BasicAuth{Username: "user", Password: "swordfish"}, a)
 
 	os.Setenv("GIT_HTTP_PASSWORD", "swordfish")
 	defer os.Unsetenv("GIT_HTTP_PASSWORD")
 
-	a, err = auth(mustParseURL("git+https://user@example.com/foo"))
+	a, err = auth(mustParseURL("https://user@example.com/foo"))
 	assert.NoError(t, err)
 	assert.EqualValues(t, &http.BasicAuth{Username: "user", Password: "swordfish"}, a)
 	os.Unsetenv("GIT_HTTP_PASSWORD")
@@ -317,7 +317,7 @@ func TestGitFS_Auth(t *testing.T) {
 	os.Setenv("GIT_HTTP_TOKEN", "mytoken")
 	defer os.Unsetenv("GIT_HTTP_TOKEN")
 
-	a, err = auth(mustParseURL("git+https://user@example.com/foo"))
+	a, err = auth(mustParseURL("https://user@example.com/foo"))
 	assert.NoError(t, err)
 	assert.EqualValues(t, &http.TokenAuth{Token: "mytoken"}, a)
 	os.Unsetenv("GIT_HTTP_TOKEN")
@@ -325,7 +325,7 @@ func TestGitFS_Auth(t *testing.T) {
 	if os.Getenv("SSH_AUTH_SOCK") == "" {
 		t.Log("no SSH_AUTH_SOCK - skipping ssh agent test")
 	} else {
-		a, err = auth(mustParseURL("git+ssh://git@example.com/foo"))
+		a, err = auth(mustParseURL("ssh://git@example.com/foo"))
 		assert.NoError(t, err)
 		sa, ok := a.(*ssh.PublicKeysCallback)
 		assert.Equal(t, true, ok)
@@ -337,7 +337,7 @@ func TestGitFS_Auth(t *testing.T) {
 	os.Setenv("GIT_SSH_KEY", key)
 	defer os.Unsetenv("GIT_SSH_KEY")
 
-	a, err = auth(mustParseURL("git+ssh://git@example.com/foo"))
+	a, err = auth(mustParseURL("ssh://git@example.com/foo"))
 	assert.NoError(t, err)
 
 	ka, ok := a.(*ssh.PublicKeys)
@@ -350,7 +350,7 @@ func TestGitFS_Auth(t *testing.T) {
 	os.Setenv("GIT_SSH_KEY", key)
 	defer os.Unsetenv("GIT_SSH_KEY")
 
-	a, err = auth(mustParseURL("git+ssh://git@example.com/foo"))
+	a, err = auth(mustParseURL("ssh://git@example.com/foo"))
 	assert.NoError(t, err)
 
 	ka, ok = a.(*ssh.PublicKeys)
@@ -366,8 +366,8 @@ func TestGitFS_RefFromURL(t *testing.T) {
 		url, expected string
 	}{
 		{"git://localhost:1234/foo/bar.git//baz", ""},
-		{"git+http://localhost:1234/foo/bar.git//baz", ""},
-		{"git+ssh://localhost:1234/foo/bar.git//baz", ""},
+		{"http://localhost:1234/foo/bar.git//baz", ""},
+		{"ssh://localhost:1234/foo/bar.git//baz", ""},
 		{"git+file:///foo/bar.git//baz", ""},
 		{"git://localhost:1234/foo/bar.git//baz#master", "refs/heads/master"},
 		{"git+http://localhost:1234/foo/bar.git//baz#mybranch", "refs/heads/mybranch"},
