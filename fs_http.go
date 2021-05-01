@@ -132,13 +132,13 @@ type httpFile struct {
 
 	body io.ReadCloser
 
-	fi httpFileInfo
+	fi staticFileInfo
 }
 
 var (
 	_ fs.File             = (*httpFile)(nil)
-	_ fs.FileInfo         = (*httpFileInfo)(nil)
-	_ contentTypeFileInfo = (*httpFileInfo)(nil)
+	_ fs.FileInfo         = (*staticFileInfo)(nil)
+	_ contentTypeFileInfo = (*staticFileInfo)(nil)
 )
 
 func (f *httpFile) request(method string) (io.ReadCloser, error) {
@@ -154,6 +154,7 @@ func (f *httpFile) request(method string) (io.ReadCloser, error) {
 		return nil, err
 	}
 
+	f.fi.mode = 0o644
 	f.fi.name = f.name
 	f.fi.size = resp.ContentLength
 
@@ -205,17 +206,25 @@ func (f *httpFile) Stat() (fs.FileInfo, error) {
 	return &f.fi, nil
 }
 
-type httpFileInfo struct {
+type staticFileInfo struct {
 	modTime     time.Time
 	name        string
 	contentType string
 	size        int64
+	mode        fs.FileMode
 }
 
-func (fi httpFileInfo) ContentType() string { return fi.contentType }
-func (fi httpFileInfo) IsDir() bool         { return fi.Mode().IsDir() }
-func (fi httpFileInfo) Mode() fs.FileMode   { return 0o644 }
-func (fi httpFileInfo) ModTime() time.Time  { return fi.modTime }
-func (fi httpFileInfo) Name() string        { return fi.name }
-func (fi httpFileInfo) Size() int64         { return fi.size }
-func (fi httpFileInfo) Sys() interface{}    { return nil }
+var (
+	_ fs.FileInfo = (*staticFileInfo)(nil)
+	_ fs.DirEntry = (*staticFileInfo)(nil)
+)
+
+func (fi staticFileInfo) ContentType() string         { return fi.contentType }
+func (fi staticFileInfo) IsDir() bool                 { return fi.Mode().IsDir() }
+func (fi staticFileInfo) Mode() fs.FileMode           { return fi.mode }
+func (fi *staticFileInfo) ModTime() time.Time         { return fi.modTime }
+func (fi staticFileInfo) Name() string                { return fi.name }
+func (fi staticFileInfo) Size() int64                 { return fi.size }
+func (fi staticFileInfo) Sys() interface{}            { return nil }
+func (fi *staticFileInfo) Info() (fs.FileInfo, error) { return fi, nil }
+func (fi staticFileInfo) Type() fs.FileMode           { return fi.Mode().Type() }
