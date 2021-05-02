@@ -280,12 +280,16 @@ filesystem.
 
 #### Authentication
 
-All `gs` datasources need credentials, provided by the
+Most `gs` buckets need credentials, provided by the
 `GOOGLE_APPLICATION_CREDENTIALS` environment variable. This should point to an
 authentication configuration JSON file.
 
 See Google Cloud's [Getting Started with Authentication](https://cloud.google.com/docs/authentication/getting-started) 
 documentation for details.
+
+Some buckets can be accessed anonymously. To do this, set the `GOOGLE_ANON`
+environment variable to `true`. Note that this is a non-standard environment
+variable, unique to this module.
 
 #### Examples
 

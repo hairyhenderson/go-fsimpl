@@ -47,9 +47,9 @@ Here's the list of planned filesystem support, along with status:
 | [`consul`, `consul+http`, `consul+https`](./url_schemes.md#consul) | [HashiCorp Consul][] | |
 | [`file`](./url_schemes.md#file) | local filesystem | ✅ |
 | [`git`, `git+file`, `git+http`, `git+https`, `git+ssh`](./url_schemes.md#git) | local/remote git repository | ✅ |
-| [`gs`](./url_schemes.md#gs) | [Google Cloud Storage][] | |
+| [`gs`](./url_schemes.md#gs) | [Google Cloud Storage][] | ✅ |
 | [`http`, `https`](./url_schemes.md#http) | HTTP server | ✅ |
-| [`s3`](./url_schemes.md#s3) | [Amazon S3][] | |
+| [`s3`](./url_schemes.md#s3) | [Amazon S3][] | ✅ |
 | [`vault`, `vault+http`, `vault+https`](./url_schemes.md#vault) | [HashiCorp Vault][] | |
 
 See [`url_schemes.md`](./url_schemes.md) for more details on each scheme.
