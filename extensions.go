@@ -37,6 +37,20 @@ func WithHeaderFS(headers http.Header, fsys fs.FS) fs.FS {
 	return fsys
 }
 
+type withHTTPClienter interface {
+	WithHTTPClient(client *http.Client) fs.FS
+}
+
+// WithHTTPClientFS injects an HTTP client into the filesystem fs, if the
+// filesystem supports it (i.e. has a WithHTTPClient method).
+func WithHTTPClientFS(client *http.Client, fsys fs.FS) fs.FS {
+	if cfsys, ok := fsys.(withHTTPClienter); ok {
+		return cfsys.WithHTTPClient(client)
+	}
+
+	return fsys
+}
+
 // common types we want to be able to handle which can be missing by default
 //nolint:gochecknoglobals
 var (

@@ -11,11 +11,13 @@ const (
 	schemeFile     = "file"
 	schemeHTTP     = "http"
 	schemeHTTPS    = "https"
+	schemeGCS      = "gs"
 	schemeGit      = "git"
 	schemeGitFile  = "git+file"
 	schemeGitHTTP  = "git+http"
 	schemeGitHTTPS = "git+https"
 	schemeGitSSH   = "git+ssh"
+	schemeS3       = "s3"
 	schemeSSH      = "ssh"
 )
 
@@ -40,7 +42,8 @@ func LookupFS(u string) (fs.FS, error) {
 	case schemeHTTP, schemeHTTPS:
 		return HTTPFS(base), nil
 	case "vault", "vault+http", "vault+https":
-	case "s3", "gs":
+	case schemeS3, schemeGCS:
+		return BlobFS(base)
 	case schemeGit, schemeGitFile, schemeGitHTTP, schemeGitHTTPS, schemeGitSSH:
 		return GitFS(base), nil
 	default:
