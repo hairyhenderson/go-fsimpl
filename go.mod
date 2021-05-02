@@ -3,6 +3,7 @@ module github.com/hairyhenderson/go-fsimpl
 go 1.16
 
 require (
+	github.com/Azure/azure-storage-blob-go v0.13.0
 	github.com/aws/aws-sdk-go v1.36.1
 	github.com/fsouza/fake-gcs-server v1.24.0
 	github.com/go-git/go-billy/v5 v5.2.0

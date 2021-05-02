@@ -45,4 +45,22 @@ func TestLookupFS(t *testing.T) {
 	assert.IsType(t, &gitFS{}, fsys)
 	assert.Equal(t, "ssh", fsys.(*gitFS).repo.Scheme)
 	assert.Equal(t, "/baz", fsys.(*gitFS).root)
+
+	fsys, err = LookupFS("s3://foo/bar")
+	assert.NoError(t, err)
+	assert.IsType(t, &blobFS{}, fsys)
+	assert.Equal(t, "s3", fsys.(*blobFS).base.Scheme)
+	assert.Equal(t, "bar", fsys.(*blobFS).root)
+
+	fsys, err = LookupFS("gs://baz/qux")
+	assert.NoError(t, err)
+	assert.IsType(t, &blobFS{}, fsys)
+	assert.Equal(t, "gs", fsys.(*blobFS).base.Scheme)
+	assert.Equal(t, "qux", fsys.(*blobFS).root)
+
+	fsys, err = LookupFS("azblob://quux/corge")
+	assert.NoError(t, err)
+	assert.IsType(t, &blobFS{}, fsys)
+	assert.Equal(t, "azblob", fsys.(*blobFS).base.Scheme)
+	assert.Equal(t, "corge", fsys.(*blobFS).root)
 }
