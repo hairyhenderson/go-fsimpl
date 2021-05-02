@@ -4,20 +4,25 @@ import (
 	"fmt"
 	"io/fs"
 	"net/url"
+
+	"gocloud.dev/blob/azureblob"
+	"gocloud.dev/blob/gcsblob"
+	"gocloud.dev/blob/s3blob"
 )
 
 // constants for supported URL schemes
 const (
+	schemeAzBlob   = azureblob.Scheme
 	schemeFile     = "file"
 	schemeHTTP     = "http"
 	schemeHTTPS    = "https"
-	schemeGCS      = "gs"
+	schemeGCS      = gcsblob.Scheme
 	schemeGit      = "git"
 	schemeGitFile  = "git+file"
 	schemeGitHTTP  = "git+http"
 	schemeGitHTTPS = "git+https"
 	schemeGitSSH   = "git+ssh"
-	schemeS3       = "s3"
+	schemeS3       = s3blob.Scheme
 	schemeSSH      = "ssh"
 )
 
@@ -42,7 +47,7 @@ func LookupFS(u string) (fs.FS, error) {
 	case schemeHTTP, schemeHTTPS:
 		return HTTPFS(base), nil
 	case "vault", "vault+http", "vault+https":
-	case schemeS3, schemeGCS:
+	case schemeS3, schemeGCS, schemeAzBlob:
 		return BlobFS(base)
 	case schemeGit, schemeGitFile, schemeGitHTTP, schemeGitHTTPS, schemeGitSSH:
 		return GitFS(base), nil

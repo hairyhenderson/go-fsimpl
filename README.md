@@ -43,7 +43,7 @@ Here's the list of planned filesystem support, along with status:
 |-----------|-------------|:----------:|
 | [`aws+sm`](./url_schemes.md#awssm) | [AWS Secrets Manager][] | |
 | [`aws+smp`](./url_schemes.md#awssmp) | [AWS Systems Manager Parameter Store][AWS SMP] | |
-| [`azblob`](./url_schemes.md#azblob) | [Azure Blob Storage][] | |
+| [`azblob`](./url_schemes.md#azblob) | [Azure Blob Storage][] | ✅ |
 | [`consul`, `consul+http`, `consul+https`](./url_schemes.md#consul) | [HashiCorp Consul][] | |
 | [`file`](./url_schemes.md#file) | local filesystem | ✅ |
 | [`git`, `git+file`, `git+http`, `git+https`, `git+ssh`](./url_schemes.md#git) | local/remote git repository | ✅ |

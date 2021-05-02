@@ -12,11 +12,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Azure/azure-storage-blob-go/azblob"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/hairyhenderson/go-fsimpl/internal/env"
 	"gocloud.dev/blob"
+	"gocloud.dev/blob/azureblob"
 	"gocloud.dev/blob/gcsblob"
 	"gocloud.dev/blob/s3blob"
 	"gocloud.dev/gcerrors"
@@ -42,7 +44,9 @@ var fakeModTime *time.Time
 // A context can be given by using WithContextFS.
 func BlobFS(base *url.URL) (fs.FS, error) {
 	switch base.Scheme {
-	case schemeS3, schemeGCS:
+	// we use these constants instead of the scheme* ones to pull in
+	// non-anonymous imports
+	case s3blob.Scheme, gcsblob.Scheme, azureblob.Scheme:
 	default:
 		return nil, fmt.Errorf("invalid URL scheme %q", base.Scheme)
 	}
@@ -197,6 +201,24 @@ func (f *blobFS) newOpener(ctx context.Context, scheme string) (opener blob.Buck
 		}
 
 		return &gcsblob.URLOpener{Client: client}, nil
+	case schemeAzBlob:
+		return blob.DefaultURLMux(), nil
+		// accountName, _ := azureblob.DefaultAccountName()
+		// accountKey, _ := azureblob.DefaultAccountKey()
+
+		// azureblob.DefaultProtocol()
+
+		// cred, err := azureblob.NewCredential(accountName, accountKey)
+		// if err != nil {
+		// 	return nil, err
+		// }
+
+		// pipeline := azureblob.NewPipeline(cred, azblob.PipelineOptions{})
+
+		// return &azureblob.URLOpener{
+		// 	AccountName: accountName,
+		// 	Pipeline:    pipeline,
+		// }, nil
 	default:
 		return nil, fmt.Errorf("unsupported scheme: %s", scheme)
 	}
@@ -222,13 +244,30 @@ func (f *blobFS) initS3Session() *session.Session {
 // copy/sanitize the URL for the Go CDK - it doesn't like params it can't parse
 func cleanCdkURL(u url.URL) url.URL {
 	switch u.Scheme {
-	case "s3":
+	case schemeS3:
 		return cleanS3URL(u)
-	case "gs":
+	case schemeGCS:
 		return cleanGSURL(u)
+	case schemeAzBlob:
+		return cleanAzBlobURL(u)
 	default:
 		return u
 	}
+}
+
+func cleanAzBlobURL(u url.URL) url.URL {
+	q := u.Query()
+	for param := range q {
+		switch param {
+		case "domain":
+		default:
+			q.Del(param)
+		}
+	}
+
+	u.RawQuery = q.Encode()
+
+	return u
 }
 
 func cleanGSURL(u url.URL) url.URL {
@@ -323,7 +362,15 @@ func (f *blobFile) Stat() (fs.FileInfo, error) {
 		return nil, err
 	}
 
-	fi := createFileInfo(f.name, out.Size, 0o644, out.ModTime, out.ContentType)
+	mode := fs.FileMode(0o644)
+
+	azResp := azblob.BlobGetPropertiesResponse{}
+	if out.As(&azResp) && azResp.ContentType() == "" {
+		// this is likely a directory
+		mode = fs.ModeDir
+	}
+
+	fi := createFileInfo(f.name, out.Size, mode, out.ModTime, out.ContentType)
 
 	if fakeModTime != nil {
 		fi.modTime = *fakeModTime
@@ -393,6 +440,13 @@ func (f *blobFile) ReadDir(n int) ([]fs.DirEntry, error) {
 		mode := fs.FileMode(0o644)
 		if obj.IsDir {
 			mode = fs.ModeDir
+		}
+
+		// azblob.BlobItemInternal for objects, azblob.BlobPrefix for "directories"
+		azItem := azblob.BlobItemInternal{}
+		if obj.As(&azItem) && (azItem.Properties.ContentType == nil || *azItem.Properties.ContentType == "") {
+			// this is likely a directory, so ignore it
+			continue
 		}
 
 		name := strings.TrimSuffix(path.Base(obj.Key), "/")

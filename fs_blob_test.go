@@ -161,6 +161,48 @@ func TestBlobFS_GCS(t *testing.T) {
 		"file3", "file4", "sub1/subfile1", "sub1/subfile2"))
 }
 
+func TestBlobFS_Azure(t *testing.T) {
+	t.Skip("Only run this locally for now")
+
+	ft := time.Now()
+	fakeModTime = &ft
+
+	defer func() { fakeModTime = nil }()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+
+	defer cancel()
+
+	os.Setenv("AZURE_STORAGE_ACCOUNT", "azureopendatastorage")
+
+	u, _ := url.Parse("azblob://citydatacontainer/Crime/Processed/2020/1/20/")
+	fsys, err := BlobFS(u)
+	assert.NoError(t, err)
+
+	fsys = WithContextFS(ctx, fsys)
+
+	des, err := fs.ReadDir(fsys, ".")
+	assert.NoError(t, err)
+
+	t.Logf("entries: %d", len(des))
+
+	for _, de := range des {
+		if de.IsDir() {
+			t.Logf("%s/", de.Name())
+		} else {
+			fi, err := de.Info()
+			assert.NoError(t, err)
+
+			t.Logf("%s - %d - %v", de.Name(), fi.Size(), fi.ModTime())
+		}
+	}
+
+	t.Fail()
+
+	assert.NoError(t, fstest.TestFS(fsys,
+		"Boston", "Chicago", "NewYorkCity", "SanFrancisco", "Seattle"))
+}
+
 func TestBlobFS_ReadDir(t *testing.T) {
 	srvURL := setupTestS3Bucket(t)
 
