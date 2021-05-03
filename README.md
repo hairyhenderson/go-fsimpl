@@ -87,7 +87,9 @@ import (
 )
 
 func main() {
-	fsys, err := fsimpl.LookupFS("https://example.com")
+	// for example, a URL that points to a subdirectory at a specific tag in a
+	// given git repo, hosted on GitHub and authenticated with SSH...
+	fsys, err := fsimpl.LookupFS("git+ssh://github.com/foo/bar.git//baz#refs/tags/v1.0.0")
 	if err != nil {
 		log.Fatal(err)
 	}
