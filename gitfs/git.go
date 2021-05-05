@@ -1,4 +1,4 @@
-package fsimpl
+package gitfs
 
 import (
 	"context"
@@ -18,6 +18,8 @@ import (
 	githttp "github.com/go-git/go-git/v5/plumbing/transport/http"
 	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
 	"github.com/go-git/go-git/v5/storage/memory"
+	"github.com/hairyhenderson/go-fsimpl"
+	"github.com/hairyhenderson/go-fsimpl/internal"
 	"github.com/hairyhenderson/go-fsimpl/internal/billyadapter"
 	"github.com/hairyhenderson/go-fsimpl/internal/env"
 )
@@ -31,13 +33,13 @@ type gitFS struct {
 	root string
 }
 
-// GitFS provides a file system (an fs.FS) for the git repository indicated by
+// New provides a filesystem (an fs.FS) for the git repository indicated by
 // the given URL. Valid schemes are "git", "file", "http", "https", "ssh", and
 // the same prefixed with "git+" (e.g. "git+ssh://...")
 //
 // A context can be given by using WithContextFS.
-func GitFS(base *url.URL) fs.FS {
-	repoURL := *base
+func New(u *url.URL) (fs.FS, error) {
+	repoURL := *u
 
 	repoURL.Scheme = strings.TrimPrefix(repoURL.Scheme, "git+")
 
@@ -52,13 +54,18 @@ func GitFS(base *url.URL) fs.FS {
 		ctx:  context.Background(),
 		repo: &repoURL,
 		root: root,
-	}
+	}, nil
 }
 
+// FS is used to register this filesystem with an fsimpl.FSMux
+//
+//nolint:gochecknoglobals
+var FS = fsimpl.FSProviderFunc(New, "git", "git+file", "git+http", "git+https", "git+ssh")
+
 var (
-	_ fs.FS         = (*gitFS)(nil)
-	_ fs.ReadDirFS  = (*gitFS)(nil)
-	_ withContexter = (*gitFS)(nil)
+	_ fs.FS                  = (*gitFS)(nil)
+	_ fs.ReadDirFS           = (*gitFS)(nil)
+	_ internal.WithContexter = (*gitFS)(nil)
 )
 
 func (f gitFS) WithContext(ctx context.Context) fs.FS {
@@ -80,7 +87,7 @@ func validPath(p string) string {
 func (f *gitFS) clone() (fs.FS, error) {
 	if f.repofs == nil {
 		depth := 1
-		if f.repo.Scheme == schemeFile {
+		if f.repo.Scheme == "file" {
 			// we can't do shallow clones for filesystem repos apparently
 			depth = 0
 		}
@@ -189,7 +196,7 @@ func gitClone(ctx context.Context, repoURL url.URL, depth int) (billy.Filesystem
 
 	repo, err := git.CloneContext(ctx, storer, bfs, &opts)
 
-	if u.Scheme == schemeFile && err == transport.ErrRepositoryNotFound && !strings.HasSuffix(u.Path, ".git") {
+	if u.Scheme == "file" && err == transport.ErrRepositoryNotFound && !strings.HasSuffix(u.Path, ".git") {
 		// maybe this has a `.git` subdirectory...
 		u = repoURL
 		u.Path = path.Join(u.Path, ".git")
@@ -218,7 +225,7 @@ func auth(u url.URL) (transport.AuthMethod, error) {
 	user := u.User.Username()
 
 	switch u.Scheme {
-	case schemeHTTP, schemeHTTPS:
+	case "http", "https":
 		var auth transport.AuthMethod
 		if pass, ok := u.User.Password(); ok {
 			auth = &githttp.BasicAuth{Username: user, Password: pass}
@@ -230,7 +237,7 @@ func auth(u url.URL) (transport.AuthMethod, error) {
 		}
 
 		return auth, nil
-	case schemeSSH:
+	case "ssh":
 		k := env.Getenv("GIT_SSH_KEY")
 		if k != "" {
 			key, err := base64.StdEncoding.DecodeString(k)
@@ -242,7 +249,7 @@ func auth(u url.URL) (transport.AuthMethod, error) {
 		}
 
 		return ssh.NewSSHAgentAuth(user)
-	case schemeGit, schemeFile:
+	case "git", "file":
 		return nil, nil
 	default:
 		return nil, fmt.Errorf("unsupported scheme %q", u.Scheme)

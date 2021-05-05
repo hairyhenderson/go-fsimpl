@@ -1,6 +1,7 @@
-package fsimpl
+package filefs
 
 import (
+	"net/url"
 	"testing"
 	"testing/fstest"
 
@@ -23,7 +24,7 @@ func setupFileSystem(t *testing.T) *fs.Dir {
 func TestFileFS(t *testing.T) {
 	tmpDir := setupFileSystem(t)
 
-	fsys := FileFS(tmpDir.Path())
+	fsys, _ := New(&url.URL{Path: tmpDir.Path()})
 
 	err := fstest.TestFS(fsys, "hello.txt", "sub/subfile.txt")
 	assert.NoError(t, err)

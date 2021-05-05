@@ -7,44 +7,35 @@ import (
 	"net/http"
 	"path/filepath"
 	"sync"
+
+	"github.com/hairyhenderson/go-fsimpl/internal"
 )
 
-type withContexter interface {
-	WithContext(ctx context.Context) fs.FS
-}
-
 // WithContextFS injects a context into the filesystem fs, if the filesystem
-// supports it (i.e. has a WithContext method).
+// supports it (i.e. has a WithContext method). This can be used to propagate
+// cancellation.
 func WithContextFS(ctx context.Context, fsys fs.FS) fs.FS {
-	if cfsys, ok := fsys.(withContexter); ok {
+	if cfsys, ok := fsys.(internal.WithContexter); ok {
 		return cfsys.WithContext(ctx)
 	}
 
 	return fsys
 }
 
-type withHeaderer interface {
-	WithHeader(headers http.Header) fs.FS
-}
-
 // WithHeaderFS injects a context into the filesystem fs, if the filesystem
 // supports it (i.e. has a WithHeader method).
 func WithHeaderFS(headers http.Header, fsys fs.FS) fs.FS {
-	if cfsys, ok := fsys.(withHeaderer); ok {
+	if cfsys, ok := fsys.(internal.WithHeaderer); ok {
 		return cfsys.WithHeader(headers)
 	}
 
 	return fsys
 }
 
-type withHTTPClienter interface {
-	WithHTTPClient(client *http.Client) fs.FS
-}
-
 // WithHTTPClientFS injects an HTTP client into the filesystem fs, if the
 // filesystem supports it (i.e. has a WithHTTPClient method).
 func WithHTTPClientFS(client *http.Client, fsys fs.FS) fs.FS {
-	if cfsys, ok := fsys.(withHTTPClienter); ok {
+	if cfsys, ok := fsys.(internal.WithHTTPClienter); ok {
 		return cfsys.WithHTTPClient(client)
 	}
 
@@ -65,12 +56,6 @@ var (
 	extraMimeInit sync.Once
 )
 
-type contentTypeFileInfo interface {
-	fs.FileInfo
-
-	ContentType() string
-}
-
 // ContentType returns the MIME content type for the given fs.FileInfo. If fi
 // has a ContentType method, that will be used, otherwise the type will be
 // guessed by the filename's extension. See the docs for mime.TypeByExtension
@@ -80,7 +65,7 @@ type contentTypeFileInfo interface {
 // The returned value may have parameters (e.g. "application/json; charset=utf-8")
 // which can be parsed with mime.ParseMediaType.
 func ContentType(fi fs.FileInfo) string {
-	if cf, ok := fi.(contentTypeFileInfo); ok {
+	if cf, ok := fi.(internal.ContentTypeFileInfo); ok {
 		return cf.ContentType()
 	}
 

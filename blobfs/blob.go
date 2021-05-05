@@ -1,4 +1,4 @@
-package fsimpl
+package blobfs
 
 import (
 	"context"
@@ -16,6 +16,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/hairyhenderson/go-fsimpl"
+	"github.com/hairyhenderson/go-fsimpl/internal"
 	"github.com/hairyhenderson/go-fsimpl/internal/env"
 	"gocloud.dev/blob"
 	"gocloud.dev/blob/azureblob"
@@ -38,35 +40,38 @@ type blobFS struct {
 //nolint:gochecknoglobals
 var fakeModTime *time.Time
 
-// BlobFS provides a file system (an fs.FS) backed by an blob storage bucket,
+// New provides a filesystem (an fs.FS) backed by an blob storage bucket,
 // rooted at the given URL.
 //
 // A context can be given by using WithContextFS.
-func BlobFS(base *url.URL) (fs.FS, error) {
-	switch base.Scheme {
-	// we use these constants instead of the scheme* ones to pull in
-	// non-anonymous imports
+func New(u *url.URL) (fs.FS, error) {
+	switch u.Scheme {
 	case s3blob.Scheme, gcsblob.Scheme, azureblob.Scheme:
 	default:
-		return nil, fmt.Errorf("invalid URL scheme %q", base.Scheme)
+		return nil, fmt.Errorf("invalid URL scheme %q", u.Scheme)
 	}
 
-	root := strings.TrimPrefix(base.Path, "/")
+	root := strings.TrimPrefix(u.Path, "/")
 
 	return &blobFS{
 		ctx:     context.Background(),
-		base:    base,
+		base:    u,
 		hclient: http.DefaultClient,
 		root:    root,
 	}, nil
 }
 
+// FS is used to register this filesystem with an fsimpl.FSMux
+//
+//nolint:gochecknoglobals
+var FS = fsimpl.FSProviderFunc(New, s3blob.Scheme, gcsblob.Scheme, azureblob.Scheme)
+
 var (
-	_ fs.FS            = (*blobFS)(nil)
-	_ fs.ReadFileFS    = (*blobFS)(nil)
-	_ fs.SubFS         = (*blobFS)(nil)
-	_ withContexter    = (*blobFS)(nil)
-	_ withHTTPClienter = (*blobFS)(nil)
+	_ fs.FS                     = (*blobFS)(nil)
+	_ fs.ReadFileFS             = (*blobFS)(nil)
+	_ fs.SubFS                  = (*blobFS)(nil)
+	_ internal.WithContexter    = (*blobFS)(nil)
+	_ internal.WithHTTPClienter = (*blobFS)(nil)
 )
 
 func (f blobFS) WithContext(ctx context.Context) fs.FS {
@@ -137,13 +142,12 @@ func (f *blobFS) Open(name string) (fs.File, error) {
 	}
 
 	if name == "." {
-		fi := createDirInfo(file.name)
-
+		mt := time.Time{}
 		if fakeModTime != nil {
-			fi.modTime = *fakeModTime
+			mt = *fakeModTime
 		}
 
-		file.fi = &fi
+		file.fi = internal.DirInfo(file.name, mt)
 
 		return file, nil
 	}
@@ -176,12 +180,12 @@ func (f *blobFS) ReadFile(name string) ([]byte, error) {
 // create the correct kind of blob.BucketURLOpener for the given scheme
 func (f *blobFS) newOpener(ctx context.Context, scheme string) (opener blob.BucketURLOpener, err error) {
 	switch scheme {
-	case schemeS3:
+	case s3blob.Scheme:
 		sess := f.initS3Session()
 
 		// see https://gocloud.dev/concepts/urls/#muxes
 		return &s3blob.URLOpener{ConfigProvider: sess}, nil
-	case schemeGCS:
+	case gcsblob.Scheme:
 		if env.Getenv("GOOGLE_ANON") == "true" {
 			return &gcsblob.URLOpener{
 				Client: gcp.NewAnonymousHTTPClient(f.hclient.Transport),
@@ -201,7 +205,7 @@ func (f *blobFS) newOpener(ctx context.Context, scheme string) (opener blob.Buck
 		}
 
 		return &gcsblob.URLOpener{Client: client}, nil
-	case schemeAzBlob:
+	case azureblob.Scheme:
 		return blob.DefaultURLMux(), nil
 		// accountName, _ := azureblob.DefaultAccountName()
 		// accountKey, _ := azureblob.DefaultAccountKey()
@@ -244,11 +248,11 @@ func (f *blobFS) initS3Session() *session.Session {
 // copy/sanitize the URL for the Go CDK - it doesn't like params it can't parse
 func cleanCdkURL(u url.URL) url.URL {
 	switch u.Scheme {
-	case schemeS3:
+	case s3blob.Scheme:
 		return cleanS3URL(u)
-	case schemeGCS:
+	case gcsblob.Scheme:
 		return cleanGSURL(u)
-	case schemeAzBlob:
+	case azureblob.Scheme:
 		return cleanAzBlobURL(u)
 	default:
 		return u
@@ -318,7 +322,7 @@ type blobFile struct {
 	ctx       context.Context
 	reader    *blob.Reader
 	bucket    *blob.Bucket
-	fi        *staticFileInfo
+	fi        fs.FileInfo
 	listIter  *blob.ListIterator
 	name      string
 	root      string
@@ -370,15 +374,13 @@ func (f *blobFile) Stat() (fs.FileInfo, error) {
 		mode = fs.ModeDir
 	}
 
-	fi := createFileInfo(f.name, out.Size, mode, out.ModTime, out.ContentType)
-
 	if fakeModTime != nil {
-		fi.modTime = *fakeModTime
+		out.ModTime = *fakeModTime
 	}
 
-	f.fi = &fi
+	f.fi = internal.FileInfo(f.name, out.Size, mode, out.ModTime, out.ContentType)
 
-	return &fi, nil
+	return f.fi, nil
 }
 
 func blobFindDir(ctx context.Context, bucket *blob.Bucket, root, name string) (fs.FileInfo, error) {
@@ -401,13 +403,14 @@ func blobFindDir(ctx context.Context, bucket *blob.Bucket, root, name string) (f
 		return nil, fmt.Errorf("not a directory: %s", name)
 	}
 
-	fi := createDirInfo(path.Base(name))
-
+	mt := time.Time{}
 	if fakeModTime != nil {
-		fi.modTime = *fakeModTime
+		mt = *fakeModTime
 	}
 
-	return &fi, nil
+	fi := internal.DirInfo(path.Base(name), mt)
+
+	return fi, nil
 }
 
 //nolint:gocyclo
@@ -450,28 +453,14 @@ func (f *blobFile) ReadDir(n int) ([]fs.DirEntry, error) {
 		}
 
 		name := strings.TrimSuffix(path.Base(obj.Key), "/")
-		dirent := createFileInfo(name, obj.Size, mode, obj.ModTime, "")
 
 		if fakeModTime != nil {
-			dirent.modTime = *fakeModTime
+			obj.ModTime = *fakeModTime
 		}
 
-		dirents = append(dirents, &dirent)
+		dirent := internal.FileInfo(name, obj.Size, mode, obj.ModTime, "").(fs.DirEntry)
+		dirents = append(dirents, dirent)
 	}
 
 	return dirents, nil
-}
-
-func createFileInfo(name string, size int64, mode fs.FileMode, modTime time.Time, contentType string) staticFileInfo {
-	return staticFileInfo{
-		name:        name,
-		size:        size,
-		mode:        mode,
-		modTime:     modTime,
-		contentType: contentType,
-	}
-}
-
-func createDirInfo(name string) staticFileInfo {
-	return staticFileInfo{name: name, mode: fs.ModeDir}
 }

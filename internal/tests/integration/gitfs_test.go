@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/hairyhenderson/go-fsimpl"
+	"github.com/hairyhenderson/go-fsimpl/gitfs"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	tfs "gotest.tools/v3/fs"
@@ -97,7 +98,7 @@ func TestGitFS_File(t *testing.T) {
 	repoPath := filepath.ToSlash(tmpDir.Join("repo"))
 	u, _ := url.Parse("git+file://" + repoPath)
 
-	fsys := fsimpl.GitFS(u)
+	fsys, _ := gitfs.New(u)
 	f, err := fsys.Open("config.json")
 	assert.NoError(t, err)
 
@@ -106,7 +107,7 @@ func TestGitFS_File(t *testing.T) {
 	assert.Equal(t, `{"foo": {"bar": "baz"}}`, string(b))
 
 	u, _ = url.Parse("git+file://" + repoPath + "//dir")
-	fsys = fsimpl.GitFS(u)
+	fsys, _ = gitfs.New(u)
 	_, err = fsys.Open("config.json")
 	assert.Error(t, err)
 
@@ -130,7 +131,7 @@ func TestGitFS_Daemon(t *testing.T) {
 	addr := startGitDaemon(t)
 
 	u, _ := url.Parse("git://" + addr + "/repo//dir")
-	fsys := fsimpl.GitFS(u)
+	fsys, _ := gitfs.New(u)
 
 	files, err := fs.ReadDir(fsys, ".")
 	assert.NoError(t, err)
@@ -146,7 +147,7 @@ func TestGitFS_Daemon(t *testing.T) {
 
 func TestGitFS_HTTPDatasource(t *testing.T) {
 	u, _ := url.Parse("git+https://github.com/git-fixtures/basic//json/")
-	fsys := fsimpl.GitFS(u)
+	fsys, _ := gitfs.New(u)
 
 	files, err := fs.ReadDir(fsys, ".")
 	assert.NoError(t, err)
@@ -159,7 +160,7 @@ func TestGitFS_HTTPDatasource(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
 
-	fsys = fsimpl.GitFS(u)
+	fsys, _ = gitfs.New(u)
 	fsys = fsimpl.WithContextFS(ctx, fsys)
 
 	_, err = fs.ReadDir(fsys, ".")
@@ -172,7 +173,7 @@ func TestGitFS_SSHDatasource(t *testing.T) {
 	}
 
 	u, _ := url.Parse("git+ssh://git@github.com/git-fixtures/basic//json")
-	fsys := fsimpl.GitFS(u)
+	fsys, _ := gitfs.New(u)
 
 	files, err := fs.ReadDir(fsys, ".")
 	assert.NoError(t, err)

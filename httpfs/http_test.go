@@ -1,4 +1,4 @@
-package fsimpl
+package httpfs
 
 import (
 	"context"
@@ -11,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hairyhenderson/go-fsimpl"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -47,8 +48,8 @@ func TestHttpFS(t *testing.T) {
 
 	base, _ := url.Parse(srv.URL)
 
-	fsys := HTTPFS(base)
-	fsys = WithContextFS(ctx, fsys)
+	fsys, _ := New(base)
+	fsys = fsimpl.WithContextFS(ctx, fsys)
 
 	f, err := fsys.Open("hello.txt")
 	assert.NoError(t, err)
@@ -65,15 +66,15 @@ func TestHttpFS(t *testing.T) {
 
 	hdr := http.Header{}
 	hdr.Set("Accept", "application/json")
-	fi, err := fs.Stat(WithHeaderFS(hdr, fsys), "sub/subfile.json")
+	fi, err := fs.Stat(fsimpl.WithHeaderFS(hdr, fsys), "sub/subfile.json")
 	assert.NoError(t, err)
-	assert.Equal(t, "application/json", ContentType(fi))
+	assert.Equal(t, "application/json", fsimpl.ContentType(fi))
 
 	fi, err = fs.Stat(fsys, "hello.txt")
 	assert.NoError(t, err)
 	assert.Equal(t, int64(11), fi.Size())
 	assert.Equal(t, "hello.txt", fi.Name())
-	assert.Equal(t, "text/plain", ContentType(fi))
+	assert.Equal(t, "text/plain", fsimpl.ContentType(fi))
 
 	lmod, _ := time.Parse(time.RFC3339, "2021-04-01T12:00:00Z")
 	assert.Equal(t, lmod, fi.ModTime())
@@ -94,7 +95,7 @@ func setupExampleHTTPServer() *httptest.Server {
 	}))
 }
 
-func ExampleHTTPFS() {
+func ExampleNew() {
 	srv := setupExampleHTTPServer()
 	defer srv.Close()
 
@@ -103,8 +104,8 @@ func ExampleHTTPFS() {
 
 	base, _ := url.Parse(srv.URL)
 
-	fsys := HTTPFS(base)
-	fsys = WithContextFS(ctx, fsys)
+	fsys, _ := New(base)
+	fsys = fsimpl.WithContextFS(ctx, fsys)
 
 	b, _ := fs.ReadFile(fsys, "hello.txt")
 	fmt.Printf("%s", string(b))
