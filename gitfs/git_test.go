@@ -1,4 +1,4 @@
-package fsimpl
+package gitfs
 
 import (
 	"context"
@@ -25,6 +25,7 @@ import (
 	"github.com/go-git/go-git/v5/plumbing/transport/server"
 	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
 	"github.com/go-git/go-git/v5/storage/filesystem"
+	"github.com/hairyhenderson/go-fsimpl"
 	"github.com/hairyhenderson/go-fsimpl/internal/billyadapter"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -207,7 +208,7 @@ func TestGitFS(t *testing.T) {
 	_ = setupGitRepo(t)
 
 	u, _ := url.Parse("git+file:///repo")
-	fsys := GitFS(u)
+	fsys, _ := New(u)
 
 	require.NoError(t, fstest.TestFS(fsys, filepath.Join("foo", "bar", "hi.txt"), "secondfile.txt"))
 }
@@ -268,8 +269,8 @@ func TestGitFS_ReadDir(t *testing.T) {
 	ctx := context.Background()
 
 	u, _ := url.Parse("git+file:///bare.git")
-	fsys := GitFS(u)
-	fsys = WithContextFS(ctx, fsys)
+	fsys, _ := New(u)
+	fsys = fsimpl.WithContextFS(ctx, fsys)
 
 	file, err := fsys.Open("hello.txt")
 	assert.NoError(t, err)

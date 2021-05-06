@@ -1,23 +1,31 @@
-package fsimpl
+package filefs
 
 import (
 	"io/fs"
+	"net/url"
 	"os"
+
+	"github.com/hairyhenderson/go-fsimpl"
 )
 
 type fileFS struct {
 	root fs.FS
 }
 
-// FileFS returns a file system (an fs.FS) for the tree of files rooted at the
+// New returns a filesystem (an fs.FS) for the tree of files rooted at the
 // directory root. This filesystem is suitable for use with the 'file:' URL
 // scheme, and interacts with the local filesystem.
 //
 // This is effectively a wrapper for os.DirFS, however unlike os.DirFS it also
 // implements fs.ReadDirFS and fs.ReadFileFS.
-func FileFS(root string) fs.FS {
-	return &fileFS{root: os.DirFS(root)}
+func New(u *url.URL) (fs.FS, error) {
+	return &fileFS{root: os.DirFS(u.Path)}, nil
 }
+
+// FS is used to register this filesystem with an fsimpl.FSMux
+//
+//nolint:gochecknoglobals
+var FS = fsimpl.FSProviderFunc(New, "file")
 
 var (
 	_ fs.FS         = (*fileFS)(nil)

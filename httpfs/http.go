@@ -1,4 +1,4 @@
-package fsimpl
+package httpfs
 
 import (
 	"context"
@@ -8,6 +8,9 @@ import (
 	"net/http"
 	"net/url"
 	"time"
+
+	"github.com/hairyhenderson/go-fsimpl"
+	"github.com/hairyhenderson/go-fsimpl/internal"
 )
 
 type httpFS struct {
@@ -17,29 +20,34 @@ type httpFS struct {
 	headers http.Header
 }
 
-// HTTPFS provides a file system (an fs.FS) for the HTTP (or HTTPS) endpoint
-// rooted at base. This filesystem is suitable for use with the 'http' or
+// New provides a filesystem (an fs.FS) for the HTTP (or HTTPS) endpoint
+// rooted at u. This filesystem is suitable for use with the 'http' or
 // 'https' URL schemes. All reads are made with the GET method, while stat calls
 // are made with the HEAD method (with a fallback to GET).
 //
 // A context can be given by using WithContextFS.
 // HTTP Headers can be provided by using WithHeaderFS.
-func HTTPFS(base *url.URL) fs.FS {
+func New(u *url.URL) (fs.FS, error) {
 	return &httpFS{
 		ctx:     context.Background(),
 		client:  http.DefaultClient,
-		base:    base,
+		base:    u,
 		headers: http.Header{},
-	}
+	}, nil
 }
 
+// FS is used to register this filesystem with an fsimpl.FSMux
+//
+//nolint:gochecknoglobals
+var FS = fsimpl.FSProviderFunc(New, "http", "https")
+
 var (
-	_ fs.FS            = (*httpFS)(nil)
-	_ fs.ReadFileFS    = (*httpFS)(nil)
-	_ fs.SubFS         = (*httpFS)(nil)
-	_ withContexter    = (*httpFS)(nil)
-	_ withHeaderer     = (*httpFS)(nil)
-	_ withHTTPClienter = (*httpFS)(nil)
+	_ fs.FS                     = (*httpFS)(nil)
+	_ fs.ReadFileFS             = (*httpFS)(nil)
+	_ fs.SubFS                  = (*httpFS)(nil)
+	_ internal.WithContexter    = (*httpFS)(nil)
+	_ internal.WithHeaderer     = (*httpFS)(nil)
+	_ internal.WithHTTPClienter = (*httpFS)(nil)
 )
 
 func (f httpFS) WithContext(ctx context.Context) fs.FS {
@@ -133,21 +141,15 @@ func (f *httpFS) subURL(name string) (*url.URL, error) {
 
 type httpFile struct {
 	ctx    context.Context
+	body   io.ReadCloser
+	fi     fs.FileInfo
 	u      *url.URL
 	client *http.Client
-	name   string
 	hdr    http.Header
-
-	body io.ReadCloser
-
-	fi staticFileInfo
+	name   string
 }
 
-var (
-	_ fs.File             = (*httpFile)(nil)
-	_ fs.FileInfo         = (*staticFileInfo)(nil)
-	_ contentTypeFileInfo = (*staticFileInfo)(nil)
-)
+var _ fs.File = (*httpFile)(nil)
 
 func (f *httpFile) request(method string) (io.ReadCloser, error) {
 	req, err := http.NewRequestWithContext(f.ctx, method, f.u.String(), nil)
@@ -162,17 +164,13 @@ func (f *httpFile) request(method string) (io.ReadCloser, error) {
 		return nil, err
 	}
 
-	f.fi.name = f.name
-	f.fi.size = resp.ContentLength
-
+	modTime := time.Time{}
 	if mod := resp.Header.Get("Last-Modified"); mod != "" {
 		// best-effort - if it can't be parsed, just ignore it...
-		f.fi.modTime, _ = http.ParseTime(mod)
+		modTime, _ = http.ParseTime(mod)
 	}
 
-	if ct := resp.Header.Get("Content-Type"); ct != "" {
-		f.fi.contentType = ct
-	}
+	f.fi = internal.FileInfo(f.name, resp.ContentLength, 0o644, modTime, resp.Header.Get("Content-Type"))
 
 	if resp.StatusCode == 0 || resp.StatusCode >= 400 {
 		return nil, fmt.Errorf("http GET failed with status %d", resp.StatusCode)
@@ -210,28 +208,5 @@ func (f *httpFile) Stat() (fs.FileInfo, error) {
 	}
 	defer body.Close()
 
-	return &f.fi, nil
+	return f.fi, nil
 }
-
-type staticFileInfo struct {
-	modTime     time.Time
-	name        string
-	contentType string
-	size        int64
-	mode        fs.FileMode
-}
-
-var (
-	_ fs.FileInfo = (*staticFileInfo)(nil)
-	_ fs.DirEntry = (*staticFileInfo)(nil)
-)
-
-func (fi staticFileInfo) ContentType() string         { return fi.contentType }
-func (fi staticFileInfo) IsDir() bool                 { return fi.Mode().IsDir() }
-func (fi staticFileInfo) Mode() fs.FileMode           { return fi.mode }
-func (fi *staticFileInfo) ModTime() time.Time         { return fi.modTime }
-func (fi staticFileInfo) Name() string                { return fi.name }
-func (fi staticFileInfo) Size() int64                 { return fi.size }
-func (fi staticFileInfo) Sys() interface{}            { return nil }
-func (fi *staticFileInfo) Info() (fs.FileInfo, error) { return fi, nil }
-func (fi staticFileInfo) Type() fs.FileMode           { return fi.Mode().Type() }

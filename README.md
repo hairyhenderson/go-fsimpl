@@ -19,6 +19,8 @@ filesystems:
 - `WithHeaderFS` - sets the `http.Header` for all HTTP requests used by the
 	filesystem. This can be useful for authentication, or for requesting
 	specific content types.
+- `WithHTTPClientFS` - sets the `*http.Client` for all HTTP requests to be made
+	with.
 
 This module also provides `ContentType`, an extension to the
 [`fs.FileInfo`](https://pkg.go.dev/io/fs#FileInfo) type to help identify an
@@ -62,12 +64,12 @@ If you know that you want an HTTP filesystem, for example:
 import (
 	"net/url"
 
-	"github.com/hairyhenderson/go-fsimpl"
+	"github.com/hairyhenderson/go-fsimpl/httpfs"
 )
 
 func main() {
 	base, _ := url.Parse("https://example.com")
-	fsys := fsimpl.HTTPFS(base)
+	fsys, _ := httpfs.New(base)
 
 	f, _ := fsys.Open("hello.txt")
 	defer f.Close()
@@ -77,19 +79,27 @@ func main() {
 ```
 
 If you're not sure what filesystem type you need (for example, if you're dealing
-with a user-provided URL), you can use `LookupFS`:
+with a user-provided URL), you can use a filesystem mux:
 
 ```go
 import (
-	"net/url"
-
 	"github.com/hairyhenderson/go-fsimpl"
+	"github.com/hairyhenderson/go-fsimpl/blobfs"
+	"github.com/hairyhenderson/go-fsimpl/filefs"
+	"github.com/hairyhenderson/go-fsimpl/gitfs"
+	"github.com/hairyhenderson/go-fsimpl/httpfs"
 )
 
 func main() {
+	mux := fsimpl.NewMux()
+	mux.Add(filefs.FS)
+	mux.Add(httpfs.FS)
+	mux.Add(blobfs.FS)
+	mux.Add(gitfs.FS)
+
 	// for example, a URL that points to a subdirectory at a specific tag in a
 	// given git repo, hosted on GitHub and authenticated with SSH...
-	fsys, err := fsimpl.LookupFS("git+ssh://git@github.com/foo/bar.git//baz#refs/tags/v1.0.0")
+	fsys, err := mux.Lookup("git+ssh://git@github.com/foo/bar.git//baz#refs/tags/v1.0.0")
 	if err != nil {
 		log.Fatal(err)
 	}
