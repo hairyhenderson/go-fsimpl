@@ -19,7 +19,19 @@ type fileFS struct {
 // This is effectively a wrapper for os.DirFS, however unlike os.DirFS it also
 // implements fs.ReadDirFS and fs.ReadFileFS.
 func New(u *url.URL) (fs.FS, error) {
-	return &fileFS{root: os.DirFS(u.Path)}, nil
+	rootPath := u.Path
+	if len(rootPath) >= 3 {
+		if rootPath[0] == '/' && rootPath[2] == ':' {
+			rootPath = rootPath[1:]
+		}
+	}
+
+	// a file:// URL with a host part should be interpreted as a UNC
+	if u.Host != "" {
+		rootPath = "//" + u.Host + "/" + rootPath
+	}
+
+	return &fileFS{root: os.DirFS(rootPath)}, nil
 }
 
 // FS is used to register this filesystem with an fsimpl.FSMux

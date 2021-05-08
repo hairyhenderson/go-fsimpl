@@ -163,6 +163,7 @@ Instead of using a non-authenticated Consul connection, you can authenticate wit
 The _scheme_ and _path_ components are used by this filesystem.
 
 - _scheme_ must be `file`
+- _authority_ can be used on Windows when a UNC is being referenced
 - _path_ can be set to root the filesystem at a given directory
 
 #### Examples
@@ -170,10 +171,15 @@ The _scheme_ and _path_ components are used by this filesystem.
 - `file:///` - provides full access to the local filesystem. Equivalent to
     using [`os.DirFS("/")`](https://pkg.go.dev/os#DirFS). On Windows, the
     filesystem is rooted at the "current" volume.
-- `file:///D:/` - on Windows, provides full access to the local filesystem rooted
-    at the `D:\` volume.
 - `file:///tmp` - provides access to the local filesystem, rooted at the `/tmp`
     directory.
+- `file:///D:/` - _(Windows-specific)_ provides full access to the local
+    filesystem rooted at the `D:\` volume.
+- `file://./C:/Program%20Files` - _(Windows-specific)_ provides access to the
+    `C:\Program Files\` directory. Note that this is equivalent to using a UNC
+    in the local namespace (like `\\.\C:\...`)
+- `file://remoteserver/sharename/foo` - _(Windows-specific)_ a filesystem rooted
+    at the UNC `\\remoteserver\sharename\foo`
 
 ### `git`
 
