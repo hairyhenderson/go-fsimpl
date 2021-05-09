@@ -58,6 +58,14 @@ See [`url_schemes.md`](./url_schemes.md) for more details on each scheme.
 
 ## Usage
 
+### Installation
+The first need Go installed (version 1.16+ is required), then you can use the below Go command to install go-fsimpl.
+
+```sh
+$ go get -u github.com/hairyhenderson/go-fsimpl
+```
+
+
 If you know that you want an HTTP filesystem, for example:
 
 ```go
