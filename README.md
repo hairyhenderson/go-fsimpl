@@ -56,6 +56,15 @@ Here's the list of planned filesystem support, along with status:
 
 See [`url_schemes.md`](./url_schemes.md) for more details on each scheme.
 
+## Installation
+
+You need Go 1.16 or above to use this module. Use `go get` to install the latest
+version of `go-fsimpl`:
+
+```console
+$ go get -u github.com/hairyhenderson/go-fsimpl
+```
+
 ## Usage
 
 If you know that you want an HTTP filesystem, for example:
