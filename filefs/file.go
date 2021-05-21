@@ -1,3 +1,4 @@
+// Package filefs wraps os.DirFS to provide a local filesystem for file:// URLs.
 package filefs
 
 import (
@@ -16,9 +17,20 @@ type fileFS struct {
 // directory root. This filesystem is suitable for use with the 'file:' URL
 // scheme, and interacts with the local filesystem.
 //
-// This is effectively a wrapper for os.DirFS, however unlike os.DirFS it also
-// implements fs.ReadDirFS and fs.ReadFileFS.
+// This is effectively a wrapper for os.DirFS.
 func New(u *url.URL) (fs.FS, error) {
+	rootPath := pathForDirFS(u)
+
+	return &fileFS{root: os.DirFS(rootPath)}, nil
+}
+
+// return the correct filesystem path for the given URL. Supports Windows paths
+// and UNCs as well
+func pathForDirFS(u *url.URL) string {
+	if u.Path == "" {
+		return ""
+	}
+
 	rootPath := u.Path
 	if len(rootPath) >= 3 {
 		if rootPath[0] == '/' && rootPath[2] == ':' {
@@ -27,11 +39,16 @@ func New(u *url.URL) (fs.FS, error) {
 	}
 
 	// a file:// URL with a host part should be interpreted as a UNC
-	if u.Host != "" {
-		rootPath = "//" + u.Host + "/" + rootPath
+	switch u.Host {
+	case ".":
+		rootPath = "//./" + rootPath
+	case "":
+		// nothin'
+	default:
+		rootPath = "//" + u.Host + rootPath
 	}
 
-	return &fileFS{root: os.DirFS(rootPath)}, nil
+	return rootPath
 }
 
 // FS is used to register this filesystem with an fsimpl.FSMux
