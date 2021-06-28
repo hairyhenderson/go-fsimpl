@@ -1,7 +1,14 @@
 package integration
 
 import (
+	"context"
+	"io"
 	"net"
+	"net/http"
+	"testing"
+	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 // freeport - find a free TCP port for immediate use. No guarantees!
@@ -15,4 +22,42 @@ func freeport() (port int, addr string) {
 	port = a.Port
 
 	return port, a.String()
+}
+
+// waitForURL - waits up to 20s for a given URL to respond with a 200
+func waitForURL(t *testing.T, url string) error {
+	client := http.DefaultClient
+	ctx := context.Background()
+
+	retries := 100
+	for retries > 0 {
+		retries--
+
+		time.Sleep(200 * time.Millisecond)
+
+		req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+		assert.NoError(t, err)
+
+		resp, err := client.Do(req)
+		if err != nil {
+			t.Logf("Got error, retries left: %d (error: %v)", retries, err)
+
+			continue
+		}
+
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			t.Logf("Body is: %s", body)
+
+			return err
+		}
+
+		defer resp.Body.Close()
+
+		if resp.StatusCode == 200 {
+			return nil
+		}
+	}
+
+	return nil
 }

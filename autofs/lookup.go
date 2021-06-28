@@ -13,6 +13,7 @@ import (
 	"github.com/hairyhenderson/go-fsimpl/filefs"
 	"github.com/hairyhenderson/go-fsimpl/gitfs"
 	"github.com/hairyhenderson/go-fsimpl/httpfs"
+	"github.com/hairyhenderson/go-fsimpl/vaultfs"
 )
 
 //nolint:gochecknoglobals
@@ -31,6 +32,7 @@ func Lookup(u string) (fs.FS, error) {
 		mux.Add(httpfs.FS)
 		mux.Add(blobfs.FS)
 		mux.Add(gitfs.FS)
+		mux.Add(vaultfs.FS)
 	})
 
 	return mux.Lookup(u)
