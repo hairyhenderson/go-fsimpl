@@ -7,16 +7,11 @@ import (
 	"strings"
 )
 
-// Getenv - retrieves the value of the environment variable named by the key.
+// GetenvFS retrieves the value of the environment variable named by the key.
 // If the variable is unset, but the same variable ending in `_FILE` is set, the
-// referenced file will be read into the value.
-// Otherwise the provided default (or an emptry string) is returned.
-func Getenv(key string, def ...string) string {
-	return getenvVFS(os.DirFS("/"), key, def...)
-}
-
-// getenvVFS - a convenience function intended for internal use only!
-func getenvVFS(fsys fs.FS, key string, def ...string) string {
+// referenced file (resolved from the given filesystem) will be read into the
+// value. Otherwise the provided default (or an emptry string) is returned.
+func GetenvFS(fsys fs.FS, key string, def ...string) string {
 	val := getenvFile(fsys, key)
 	if val == "" && len(def) > 0 {
 		return def[0]

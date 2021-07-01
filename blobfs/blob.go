@@ -8,6 +8,7 @@ import (
 	"io/fs"
 	"net/http"
 	"net/url"
+	"os"
 	"path"
 	"strings"
 	"time"
@@ -32,6 +33,7 @@ type blobFS struct {
 	base    *url.URL
 	hclient *http.Client
 	bucket  *blob.Bucket
+	envfs   fs.FS
 	root    string
 }
 
@@ -58,6 +60,7 @@ func New(u *url.URL) (fs.FS, error) {
 		base:    u,
 		hclient: http.DefaultClient,
 		root:    root,
+		envfs:   os.DirFS("/"),
 	}, nil
 }
 
@@ -94,7 +97,7 @@ func (f *blobFS) openBucket() (*blob.Bucket, error) {
 		return nil, fmt.Errorf("bucket opener: %w", err)
 	}
 
-	u := cleanCdkURL(*f.base)
+	u := f.cleanCdkURL(*f.base)
 
 	bucket, err := o.OpenBucketURL(f.ctx, &u)
 	if err != nil {
@@ -186,7 +189,7 @@ func (f *blobFS) newOpener(ctx context.Context, scheme string) (opener blob.Buck
 		// see https://gocloud.dev/concepts/urls/#muxes
 		return &s3blob.URLOpener{ConfigProvider: sess}, nil
 	case gcsblob.Scheme:
-		if env.Getenv("GOOGLE_ANON") == "true" {
+		if env.GetenvFS(f.envfs, "GOOGLE_ANON") == "true" {
 			return &gcsblob.URLOpener{
 				Client: gcp.NewAnonymousHTTPClient(f.hclient.Transport),
 			}, nil
@@ -233,7 +236,7 @@ func (f *blobFS) initS3Session() *session.Session {
 	config := aws.NewConfig()
 	config = config.WithHTTPClient(f.hclient)
 
-	if env.Getenv("AWS_ANON") == "true" {
+	if env.GetenvFS(f.envfs, "AWS_ANON") == "true" {
 		config = config.WithCredentials(credentials.AnonymousCredentials)
 	}
 
@@ -246,20 +249,20 @@ func (f *blobFS) initS3Session() *session.Session {
 }
 
 // copy/sanitize the URL for the Go CDK - it doesn't like params it can't parse
-func cleanCdkURL(u url.URL) url.URL {
+func (f *blobFS) cleanCdkURL(u url.URL) url.URL {
 	switch u.Scheme {
 	case s3blob.Scheme:
-		return cleanS3URL(u)
+		return f.cleanS3URL(u)
 	case gcsblob.Scheme:
-		return cleanGSURL(u)
+		return f.cleanGSURL(u)
 	case azureblob.Scheme:
-		return cleanAzBlobURL(u)
+		return f.cleanAzBlobURL(u)
 	default:
 		return u
 	}
 }
 
-func cleanAzBlobURL(u url.URL) url.URL {
+func (f *blobFS) cleanAzBlobURL(u url.URL) url.URL {
 	q := u.Query()
 	for param := range q {
 		switch param {
@@ -274,7 +277,7 @@ func cleanAzBlobURL(u url.URL) url.URL {
 	return u
 }
 
-func cleanGSURL(u url.URL) url.URL {
+func (f *blobFS) cleanGSURL(u url.URL) url.URL {
 	q := u.Query()
 	for param := range q {
 		switch param {
@@ -289,7 +292,7 @@ func cleanGSURL(u url.URL) url.URL {
 	return u
 }
 
-func cleanS3URL(u url.URL) url.URL {
+func (f *blobFS) cleanS3URL(u url.URL) url.URL {
 	q := u.Query()
 	for param := range q {
 		switch param {
@@ -300,14 +303,14 @@ func cleanS3URL(u url.URL) url.URL {
 	}
 
 	if q.Get("endpoint") == "" {
-		endpoint := env.Getenv("AWS_S3_ENDPOINT")
+		endpoint := env.GetenvFS(f.envfs, "AWS_S3_ENDPOINT")
 		if endpoint != "" {
 			q.Set("endpoint", endpoint)
 		}
 	}
 
 	if q.Get("region") == "" {
-		region := env.Getenv("AWS_REGION", env.Getenv("AWS_DEFAULT_REGION"))
+		region := env.GetenvFS(f.envfs, "AWS_REGION", env.GetenvFS(f.envfs, "AWS_DEFAULT_REGION"))
 		if region != "" {
 			q.Set("region", region)
 		}
