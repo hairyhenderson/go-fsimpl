@@ -5,7 +5,6 @@ import (
 	"context"
 	"io"
 	"io/fs"
-	"net/url"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -15,6 +14,7 @@ import (
 
 	"github.com/hairyhenderson/go-fsimpl"
 	"github.com/hairyhenderson/go-fsimpl/gitfs"
+	"github.com/hairyhenderson/go-fsimpl/internal/tests"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	tfs "gotest.tools/v3/fs"
@@ -96,9 +96,8 @@ func TestGitFS_File(t *testing.T) {
 	tmpDir := setupDatasourcesGitTest(t)
 
 	repoPath := filepath.ToSlash(tmpDir.Join("repo"))
-	u, _ := url.Parse("git+file://" + repoPath)
 
-	fsys, _ := gitfs.New(u)
+	fsys, _ := gitfs.New(tests.MustURL("git+file://" + repoPath))
 	f, err := fsys.Open("config.json")
 	assert.NoError(t, err)
 
@@ -106,8 +105,7 @@ func TestGitFS_File(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, `{"foo": {"bar": "baz"}}`, string(b))
 
-	u, _ = url.Parse("git+file://" + repoPath + "//dir")
-	fsys, _ = gitfs.New(u)
+	fsys, _ = gitfs.New(tests.MustURL("git+file://" + repoPath + "//dir"))
 	_, err = fsys.Open("config.json")
 	assert.Error(t, err)
 
@@ -130,8 +128,7 @@ func TestGitFS_Daemon(t *testing.T) {
 
 	addr := startGitDaemon(t)
 
-	u, _ := url.Parse("git://" + addr + "/repo//dir")
-	fsys, _ := gitfs.New(u)
+	fsys, _ := gitfs.New(tests.MustURL("git://" + addr + "/repo//dir"))
 
 	files, err := fs.ReadDir(fsys, ".")
 	assert.NoError(t, err)
@@ -146,8 +143,7 @@ func TestGitFS_Daemon(t *testing.T) {
 }
 
 func TestGitFS_HTTPDatasource(t *testing.T) {
-	u, _ := url.Parse("git+https://github.com/git-fixtures/basic//json/")
-	fsys, _ := gitfs.New(u)
+	fsys, _ := gitfs.New(tests.MustURL("git+https://github.com/git-fixtures/basic//json/"))
 
 	files, err := fs.ReadDir(fsys, ".")
 	assert.NoError(t, err)
@@ -160,7 +156,7 @@ func TestGitFS_HTTPDatasource(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
 
-	fsys, _ = gitfs.New(u)
+	fsys, _ = gitfs.New(tests.MustURL("git+https://github.com/git-fixtures/basic//json/"))
 	fsys = fsimpl.WithContextFS(ctx, fsys)
 
 	_, err = fs.ReadDir(fsys, ".")
@@ -172,8 +168,7 @@ func TestGitFS_SSHDatasource(t *testing.T) {
 		t.Skip("SSH Agent not running")
 	}
 
-	u, _ := url.Parse("git+ssh://git@github.com/git-fixtures/basic//json")
-	fsys, _ := gitfs.New(u)
+	fsys, _ := gitfs.New(tests.MustURL("git+ssh://git@github.com/git-fixtures/basic//json"))
 
 	files, err := fs.ReadDir(fsys, ".")
 	assert.NoError(t, err)

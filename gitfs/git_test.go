@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
-	"net/url"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -27,21 +26,16 @@ import (
 	"github.com/go-git/go-git/v5/storage/filesystem"
 	"github.com/hairyhenderson/go-fsimpl"
 	"github.com/hairyhenderson/go-fsimpl/internal/billyadapter"
+	"github.com/hairyhenderson/go-fsimpl/internal/tests"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/ssh/testdata"
 )
 
-func mustParseURL(in string) url.URL {
-	u, _ := url.Parse(in)
-
-	return *u
-}
-
 func TestSplitRepoPath(t *testing.T) {
 	t.Parallel()
 
-	u, _ := url.Parse("http://example.com//foo")
+	u := tests.MustURL("http://example.com//foo")
 	assert.Equal(t, "//foo", u.Path)
 	parts := strings.SplitN(u.Path, "//", 2)
 	assert.Equal(t, 2, len(parts))
@@ -207,8 +201,7 @@ func TestGitFS(t *testing.T) {
 
 	_ = setupGitRepo(t)
 
-	u, _ := url.Parse("git+file:///repo")
-	fsys, _ := New(u)
+	fsys, _ := New(tests.MustURL("git+file:///repo"))
 
 	require.NoError(t, fstest.TestFS(fsys, filepath.Join("foo", "bar", "hi.txt"), "secondfile.txt"))
 }
@@ -219,7 +212,7 @@ func TestGitFS_Clone(t *testing.T) {
 
 	g := &gitFS{}
 
-	fsys, _, err := g.gitClone(ctx, mustParseURL("file:///repo"), 0)
+	fsys, _, err := g.gitClone(ctx, *tests.MustURL("file:///repo"), 0)
 	assert.NoError(t, err)
 
 	f, err := fsys.Open("/foo/bar/hi.txt")
@@ -228,21 +221,21 @@ func TestGitFS_Clone(t *testing.T) {
 	b, _ := io.ReadAll(f)
 	assert.Equal(t, "hello world", string(b))
 
-	_, repo, err := g.gitClone(ctx, mustParseURL("file:///repo#master"), 0)
+	_, repo, err := g.gitClone(ctx, *tests.MustURL("file:///repo#master"), 0)
 	assert.NoError(t, err)
 
 	ref, err := repo.Reference(plumbing.NewBranchReferenceName("master"), true)
 	assert.NoError(t, err)
 	assert.Equal(t, "refs/heads/master", ref.Name().String())
 
-	_, repo, err = g.gitClone(ctx, mustParseURL("file:///repo#refs/tags/v1"), 0)
+	_, repo, err = g.gitClone(ctx, *tests.MustURL("file:///repo#refs/tags/v1"), 0)
 	assert.NoError(t, err)
 
 	ref, err = repo.Head()
 	assert.NoError(t, err)
 	assert.Equal(t, testHashes["v1"], ref.Hash().String())
 
-	_, repo, err = g.gitClone(ctx, mustParseURL("file:///repo/#mybranch"), 0)
+	_, repo, err = g.gitClone(ctx, *tests.MustURL("file:///repo/#mybranch"), 0)
 	assert.NoError(t, err)
 
 	ref, err = repo.Head()
@@ -257,7 +250,7 @@ func TestGitFS_Clone_BareFileRepo(t *testing.T) {
 
 	g := &gitFS{}
 
-	fsys, _, err := g.gitClone(ctx, mustParseURL("file:///bare.git"), 0)
+	fsys, _, err := g.gitClone(ctx, *tests.MustURL("file:///bare.git"), 0)
 	assert.NoError(t, err)
 
 	f, err := fsys.Open("/hello.txt")
@@ -272,8 +265,7 @@ func TestGitFS_ReadDir(t *testing.T) {
 
 	ctx := context.Background()
 
-	u, _ := url.Parse("git+file:///bare.git")
-	fsys, _ := New(u)
+	fsys, _ := New(tests.MustURL("git+file:///bare.git"))
 	fsys = fsimpl.WithContextFS(ctx, fsys)
 
 	file, err := fsys.Open("hello.txt")
@@ -307,22 +299,22 @@ func TestGitFS_ReadDir(t *testing.T) {
 func TestGitFS_Auth(t *testing.T) {
 	g := &gitFS{}
 
-	a, err := g.auth(mustParseURL("file:///bare.git"))
+	a, err := g.auth(*tests.MustURL("file:///bare.git"))
 	assert.NoError(t, err)
 	assert.Equal(t, nil, a)
 
-	a, err = g.auth(mustParseURL("https://example.com/foo"))
+	a, err = g.auth(*tests.MustURL("https://example.com/foo"))
 	assert.NoError(t, err)
 	assert.Nil(t, a)
 
-	a, err = g.auth(mustParseURL("https://user:swordfish@example.com/foo"))
+	a, err = g.auth(*tests.MustURL("https://user:swordfish@example.com/foo"))
 	assert.NoError(t, err)
 	assert.EqualValues(t, &http.BasicAuth{Username: "user", Password: "swordfish"}, a)
 
 	os.Setenv("GIT_HTTP_PASSWORD", "swordfish")
 	defer os.Unsetenv("GIT_HTTP_PASSWORD")
 
-	a, err = g.auth(mustParseURL("https://user@example.com/foo"))
+	a, err = g.auth(*tests.MustURL("https://user@example.com/foo"))
 	assert.NoError(t, err)
 	assert.EqualValues(t, &http.BasicAuth{Username: "user", Password: "swordfish"}, a)
 	os.Unsetenv("GIT_HTTP_PASSWORD")
@@ -330,7 +322,7 @@ func TestGitFS_Auth(t *testing.T) {
 	os.Setenv("GIT_HTTP_TOKEN", "mytoken")
 	defer os.Unsetenv("GIT_HTTP_TOKEN")
 
-	a, err = g.auth(mustParseURL("https://user@example.com/foo"))
+	a, err = g.auth(*tests.MustURL("https://user@example.com/foo"))
 	assert.NoError(t, err)
 	assert.EqualValues(t, &http.TokenAuth{Token: "mytoken"}, a)
 	os.Unsetenv("GIT_HTTP_TOKEN")
@@ -340,7 +332,7 @@ func TestGitFS_Auth(t *testing.T) {
 			t.Skip("no SSH_AUTH_SOCK - skipping ssh agent test")
 		}
 
-		a, err = g.auth(mustParseURL("ssh://git@example.com/foo"))
+		a, err = g.auth(*tests.MustURL("ssh://git@example.com/foo"))
 		assert.NoError(t, err)
 		sa, ok := a.(*ssh.PublicKeysCallback)
 		assert.Equal(t, true, ok)
@@ -352,7 +344,7 @@ func TestGitFS_Auth(t *testing.T) {
 	os.Setenv("GIT_SSH_KEY", key)
 	defer os.Unsetenv("GIT_SSH_KEY")
 
-	a, err = g.auth(mustParseURL("ssh://git@example.com/foo"))
+	a, err = g.auth(*tests.MustURL("ssh://git@example.com/foo"))
 	assert.NoError(t, err)
 
 	ka, ok := a.(*ssh.PublicKeys)
@@ -365,7 +357,7 @@ func TestGitFS_Auth(t *testing.T) {
 	os.Setenv("GIT_SSH_KEY", key)
 	defer os.Unsetenv("GIT_SSH_KEY")
 
-	a, err = g.auth(mustParseURL("ssh://git@example.com/foo"))
+	a, err = g.auth(*tests.MustURL("ssh://git@example.com/foo"))
 	assert.NoError(t, err)
 
 	ka, ok = a.(*ssh.PublicKeys)
@@ -391,7 +383,7 @@ func TestGitFS_RefFromURL(t *testing.T) {
 	}
 
 	for _, d := range data {
-		out := refFromURL(mustParseURL(d.url))
+		out := refFromURL(*tests.MustURL(d.url))
 		assert.Equal(t, plumbing.ReferenceName(d.expected), out)
 	}
 }
