@@ -69,8 +69,7 @@ type WithHTTPClienter interface {
 	WithHTTPClient(client *http.Client) fs.FS
 }
 
-// WithHTTPHeaderer is an fs.FS that can be configured to send a custom
-// http.Header
+// WithHeaderer is an fs.FS that can be configured to send a custom http.Header
 type WithHeaderer interface {
 	WithHeader(headers http.Header) fs.FS
 }
