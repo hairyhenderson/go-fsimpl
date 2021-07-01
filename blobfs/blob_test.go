@@ -13,6 +13,7 @@ import (
 
 	"github.com/fsouza/fake-gcs-server/fakestorage"
 	"github.com/hairyhenderson/go-fsimpl"
+	"github.com/hairyhenderson/go-fsimpl/internal/tests"
 	"github.com/johannesboyne/gofakes3"
 	"github.com/johannesboyne/gofakes3/backend/s3mem"
 	"github.com/stretchr/testify/assert"
@@ -37,9 +38,7 @@ func setupTestS3Bucket(t *testing.T) *url.URL {
 	assert.NoError(t, putFile(backend, "dir2/sub1/subfile1", "text/plain", "baz"))
 	assert.NoError(t, putFile(backend, "dir2/sub1/subfile2", "text/plain", "qux"))
 
-	u, _ := url.Parse(srv.URL)
-
-	return u
+	return tests.MustURL(srv.URL)
 }
 
 func setupTestGCSBucket(t *testing.T) *fakestorage.Server {
@@ -95,8 +94,7 @@ func TestBlobFS_S3(t *testing.T) {
 	os.Setenv("AWS_ANON", "true")
 	defer os.Unsetenv("AWS_ANON")
 
-	u, _ := url.Parse("s3://mybucket/?region=us-east-1&disableSSL=true&s3ForcePathStyle=true&endpoint=" + srvURL.Host)
-	fsys, err := New(u)
+	fsys, err := New(tests.MustURL("s3://mybucket/?region=us-east-1&disableSSL=true&s3ForcePathStyle=true&endpoint=" + srvURL.Host))
 	assert.NoError(t, err)
 
 	assert.NoError(t, fstest.TestFS(fsimpl.WithContextFS(ctx, fsys),
@@ -120,8 +118,7 @@ func TestBlobFS_S3(t *testing.T) {
 	os.Setenv("AWS_REGION", "eu-west-1")
 	defer os.Unsetenv("AWS_REGION")
 
-	u, _ = url.Parse("s3://mybucket/dir2/?disableSSL=true&s3ForcePathStyle=true")
-	fsys, err = New(u)
+	fsys, err = New(tests.MustURL("s3://mybucket/dir2/?disableSSL=true&s3ForcePathStyle=true"))
 	assert.NoError(t, err)
 
 	assert.NoError(t, fstest.TestFS(fsimpl.WithContextFS(ctx, fsys),
@@ -139,8 +136,7 @@ func TestBlobFS_GCS(t *testing.T) {
 	os.Setenv("GOOGLE_ANON", "true")
 	defer os.Unsetenv("GOOGLE_ANON")
 
-	u, _ := url.Parse("gs://mybucket")
-	fsys, err := New(u)
+	fsys, err := New(tests.MustURL("gs://mybucket"))
 	assert.NoError(t, err)
 
 	fsys = fsimpl.WithHTTPClientFS(srv.HTTPClient(), fsys)
@@ -152,8 +148,7 @@ func TestBlobFS_GCS(t *testing.T) {
 		"dir2/sub1/subfile1", "dir2/sub1/subfile2"),
 	)
 
-	u, _ = url.Parse("gs://mybucket/dir2/")
-	fsys, err = New(u)
+	fsys, err = New(tests.MustURL("gs://mybucket/dir2/"))
 	assert.NoError(t, err)
 
 	fsys = fsimpl.WithHTTPClientFS(srv.HTTPClient(), fsys)
@@ -176,8 +171,7 @@ func TestBlobFS_Azure(t *testing.T) {
 
 	os.Setenv("AZURE_STORAGE_ACCOUNT", "azureopendatastorage")
 
-	u, _ := url.Parse("azblob://citydatacontainer/Crime/Processed/2020/1/20/")
-	fsys, err := New(u)
+	fsys, err := New(tests.MustURL("azblob://citydatacontainer/Crime/Processed/2020/1/20/"))
 	assert.NoError(t, err)
 
 	fsys = fsimpl.WithContextFS(ctx, fsys)
@@ -210,8 +204,7 @@ func TestBlobFS_ReadDir(t *testing.T) {
 	os.Setenv("AWS_ANON", "true")
 	defer os.Unsetenv("AWS_ANON")
 
-	u, _ := url.Parse("s3://mybucket/?region=us-east-1&disableSSL=true&s3ForcePathStyle=true&endpoint=" + srvURL.Host)
-	fsys, err := New(u)
+	fsys, err := New(tests.MustURL("s3://mybucket/?region=us-east-1&disableSSL=true&s3ForcePathStyle=true&endpoint=" + srvURL.Host))
 	assert.NoError(t, err)
 
 	de, err := fs.ReadDir(fsys, "dir1")
@@ -264,8 +257,8 @@ func TestBlobFS_CleanCdkURL(t *testing.T) {
 	}
 
 	for _, d := range data {
-		u, _ := url.Parse(d.in)
-		expected, _ := url.Parse(d.expected)
+		u := tests.MustURL(d.in)
+		expected := tests.MustURL(d.expected)
 		assert.Equal(t, *expected, b.cleanCdkURL(*u))
 	}
 }

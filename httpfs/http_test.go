@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/hairyhenderson/go-fsimpl"
+	"github.com/hairyhenderson/go-fsimpl/internal/tests"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -46,9 +47,7 @@ func TestHttpFS(t *testing.T) {
 
 	srv := setupHTTP(t)
 
-	base, _ := url.Parse(srv.URL)
-
-	fsys, _ := New(base)
+	fsys, _ := New(tests.MustURL(srv.URL))
 	fsys = fsimpl.WithContextFS(ctx, fsys)
 
 	f, err := fsys.Open("hello.txt")
