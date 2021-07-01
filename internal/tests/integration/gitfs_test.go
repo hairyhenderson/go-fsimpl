@@ -21,7 +21,7 @@ import (
 	"gotest.tools/v3/icmd"
 )
 
-func setupDatasourcesGitTest(t *testing.T) *tfs.Dir {
+func setupGitFSTest(t *testing.T) *tfs.Dir {
 	tmpDir := tfs.NewDir(t, "gomplate-inttests",
 		tfs.WithDir("repo",
 			tfs.WithFiles(map[string]string{
@@ -57,7 +57,7 @@ func setupDatasourcesGitTest(t *testing.T) *tfs.Dir {
 }
 
 func startGitDaemon(t *testing.T) string {
-	tmpDir := setupDatasourcesGitTest(t)
+	tmpDir := setupGitFSTest(t)
 
 	pidDir := tfs.NewDir(t, "gomplate-inttests-pid")
 	t.Cleanup(pidDir.Remove)
@@ -93,7 +93,7 @@ func startGitDaemon(t *testing.T) string {
 }
 
 func TestGitFS_File(t *testing.T) {
-	tmpDir := setupDatasourcesGitTest(t)
+	tmpDir := setupGitFSTest(t)
 
 	repoPath := filepath.ToSlash(tmpDir.Join("repo"))
 
