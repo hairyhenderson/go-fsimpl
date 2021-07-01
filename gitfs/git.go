@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/fs"
 	"net/url"
+	"os"
 	"path"
 	"strings"
 	"time"
@@ -27,7 +28,8 @@ import (
 type gitFS struct {
 	ctx context.Context
 
-	repofs fs.FS
+	repofs  fs.FS
+	envfsys fs.FS
 
 	repo *url.URL
 	root string
@@ -51,9 +53,10 @@ func New(u *url.URL) (fs.FS, error) {
 	}
 
 	return &gitFS{
-		ctx:  context.Background(),
-		repo: &repoURL,
-		root: root,
+		ctx:     context.Background(),
+		repo:    &repoURL,
+		root:    root,
+		envfsys: os.DirFS("/"),
 	}, nil
 }
 
@@ -92,7 +95,7 @@ func (f *gitFS) clone() (fs.FS, error) {
 			depth = 0
 		}
 
-		bfs, _, err := gitClone(f.ctx, *f.repo, depth)
+		bfs, _, err := f.gitClone(f.ctx, *f.repo, depth)
 		if err != nil {
 			return nil, err
 		}
@@ -167,11 +170,11 @@ func refFromURL(u url.URL) plumbing.ReferenceName {
 
 // gitClone a repo for later reading through http(s), git, or ssh. u must be the URL to the repo
 // itself, and must have any file path stripped
-func gitClone(ctx context.Context, repoURL url.URL, depth int) (billy.Filesystem, *git.Repository, error) {
+func (f *gitFS) gitClone(ctx context.Context, repoURL url.URL, depth int) (billy.Filesystem, *git.Repository, error) {
 	// copy repoURL so we can perhaps use it later
 	u := repoURL
 
-	auth, err := auth(u)
+	auth, err := f.auth(u)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -201,7 +204,7 @@ func gitClone(ctx context.Context, repoURL url.URL, depth int) (billy.Filesystem
 		u = repoURL
 		u.Path = path.Join(u.Path, ".git")
 
-		return gitClone(ctx, u, depth)
+		return f.gitClone(ctx, u, depth)
 	}
 
 	if err != nil {
@@ -221,7 +224,7 @@ auth methods:
 
 scheme be stripped of any 'git+' prefix.
 */
-func auth(u url.URL) (transport.AuthMethod, error) {
+func (f *gitFS) auth(u url.URL) (transport.AuthMethod, error) {
 	user := u.User.Username()
 
 	switch u.Scheme {
@@ -229,16 +232,16 @@ func auth(u url.URL) (transport.AuthMethod, error) {
 		var auth transport.AuthMethod
 		if pass, ok := u.User.Password(); ok {
 			auth = &githttp.BasicAuth{Username: user, Password: pass}
-		} else if pass := env.Getenv("GIT_HTTP_PASSWORD"); pass != "" {
+		} else if pass := env.GetenvFS(f.envfsys, "GIT_HTTP_PASSWORD"); pass != "" {
 			auth = &githttp.BasicAuth{Username: user, Password: pass}
-		} else if tok := env.Getenv("GIT_HTTP_TOKEN"); tok != "" {
+		} else if tok := env.GetenvFS(f.envfsys, "GIT_HTTP_TOKEN"); tok != "" {
 			// note docs on TokenAuth - this is rarely to be used
 			auth = &githttp.TokenAuth{Token: tok}
 		}
 
 		return auth, nil
 	case "ssh":
-		k := env.Getenv("GIT_SSH_KEY")
+		k := env.GetenvFS(f.envfsys, "GIT_SSH_KEY")
 		if k != "" {
 			key, err := base64.StdEncoding.DecodeString(k)
 			if err != nil {

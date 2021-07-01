@@ -245,6 +245,8 @@ func TestBlobFS_ReadDir(t *testing.T) {
 }
 
 func TestBlobFS_CleanCdkURL(t *testing.T) {
+	b := &blobFS{}
+
 	data := []struct {
 		in, expected string
 	}{
@@ -264,6 +266,6 @@ func TestBlobFS_CleanCdkURL(t *testing.T) {
 	for _, d := range data {
 		u, _ := url.Parse(d.in)
 		expected, _ := url.Parse(d.expected)
-		assert.Equal(t, *expected, cleanCdkURL(*u))
+		assert.Equal(t, *expected, b.cleanCdkURL(*u))
 	}
 }
