@@ -7,8 +7,9 @@ import (
 	"github.com/go-git/go-billy/v5"
 )
 
-// a workaround for annoying behaviour in billy's memfs FileInfo implementation,
-// which always returns time.Now() on calls to ModTime().
+// FrozenModTimeFilesystem is a workaround for annoying behaviour in billy's
+// memfs FileInfo implementation, which always returns time.Now() on calls to
+// ModTime().
 func FrozenModTimeFilesystem(fs billy.Filesystem, modTime time.Time) billy.Filesystem {
 	return &frozenModTimeFilesystem{fs, modTime}
 }
