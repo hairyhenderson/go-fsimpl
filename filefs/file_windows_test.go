@@ -5,11 +5,11 @@ package filefs
 import (
 	"fmt"
 	"io/fs"
-	"net/url"
 	"path/filepath"
 	"strings"
 	"testing"
 
+	"github.com/hairyhenderson/go-fsimpl/internal/tests"
 	"github.com/stretchr/testify/assert"
 	tfs "gotest.tools/v3/fs"
 )
@@ -30,10 +30,7 @@ func TestFileFS_Windows(t *testing.T) {
 	tmpDir := setupWinFileSystem(t)
 	tmpRoot := filepath.ToSlash(tmpDir.Path())
 
-	u, err := url.Parse("file:///" + tmpRoot)
-	assert.NoError(t, err)
-
-	fsys, err := New(u)
+	fsys, err := New(tests.MustURL("file:///" + tmpRoot))
 	assert.NoError(t, err)
 
 	fileFsys := fsys.(*fileFS)
@@ -52,10 +49,7 @@ func TestFileFS_Windows(t *testing.T) {
 	assert.Contains(t, names, "hello.txt")
 
 	// test a local UNC, and lower-case drive letter etc (case-insensitive, so should match)
-	uncURL, err := url.Parse("file://./" + strings.ToLower(tmpRoot))
-	assert.NoError(t, err)
-
-	fsys, _ = New(uncURL)
+	fsys, _ = New(tests.MustURL("file://./" + strings.ToLower(tmpRoot)))
 
 	// case-insensitive, again...
 	b, err := fs.ReadFile(fsys, "sUb/SubFile.txt")

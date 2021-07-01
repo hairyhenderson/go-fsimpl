@@ -5,15 +5,16 @@ import (
 	"testing"
 	"testing/fstest"
 
+	"github.com/hairyhenderson/go-fsimpl/internal/tests"
 	"github.com/stretchr/testify/assert"
-	"gotest.tools/v3/fs"
+	tfs "gotest.tools/v3/fs"
 )
 
-func setupFileSystem(t *testing.T) *fs.Dir {
-	tmpDir := fs.NewDir(t, "go-fsimplTests",
-		fs.WithFile("hello.txt", "hello world\n"),
-		fs.WithDir("sub",
-			fs.WithFile("subfile.txt", "hi there"),
+func setupFileSystem(t *testing.T) *tfs.Dir {
+	tmpDir := tfs.NewDir(t, "go-fsimplTests",
+		tfs.WithFile("hello.txt", "hello world\n"),
+		tfs.WithDir("sub",
+			tfs.WithFile("subfile.txt", "hi there"),
 		),
 	)
 	t.Cleanup(tmpDir.Remove)
@@ -30,30 +31,21 @@ func TestFileFS(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func mustURL(s string) *url.URL {
-	u, err := url.Parse(s)
-	if err != nil {
-		panic(err)
-	}
-
-	return u
-}
-
 func TestPathForDirFS(t *testing.T) {
 	testdata := []struct {
 		in  *url.URL
 		out string
 	}{
-		{mustURL("file:"), ""},
-		{mustURL("file:/"), "/"},
-		{mustURL("file:///"), "/"},
-		{mustURL("file:///tmp/foo"), "/tmp/foo"},
-		{mustURL("file:///C:/Users/"), "C:/Users/"},
-		{mustURL("file:///C:/Program%20Files"), "C:/Program Files"},
-		{mustURL("file://./C:/Users/"), "//./C:/Users/"},
-		{mustURL("file://somehost/Share/foo"), "//somehost/Share/foo"},
-		{mustURL("file://invalid"), ""},
-		{mustURL("file://host/j"), "//host/j"},
+		{tests.MustURL("file:"), ""},
+		{tests.MustURL("file:/"), "/"},
+		{tests.MustURL("file:///"), "/"},
+		{tests.MustURL("file:///tmp/foo"), "/tmp/foo"},
+		{tests.MustURL("file:///C:/Users/"), "C:/Users/"},
+		{tests.MustURL("file:///C:/Program%20Files"), "C:/Program Files"},
+		{tests.MustURL("file://./C:/Users/"), "//./C:/Users/"},
+		{tests.MustURL("file://somehost/Share/foo"), "//somehost/Share/foo"},
+		{tests.MustURL("file://invalid"), ""},
+		{tests.MustURL("file://host/j"), "//host/j"},
 	}
 
 	for _, d := range testdata {
@@ -63,15 +55,15 @@ func TestPathForDirFS(t *testing.T) {
 
 func BenchmarkPathForDirFS(b *testing.B) {
 	testdata := []*url.URL{
-		mustURL("file:"),
-		mustURL("file:/"),
-		mustURL("file:///"),
-		mustURL("file:///tmp/foo"),
-		mustURL("file:///C:/Users/"),
-		mustURL("file:///C:/Program%20Files"),
-		mustURL("file://./C:/Users/"),
-		mustURL("file://somehost/Share/foo"),
-		mustURL("file://invalid"),
+		tests.MustURL("file:"),
+		tests.MustURL("file:/"),
+		tests.MustURL("file:///"),
+		tests.MustURL("file:///tmp/foo"),
+		tests.MustURL("file:///C:/Users/"),
+		tests.MustURL("file:///C:/Program%20Files"),
+		tests.MustURL("file://./C:/Users/"),
+		tests.MustURL("file://somehost/Share/foo"),
+		tests.MustURL("file://invalid"),
 	}
 
 	b.ResetTimer()
