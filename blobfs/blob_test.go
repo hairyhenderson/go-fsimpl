@@ -41,17 +41,24 @@ func setupTestS3Bucket(t *testing.T) *url.URL {
 	return tests.MustURL(srv.URL)
 }
 
+func fakeGCSObject(name, contentType, content string) fakestorage.Object {
+	return fakestorage.Object{
+		ObjectAttrs: fakestorage.ObjectAttrs{BucketName: "mybucket", Name: name, ContentType: contentType},
+		Content:     []byte(content),
+	}
+}
+
 func setupTestGCSBucket(t *testing.T) *fakestorage.Server {
 	objs := []fakestorage.Object{
-		{BucketName: "mybucket", Name: "file1", ContentType: "text/plain", Content: []byte("hello")},
-		{BucketName: "mybucket", Name: "file2", ContentType: "application/json", Content: []byte(`{"value": "goodbye world"}`)},
-		{BucketName: "mybucket", Name: "file3", ContentType: "application/yaml", Content: []byte(`value: what a world`)},
-		{BucketName: "mybucket", Name: "dir1/file1", ContentType: "application/yaml", Content: []byte(`value: out of this world`)},
-		{BucketName: "mybucket", Name: "dir1/file2", ContentType: "application/yaml", Content: []byte(`value: foo`)},
-		{BucketName: "mybucket", Name: "dir2/file3", ContentType: "text/plain", Content: []byte("foo")},
-		{BucketName: "mybucket", Name: "dir2/file4", ContentType: "text/plain", Content: []byte("bar")},
-		{BucketName: "mybucket", Name: "dir2/sub1/subfile1", ContentType: "text/plain", Content: []byte("baz")},
-		{BucketName: "mybucket", Name: "dir2/sub1/subfile2", ContentType: "text/plain", Content: []byte("qux")},
+		fakeGCSObject("file1", "text/plain", "hello"),
+		fakeGCSObject("file2", "application/json", `{"value": "goodbye world"}`),
+		fakeGCSObject("file3", "application/yaml", `value: what a world`),
+		fakeGCSObject("dir1/file1", "application/yaml", `value: out of this world`),
+		fakeGCSObject("dir1/file2", "application/yaml", `value: foo`),
+		fakeGCSObject("dir2/file3", "text/plain", "foo"),
+		fakeGCSObject("dir2/file4", "text/plain", "bar"),
+		fakeGCSObject("dir2/sub1/subfile1", "text/plain", "baz"),
+		fakeGCSObject("dir2/sub1/subfile2", "text/plain", "qux"),
 	}
 
 	srv, err := fakestorage.NewServerWithOptions(fakestorage.Options{
