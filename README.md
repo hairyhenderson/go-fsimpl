@@ -52,7 +52,7 @@ Here's the list of planned filesystem support, along with status:
 | [`gs`](./url_schemes.md#gs) | [Google Cloud Storage][] | ✅ |
 | [`http`, `https`](./url_schemes.md#http) | HTTP server | ✅ |
 | [`s3`](./url_schemes.md#s3) | [Amazon S3][] | ✅ |
-| [`vault`, `vault+http`, `vault+https`](./url_schemes.md#vault) | [HashiCorp Vault][] | |
+| [`vault`, `vault+http`, `vault+https`](./url_schemes.md#vault) | [HashiCorp Vault][] | ✅ |
 
 See [`url_schemes.md`](./url_schemes.md) for more details on each scheme.
 
