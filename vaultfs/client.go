@@ -21,7 +21,7 @@ type refCountedClient struct {
 	refs uint64
 }
 
-var _ VaultClient = (*refCountedClient)(nil)
+// var _ VaultClient = (*refCountedClient)(nil)
 
 func (c *refCountedClient) AddRef() {
 	atomic.AddUint64(&c.refs, 1)
