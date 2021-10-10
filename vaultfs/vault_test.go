@@ -38,7 +38,7 @@ func Example() {
 	fmt.Printf("the secret is %s\n", s.Value)
 }
 
-func fakeVault(t *testing.T, handler http.Handler) *refCountedClient {
+func fakeVault(t *testing.T, handler http.Handler) *api.Client {
 	srv := httptest.NewServer(handler)
 	t.Cleanup(srv.Close)
 
@@ -52,10 +52,10 @@ func fakeVault(t *testing.T, handler http.Handler) *refCountedClient {
 
 	c, _ := api.NewClient(config)
 
-	return newRefCountedClient(c)
+	return c
 }
 
-func fakeVaultServer(t *testing.T) *refCountedClient {
+func fakeVaultServer(t *testing.T) *api.Client {
 	files := map[string]struct {
 		Value string   `json:"value,omitempty"`
 		Param string   `json:"param,omitempty"`
@@ -167,7 +167,7 @@ func TestWithContext(t *testing.T) {
 }
 
 func TestWithHeader(t *testing.T) {
-	fsys := &vaultFS{client: fakeVaultServer(t)}
+	fsys := &vaultFS{client: newRefCountedClient(fakeVaultServer(t))}
 
 	fsys = fsys.WithHeader(http.Header{
 		"foo": []string{"bar"},
@@ -175,7 +175,7 @@ func TestWithHeader(t *testing.T) {
 
 	assert.Equal(t, "bar", fsys.client.Headers().Get("foo"))
 
-	fsys = &vaultFS{client: fakeVaultServer(t)}
+	fsys = &vaultFS{client: newRefCountedClient(fakeVaultServer(t))}
 	fsys.client.AddHeader("foo", "bar")
 
 	fsys = fsys.WithHeader(http.Header{
@@ -209,7 +209,7 @@ func jsonMap(b []byte) map[string]string {
 
 func TestReadFile(t *testing.T) {
 	expected := "{\"value\":\"foo\"}"
-	v := fakeVaultServer(t)
+	v := newRefCountedClient(fakeVaultServer(t))
 
 	fsys := fs.FS(newWithVaultClient(tests.MustURL("vault:///secret/"), v))
 	fsys = WithAuthMethod(TokenAuthMethod("blargh"), fsys)
@@ -237,7 +237,7 @@ func TestReadFile(t *testing.T) {
 }
 
 func TestReadDirFS(t *testing.T) {
-	v := fakeVaultServer(t)
+	v := newRefCountedClient(fakeVaultServer(t))
 
 	fsys := fs.FS(newWithVaultClient(tests.MustURL("vault:///secret/foo/"), v))
 	fsys = WithAuthMethod(TokenAuthMethod("blargh"), fsys)
@@ -268,7 +268,7 @@ func TestReadDirFS(t *testing.T) {
 
 //nolint:funlen
 func TestReadDirN(t *testing.T) {
-	v := fakeVaultServer(t)
+	v := newRefCountedClient(fakeVaultServer(t))
 
 	fsys := fs.FS(newWithVaultClient(tests.MustURL("vault:///secret/"), v))
 	fsys = WithAuthMethod(TokenAuthMethod("blargh"), fsys)
@@ -354,7 +354,7 @@ func TestSubURL(t *testing.T) {
 }
 
 func TestStat(t *testing.T) {
-	v := fakeVaultServer(t)
+	v := newRefCountedClient(fakeVaultServer(t))
 
 	fsys := WithAuthMethod(
 		TokenAuthMethod("blargh"),
@@ -388,7 +388,7 @@ type spyAuthMethod struct {
 
 var _ AuthMethod = (*spyAuthMethod)(nil)
 
-func (m *spyAuthMethod) Login(_ context.Context, client VaultClient) error {
+func (m *spyAuthMethod) Login(_ context.Context, client *api.Client) error {
 	// should only ever be called once
 	assert.False(m.t, m.loggedin)
 
@@ -399,7 +399,7 @@ func (m *spyAuthMethod) Login(_ context.Context, client VaultClient) error {
 	return nil
 }
 
-func (m *spyAuthMethod) Logout(_ context.Context, client VaultClient) error {
+func (m *spyAuthMethod) Logout(_ context.Context, client *api.Client) error {
 	client.ClearToken()
 
 	m.loggedin = false
@@ -408,7 +408,7 @@ func (m *spyAuthMethod) Logout(_ context.Context, client VaultClient) error {
 }
 
 func TestFileAuthCaching(t *testing.T) {
-	v := fakeVaultServer(t)
+	v := newRefCountedClient(fakeVaultServer(t))
 
 	am := &spyAuthMethod{}
 	fsys := WithAuthMethod(am, newWithVaultClient(tests.MustURL("vault:///secret/"), v))

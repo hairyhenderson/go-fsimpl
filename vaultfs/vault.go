@@ -257,7 +257,7 @@ func (f *vaultFile) newRequest(method string) (*api.Request, error) {
 
 func (f *vaultFile) request(method string) (*api.Response, error) {
 	if f.client.Token() == "" {
-		if err := f.auth.Login(f.ctx, f.client); err != nil {
+		if err := f.auth.Login(f.ctx, f.client.Client); err != nil {
 			return nil, fmt.Errorf("vault login failure: %w", err)
 		}
 	}
@@ -308,7 +308,7 @@ func (f *vaultFile) Close() error {
 	f.client.RemoveRef()
 
 	if f.client.Refs() == 0 {
-		_ = f.auth.Logout(f.ctx, f.client)
+		_ = f.auth.Logout(f.ctx, f.client.Client)
 	}
 
 	if f.body == nil {

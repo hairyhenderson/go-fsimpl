@@ -23,31 +23,10 @@ type withAuthMethoder interface {
 type AuthMethod interface {
 	// Login acquires a Vault token using client for communicating with Vault,
 	// and configures client with the token.
-	Login(ctx context.Context, client VaultClient) error
+	Login(ctx context.Context, client *api.Client) error
 
 	// Logout revokes the Vault token attached to client.
-	Logout(ctx context.Context, client VaultClient) error
-}
-
-// VaultClient is an interface that exposes the methods that are required by
-// AuthMethod implementations.
-type VaultClient interface {
-	// SetToken sets the token directly. This won't perform any auth
-	// verification, it simply sets the token properly for future requests.
-	SetToken(v string)
-
-	// ClearToken deletes the token if it is set or does nothing otherwise.
-	ClearToken()
-
-	// NewRequest creates a new raw request object to query the Vault server
-	// configured for this client. This is an advanced method and generally
-	// doesn't need to be called externally.
-	NewRequest(method, requestPath string) *api.Request
-
-	// RawRequestWithContext performs the raw request given. This request may be against
-	// a Vault server not configured with this client. This is an advanced operation
-	// that generally won't need to be called externally.
-	RawRequestWithContext(ctx context.Context, r *api.Request) (*api.Response, error)
+	Logout(ctx context.Context, client *api.Client) error
 }
 
 // WithAuthMethod configures the given FS to authenticate with auth, if the
@@ -96,7 +75,7 @@ type envAuthMethod struct {
 	methods []AuthMethod
 }
 
-func (m *envAuthMethod) Login(ctx context.Context, client VaultClient) (err error) {
+func (m *envAuthMethod) Login(ctx context.Context, client *api.Client) (err error) {
 	if m.chosen == nil {
 		for _, auth := range m.methods {
 			err = auth.Login(ctx, client)
@@ -115,7 +94,7 @@ func (m *envAuthMethod) Login(ctx context.Context, client VaultClient) (err erro
 	return nil
 }
 
-func (m *envAuthMethod) Logout(ctx context.Context, client VaultClient) (err error) {
+func (m *envAuthMethod) Logout(ctx context.Context, client *api.Client) (err error) {
 	// reset so we can login again
 	defer func() { m.chosen = nil }()
 
@@ -143,7 +122,7 @@ type tokenAuthMethod struct {
 	token string
 }
 
-func (m *tokenAuthMethod) Login(ctx context.Context, client VaultClient) error {
+func (m *tokenAuthMethod) Login(ctx context.Context, client *api.Client) error {
 	token := findValue(m.token, "VAULT_TOKEN", "", m.fsys)
 	if token != "" {
 		client.SetToken(token)
@@ -169,7 +148,7 @@ func (m *tokenAuthMethod) Login(ctx context.Context, client VaultClient) error {
 	return nil
 }
 
-func (m *tokenAuthMethod) Logout(ctx context.Context, client VaultClient) error {
+func (m *tokenAuthMethod) Logout(ctx context.Context, client *api.Client) error {
 	// just clear the client's token, nothing else needs to be done here
 	client.ClearToken()
 
@@ -199,7 +178,7 @@ type appRoleAuthMethod struct {
 	mount            string
 }
 
-func (m *appRoleAuthMethod) Login(ctx context.Context, client VaultClient) error {
+func (m *appRoleAuthMethod) Login(ctx context.Context, client *api.Client) error {
 	roleID := findValue(m.roleID, "VAULT_ROLE_ID", "", m.fsys)
 	if roleID == "" {
 		return fmt.Errorf("approle auth failure: no role_id provided")
@@ -223,7 +202,7 @@ func (m *appRoleAuthMethod) Login(ctx context.Context, client VaultClient) error
 	return nil
 }
 
-func (m *appRoleAuthMethod) Logout(ctx context.Context, client VaultClient) error {
+func (m *appRoleAuthMethod) Logout(ctx context.Context, client *api.Client) error {
 	return revokeToken(ctx, client)
 }
 
@@ -246,7 +225,7 @@ type appIDAuthMethod struct {
 }
 
 //nolint:dupl
-func (m *appIDAuthMethod) Login(ctx context.Context, client VaultClient) error {
+func (m *appIDAuthMethod) Login(ctx context.Context, client *api.Client) error {
 	appID := findValue(m.appID, "VAULT_APP_ID", "", m.fsys)
 	if appID == "" {
 		return fmt.Errorf("app-id auth failure: no app_id provided")
@@ -270,7 +249,7 @@ func (m *appIDAuthMethod) Login(ctx context.Context, client VaultClient) error {
 	return nil
 }
 
-func (m *appIDAuthMethod) Logout(ctx context.Context, client VaultClient) error {
+func (m *appIDAuthMethod) Logout(ctx context.Context, client *api.Client) error {
 	return revokeToken(ctx, client)
 }
 
@@ -296,7 +275,7 @@ type gitHubAuthMethod struct {
 	mount   string
 }
 
-func (m *gitHubAuthMethod) Login(ctx context.Context, client VaultClient) error {
+func (m *gitHubAuthMethod) Login(ctx context.Context, client *api.Client) error {
 	ghtoken := findValue(m.ghtoken, "VAULT_AUTH_GITHUB_TOKEN", "", m.fsys)
 	if ghtoken == "" {
 		return fmt.Errorf("github auth failure: no username provided")
@@ -315,7 +294,7 @@ func (m *gitHubAuthMethod) Login(ctx context.Context, client VaultClient) error 
 	return nil
 }
 
-func (m *gitHubAuthMethod) Logout(ctx context.Context, client VaultClient) error {
+func (m *gitHubAuthMethod) Logout(ctx context.Context, client *api.Client) error {
 	return revokeToken(ctx, client)
 }
 
@@ -343,7 +322,7 @@ type userPassAuthMethod struct {
 }
 
 //nolint:dupl
-func (m *userPassAuthMethod) Login(ctx context.Context, client VaultClient) error {
+func (m *userPassAuthMethod) Login(ctx context.Context, client *api.Client) error {
 	username := findValue(m.username, "VAULT_AUTH_USERNAME", "", m.fsys)
 	if username == "" {
 		return fmt.Errorf("userpass auth failure: no username provided")
@@ -367,7 +346,7 @@ func (m *userPassAuthMethod) Login(ctx context.Context, client VaultClient) erro
 	return nil
 }
 
-func (m *userPassAuthMethod) Logout(ctx context.Context, client VaultClient) error {
+func (m *userPassAuthMethod) Logout(ctx context.Context, client *api.Client) error {
 	return revokeToken(ctx, client)
 }
 
@@ -383,7 +362,7 @@ func findValue(s, envvar, def string, fsys fs.FS) string {
 	return s
 }
 
-func remoteAuth(ctx context.Context, client VaultClient, mount, extra string, vars map[string]string) (*api.Secret, error) {
+func remoteAuth(ctx context.Context, client *api.Client, mount, extra string, vars map[string]string) (*api.Secret, error) {
 	p := fmt.Sprintf("/v1/auth/%s/login", mount)
 	p = path.Join(p, extra)
 
@@ -413,7 +392,7 @@ func remoteAuth(ctx context.Context, client VaultClient, mount, extra string, va
 	return secret, nil
 }
 
-func revokeToken(ctx context.Context, client VaultClient) error {
+func revokeToken(ctx context.Context, client *api.Client) error {
 	r := client.NewRequest("POST", "/v1/auth/token/revoke-self")
 
 	resp, err := client.RawRequestWithContext(ctx, r)
