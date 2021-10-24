@@ -52,6 +52,28 @@ func (fi staticFileInfo) Sys() interface{}            { return nil }
 func (fi *staticFileInfo) Info() (fs.FileInfo, error) { return fi, nil }
 func (fi staticFileInfo) Type() fs.FileMode           { return fi.Mode().Type() }
 
+// FileInfoDirEntry adapts a fs.FileInfo into a fs.DirEntry. If it doesn't
+// already implement fs.DirEntry, it will be wrapped to always return the
+// same fs.FileInfo.
+func FileInfoDirEntry(fi fs.FileInfo) fs.DirEntry {
+	de, ok := fi.(fs.DirEntry)
+	if ok {
+		return de
+	}
+
+	return &fileinfoDirEntry{fi}
+}
+
+// a wrapper to make a fs.FileInfo into an fs.DirEntry
+type fileinfoDirEntry struct {
+	fs.FileInfo
+}
+
+var _ fs.DirEntry = (*fileinfoDirEntry)(nil)
+
+func (fi *fileinfoDirEntry) Info() (fs.FileInfo, error) { return fi, nil }
+func (fi *fileinfoDirEntry) Type() fs.FileMode          { return fi.Mode().Type() }
+
 // ContentTypeFileInfo is an fs.FileInfo that can also report its content type
 type ContentTypeFileInfo interface {
 	fs.FileInfo

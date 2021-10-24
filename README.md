@@ -43,7 +43,7 @@ Here's the list of planned filesystem support, along with status:
 
 | Scheme(s) | Description | Supported? |
 |-----------|-------------|:----------:|
-| [`aws+sm`](./url_schemes.md#awssm) | [AWS Secrets Manager][] | |
+| [`aws+sm`](./url_schemes.md#awssm) | [AWS Secrets Manager][] | ✅ |
 | [`aws+smp`](./url_schemes.md#awssmp) | [AWS Systems Manager Parameter Store][AWS SMP] | |
 | [`azblob`](./url_schemes.md#azblob) | [Azure Blob Storage][] | ✅ |
 | [`consul`, `consul+http`, `consul+https`](./url_schemes.md#consul) | [HashiCorp Consul][] | |

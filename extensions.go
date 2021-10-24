@@ -22,8 +22,8 @@ func WithContextFS(ctx context.Context, fsys fs.FS) fs.FS {
 	return fsys
 }
 
-// WithHeaderFS injects a context into the filesystem fs, if the filesystem
-// supports it (i.e. has a WithHeader method).
+// WithHeaderFS injects the given HTTP header into the filesystem fs, if the
+// filesystem supports it (i.e. has a WithHeader method).
 func WithHeaderFS(headers http.Header, fsys fs.FS) fs.FS {
 	if cfsys, ok := fsys.(internal.WithHeaderer); ok {
 		return cfsys.WithHeader(headers)

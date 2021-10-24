@@ -29,6 +29,21 @@ particular purposes.
     `s3://my-bucket?region=us-west-1`.
 - _fragment:_ Used rarely
 
+### Opaque URIs
+
+For some filesystems, opaque URIs can be used (rather than a hierarchical URL):
+
+```pre
+scheme                   path        query   fragment
+   |   _____________________|__   _______|_   _|
+  / \ /                        \ /         \ /  \
+  urn:example:animal:ferret:nose?name=ferret#nose
+```
+
+The semantics of the different URI components are essentially the same as for
+hierarchical URLs (see above), but the _path_ component may not start with a `/`
+character.
+
 ### Non-standard URL conventions
 
 For the most part, this module uses standard URL conventions as much as
@@ -49,16 +64,24 @@ filesystem will be rooted at `/cmd/which` inside the `go-which` repo.
 
 ### `aws+sm`
 
-The _scheme_ and _path_ components are used by this filesystem.
+The _scheme_ and _path_ components are used by this filesystem. This may be an
+[_opaque_ URI](#opaque-uris) (rather than a hierarchical URL) when the secret
+name or prefix does not begin with a `/` character (e.g. `aws+sm:prod/env1`).
 
 - _scheme_ must be `aws+sm`
-- _path_ is used optionally to specify the root secret heirarchy
+- _path_ is used optionally to specify the root secret heirarchy (this may be a
+hierarchical path beginning with `/`, or an opaque path without a leading `/`)
 
 #### Examples
 
-- `aws+sm:///` - filesystem that makes all accessible secrets available
+- `aws+sm:///` - filesystem that makes all accessible secrets available which
+    are prefixed with a `/` character.
 - `aws+sm:///scoped/secrets` - filesystem that makes available only secrets
-    with a prefix of `/scoped/secrets`.
+    whose names begin with `/scoped/secrets/`.
+- `aws+sm:` - filesystem that makes available all accessible secrets which are
+    not prefixed with a `/` character.
+- `aws+sm:prod/env1` - filesystem that makes available only secrets whose names
+    begin with `prod/env1/`.
 
 ### `aws+smp`
 
