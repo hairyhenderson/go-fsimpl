@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/go-git/go-billy/v5"
+	"github.com/hairyhenderson/go-fsimpl/internal"
 )
 
 func BillyToFS(bfs billy.Filesystem) fs.ReadDirFS {
@@ -159,23 +160,8 @@ func dirents(children []fs.FileInfo) []fs.DirEntry {
 	entries := make([]fs.DirEntry, len(children))
 
 	for i, fi := range children {
-		switch de := fi.(type) {
-		case fs.DirEntry:
-			entries[i] = de
-		default:
-			entries[i] = &fileinfoDirEntry{fi}
-		}
+		entries[i] = internal.FileInfoDirEntry(fi)
 	}
 
 	return entries
 }
-
-// a wrapper to make a fs.FileInfo into an fs.DirEntry
-type fileinfoDirEntry struct {
-	fs.FileInfo
-}
-
-var _ fs.DirEntry = (*fileinfoDirEntry)(nil)
-
-func (fi *fileinfoDirEntry) Info() (fs.FileInfo, error) { return fi, nil }
-func (fi *fileinfoDirEntry) Type() fs.FileMode          { return fi.Mode().Type() }

@@ -461,8 +461,8 @@ func (f *blobFile) ReadDir(n int) ([]fs.DirEntry, error) {
 			obj.ModTime = *fakeModTime
 		}
 
-		dirent := internal.FileInfo(name, obj.Size, mode, obj.ModTime, "").(fs.DirEntry)
-		dirents = append(dirents, dirent)
+		fi := internal.FileInfo(name, obj.Size, mode, obj.ModTime, "")
+		dirents = append(dirents, internal.FileInfoDirEntry(fi))
 	}
 
 	return dirents, nil

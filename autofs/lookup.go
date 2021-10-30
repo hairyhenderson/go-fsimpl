@@ -9,6 +9,7 @@ import (
 	"sync"
 
 	"github.com/hairyhenderson/go-fsimpl"
+	"github.com/hairyhenderson/go-fsimpl/awssmfs"
 	"github.com/hairyhenderson/go-fsimpl/blobfs"
 	"github.com/hairyhenderson/go-fsimpl/filefs"
 	"github.com/hairyhenderson/go-fsimpl/gitfs"
@@ -33,6 +34,7 @@ func Lookup(u string) (fs.FS, error) {
 		mux.Add(blobfs.FS)
 		mux.Add(gitfs.FS)
 		mux.Add(vaultfs.FS)
+		mux.Add(awssmfs.FS)
 	})
 
 	return mux.Lookup(u)
