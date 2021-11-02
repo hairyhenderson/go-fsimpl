@@ -4,7 +4,7 @@
 [![Build][gh-actions-image]][gh-actions-url]
 
 This module contains a collection of Go _filesystem implementations_ that can
-discovered dynamically by URL scheme. All filesystems are read-only.
+be discovered dynamically by URL scheme. All filesystems are read-only.
 
 These filesystems implement the [`fs.FS`](https://pkg.go.dev/io/fs#FS) interface
 [introduced in Go 1.16]()
