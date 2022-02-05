@@ -2,7 +2,6 @@ package gitfs
 
 import (
 	"context"
-	"encoding/base64"
 	"fmt"
 	"io"
 	"io/fs"
@@ -20,16 +19,13 @@ import (
 	"github.com/go-git/go-git/v5/plumbing/cache"
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/go-git/go-git/v5/plumbing/transport/client"
-	"github.com/go-git/go-git/v5/plumbing/transport/http"
 	"github.com/go-git/go-git/v5/plumbing/transport/server"
-	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
 	"github.com/go-git/go-git/v5/storage/filesystem"
 	"github.com/hairyhenderson/go-fsimpl"
 	"github.com/hairyhenderson/go-fsimpl/internal/billyadapter"
 	"github.com/hairyhenderson/go-fsimpl/internal/tests"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/crypto/ssh/testdata"
 )
 
 func TestSplitRepoPath(t *testing.T) {
@@ -202,6 +198,7 @@ func TestGitFS(t *testing.T) {
 	_ = setupGitRepo(t)
 
 	fsys, _ := New(tests.MustURL("git+file:///repo"))
+	fsys = WithAuthenticator(NoopAuthenticator(), fsys)
 
 	require.NoError(t, fstest.TestFS(fsys, filepath.Join("foo", "bar", "hi.txt"), "secondfile.txt"))
 }
@@ -210,7 +207,7 @@ func TestGitFS_Clone(t *testing.T) {
 	ctx := context.Background()
 	testHashes := setupGitRepo(t)
 
-	g := &gitFS{}
+	g := &gitFS{auth: NoopAuthenticator()}
 
 	fsys, _, err := g.gitClone(ctx, *tests.MustURL("file:///repo"), 0)
 	assert.NoError(t, err)
@@ -248,7 +245,7 @@ func TestGitFS_Clone_BareFileRepo(t *testing.T) {
 	ctx := context.Background()
 	_ = setupGitRepo(t)
 
-	g := &gitFS{}
+	g := &gitFS{auth: NoopAuthenticator()}
 
 	fsys, _, err := g.gitClone(ctx, *tests.MustURL("file:///bare.git"), 0)
 	assert.NoError(t, err)
@@ -293,77 +290,6 @@ func TestGitFS_ReadDir(t *testing.T) {
 	assert.Equal(t, 1, len(dirents))
 
 	assert.Equal(t, "hello.txt", dirents[0].Name())
-}
-
-//nolint:funlen
-func TestGitFS_Auth(t *testing.T) {
-	g := &gitFS{}
-
-	a, err := g.auth(*tests.MustURL("file:///bare.git"))
-	assert.NoError(t, err)
-	assert.Equal(t, nil, a)
-
-	a, err = g.auth(*tests.MustURL("https://example.com/foo"))
-	assert.NoError(t, err)
-	assert.Nil(t, a)
-
-	a, err = g.auth(*tests.MustURL("https://user:swordfish@example.com/foo"))
-	assert.NoError(t, err)
-	assert.EqualValues(t, &http.BasicAuth{Username: "user", Password: "swordfish"}, a)
-
-	os.Setenv("GIT_HTTP_PASSWORD", "swordfish")
-	defer os.Unsetenv("GIT_HTTP_PASSWORD")
-
-	a, err = g.auth(*tests.MustURL("https://user@example.com/foo"))
-	assert.NoError(t, err)
-	assert.EqualValues(t, &http.BasicAuth{Username: "user", Password: "swordfish"}, a)
-	os.Unsetenv("GIT_HTTP_PASSWORD")
-
-	os.Setenv("GIT_HTTP_TOKEN", "mytoken")
-	defer os.Unsetenv("GIT_HTTP_TOKEN")
-
-	a, err = g.auth(*tests.MustURL("https://user@example.com/foo"))
-	assert.NoError(t, err)
-	assert.EqualValues(t, &http.TokenAuth{Token: "mytoken"}, a)
-	os.Unsetenv("GIT_HTTP_TOKEN")
-
-	t.Run("with ssh agent", func(t *testing.T) {
-		if os.Getenv("SSH_AUTH_SOCK") == "" {
-			t.Skip("no SSH_AUTH_SOCK - skipping ssh agent test")
-		}
-
-		a, err = g.auth(*tests.MustURL("ssh://git@example.com/foo"))
-		assert.NoError(t, err)
-		sa, ok := a.(*ssh.PublicKeysCallback)
-		assert.Equal(t, true, ok)
-		assert.Equal(t, "git", sa.User)
-	})
-
-	key := string(testdata.PEMBytes["ed25519"])
-
-	os.Setenv("GIT_SSH_KEY", key)
-	defer os.Unsetenv("GIT_SSH_KEY")
-
-	a, err = g.auth(*tests.MustURL("ssh://git@example.com/foo"))
-	assert.NoError(t, err)
-
-	ka, ok := a.(*ssh.PublicKeys)
-	assert.Equal(t, true, ok)
-	assert.Equal(t, "git", ka.User)
-	os.Unsetenv("GIT_SSH_KEY")
-
-	key = base64.StdEncoding.EncodeToString(testdata.PEMBytes["ed25519"])
-
-	os.Setenv("GIT_SSH_KEY", key)
-	defer os.Unsetenv("GIT_SSH_KEY")
-
-	a, err = g.auth(*tests.MustURL("ssh://git@example.com/foo"))
-	assert.NoError(t, err)
-
-	ka, ok = a.(*ssh.PublicKeys)
-	assert.Equal(t, true, ok)
-	assert.Equal(t, "git", ka.User)
-	os.Unsetenv("GIT_SSH_KEY")
 }
 
 func TestGitFS_RefFromURL(t *testing.T) {

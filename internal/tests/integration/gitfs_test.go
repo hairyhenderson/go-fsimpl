@@ -144,6 +144,7 @@ func TestGitFS_Daemon(t *testing.T) {
 
 func TestGitFS_HTTPDatasource(t *testing.T) {
 	fsys, _ := gitfs.New(tests.MustURL("git+https://github.com/git-fixtures/basic//json/"))
+	fsys = gitfs.WithAuthenticator(gitfs.BasicAuthenticator("", ""), fsys)
 
 	files, err := fs.ReadDir(fsys, ".")
 	assert.NoError(t, err)
@@ -169,6 +170,7 @@ func TestGitFS_SSHDatasource(t *testing.T) {
 	}
 
 	fsys, _ := gitfs.New(tests.MustURL("git+ssh://git@github.com/git-fixtures/basic//json"))
+	fsys = gitfs.WithAuthenticator(gitfs.SSHAgentAuthenticator(""), fsys)
 
 	files, err := fs.ReadDir(fsys, ".")
 	assert.NoError(t, err)
