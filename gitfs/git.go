@@ -2,7 +2,6 @@ package gitfs
 
 import (
 	"context"
-	"encoding/base64"
 	"fmt"
 	"io/fs"
 	"net/url"
@@ -16,13 +15,10 @@ import (
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/transport"
-	githttp "github.com/go-git/go-git/v5/plumbing/transport/http"
-	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
 	"github.com/go-git/go-git/v5/storage/memory"
 	"github.com/hairyhenderson/go-fsimpl"
 	"github.com/hairyhenderson/go-fsimpl/internal"
 	"github.com/hairyhenderson/go-fsimpl/internal/billyadapter"
-	"github.com/hairyhenderson/go-fsimpl/internal/env"
 )
 
 type gitFS struct {
@@ -30,6 +26,8 @@ type gitFS struct {
 
 	repofs  fs.FS
 	envfsys fs.FS
+
+	auth Authenticator
 
 	repo *url.URL
 	root string
@@ -52,12 +50,15 @@ func New(u *url.URL) (fs.FS, error) {
 		root = "/"
 	}
 
-	return &gitFS{
+	fsys := &gitFS{
 		ctx:     context.Background(),
 		repo:    &repoURL,
 		root:    root,
 		envfsys: os.DirFS("/"),
-	}, nil
+		auth:    AutoAuthenticator(),
+	}
+
+	return fsys, nil
 }
 
 // FS is used to register this filesystem with an fsimpl.FSMux
@@ -69,7 +70,15 @@ var (
 	_ fs.FS                  = (*gitFS)(nil)
 	_ fs.ReadDirFS           = (*gitFS)(nil)
 	_ internal.WithContexter = (*gitFS)(nil)
+	_ withAuthenticatorer    = (*gitFS)(nil)
 )
+
+func (f gitFS) WithAuthenticator(auth Authenticator) fs.FS {
+	fsys := f
+	fsys.auth = auth
+
+	return &fsys
+}
 
 func (f gitFS) WithContext(ctx context.Context) fs.FS {
 	fsys := f
@@ -174,7 +183,11 @@ func (f *gitFS) gitClone(ctx context.Context, repoURL url.URL, depth int) (billy
 	// copy repoURL so we can perhaps use it later
 	u := repoURL
 
-	auth, err := f.auth(u)
+	if f.auth == nil {
+		return nil, nil, fmt.Errorf("clone: no auth method provided")
+	}
+
+	authMethod, err := f.auth.Authenticate(&u)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -185,7 +198,7 @@ func (f *gitFS) gitClone(ctx context.Context, repoURL url.URL, depth int) (billy
 
 	opts := git.CloneOptions{
 		URL:           u.String(),
-		Auth:          auth,
+		Auth:          authMethod,
 		Depth:         depth,
 		ReferenceName: ref,
 		SingleBranch:  true,
@@ -212,49 +225,4 @@ func (f *gitFS) gitClone(ctx context.Context, repoURL url.URL, depth int) (billy
 	}
 
 	return bfs, repo, nil
-}
-
-/*
-auth methods:
-- ssh named key (no password support)
-	- GIT_SSH_KEY (base64-encoded) or GIT_SSH_KEY_FILE (base64-encoded, or not)
-- ssh agent auth (preferred)
-- http basic auth (for github, gitlab, bitbucket tokens)
-- http token auth (bearer token, somewhat unusual)
-
-scheme be stripped of any 'git+' prefix.
-*/
-func (f *gitFS) auth(u url.URL) (transport.AuthMethod, error) {
-	user := u.User.Username()
-
-	switch u.Scheme {
-	case "http", "https":
-		var auth transport.AuthMethod
-		if pass, ok := u.User.Password(); ok {
-			auth = &githttp.BasicAuth{Username: user, Password: pass}
-		} else if pass := env.GetenvFS(f.envfsys, "GIT_HTTP_PASSWORD"); pass != "" {
-			auth = &githttp.BasicAuth{Username: user, Password: pass}
-		} else if tok := env.GetenvFS(f.envfsys, "GIT_HTTP_TOKEN"); tok != "" {
-			// note docs on TokenAuth - this is rarely to be used
-			auth = &githttp.TokenAuth{Token: tok}
-		}
-
-		return auth, nil
-	case "ssh":
-		k := env.GetenvFS(f.envfsys, "GIT_SSH_KEY")
-		if k != "" {
-			key, err := base64.StdEncoding.DecodeString(k)
-			if err != nil {
-				key = []byte(k)
-			}
-
-			return ssh.NewPublicKeys(user, key, "")
-		}
-
-		return ssh.NewSSHAgentAuth(user)
-	case "git", "file":
-		return nil, nil
-	default:
-		return nil, fmt.Errorf("unsupported scheme %q", u.Scheme)
-	}
 }
