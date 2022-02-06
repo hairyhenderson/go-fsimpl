@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/fs"
 	"net/url"
+	"strings"
 )
 
 // FSMux allows you to dynamically look up a registered filesystem for a given
@@ -41,7 +42,7 @@ func (m FSMux) Lookup(u string) (fs.FS, error) {
 	return f(base)
 }
 
-// FSProvider is able to create filesystems for a set of schemes
+// FSProvider provides a filesystem for a set of defined schemes
 type FSProvider interface {
 	// Schemes returns the valid URL schemes for this filesystem
 	Schemes() []string
@@ -66,4 +67,23 @@ func (p fsp) Schemes() []string {
 
 func (p fsp) New(u *url.URL) (fs.FS, error) {
 	return p.newFunc(u)
+}
+
+// WrappedFSProvider is an FSProvider that returns the given fs.FS.
+// When given a URL with a non-root path (i.e. not '/'), fs.Sub will be used to
+// return a filesystem appropriate for the URL.
+func WrappedFSProvider(fsys fs.FS, schemes ...string) FSProvider {
+	return fsp{
+		newFunc: func(u *url.URL) (fs.FS, error) {
+			dir := u.Path
+			if dir == "/" {
+				dir = "."
+			} else if strings.HasPrefix(dir, "/") {
+				dir = strings.TrimLeft(dir, "/")
+			}
+
+			return fs.Sub(fsys, dir)
+		},
+		schemes: schemes,
+	}
 }
