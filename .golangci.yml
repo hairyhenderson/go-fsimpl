@@ -40,7 +40,7 @@ linters:
     - gocyclo
     - godox
     - gofmt
-    - gofumpt
+    # - gofumpt
     - goheader
     - goimports
     # - gomnd
