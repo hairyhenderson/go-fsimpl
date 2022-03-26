@@ -11,7 +11,7 @@ require (
 	github.com/fsouza/fake-gcs-server v1.37.3
 	github.com/go-git/go-billy/v5 v5.3.1
 	github.com/go-git/go-git/v5 v5.4.2
-	github.com/hashicorp/vault/api v1.4.1
+	github.com/hashicorp/vault/api v1.5.0
 	github.com/johannesboyne/gofakes3 v0.0.0-20210819161434-5c8dfcfe5310
 	github.com/stretchr/testify v1.7.1
 	gocloud.dev v0.24.0
