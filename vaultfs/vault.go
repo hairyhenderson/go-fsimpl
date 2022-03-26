@@ -258,6 +258,7 @@ func (f *vaultFile) request(method string) (*api.Response, error) {
 		return nil, fmt.Errorf("failed to create vault request: %w", err)
 	}
 
+	//nolint:staticcheck
 	resp, err := f.client.RawRequestWithContext(f.ctx, req)
 	if err != nil {
 		return nil, fmt.Errorf("http %s %s failed with: %w", method, f.u.Path,

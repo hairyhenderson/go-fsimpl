@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io/fs"
-	"net/http"
 	"os"
 	"path"
 	"strings"
@@ -192,7 +191,7 @@ func (m *appRoleAuthMethod) Login(ctx context.Context, client *api.Client) error
 	mount := findValue(m.mount, "VAULT_AUTH_APPROLE_MOUNT", "approle", m.fsys)
 
 	secret, err := remoteAuth(ctx, client, mount, "",
-		map[string]string{"role_id": roleID, "secret_id": secretID})
+		map[string]interface{}{"role_id": roleID, "secret_id": secretID})
 	if err != nil {
 		return fmt.Errorf("approle login failed: %w", err)
 	}
@@ -239,7 +238,7 @@ func (m *appIDAuthMethod) Login(ctx context.Context, client *api.Client) error {
 	mount := findValue(m.mount, "VAULT_AUTH_APP_ID_MOUNT", "app-id", m.fsys)
 
 	secret, err := remoteAuth(ctx, client, mount, appID,
-		map[string]string{"user_id": userID})
+		map[string]interface{}{"user_id": userID})
 	if err != nil {
 		return fmt.Errorf("app-id login failed: %w", err)
 	}
@@ -284,7 +283,7 @@ func (m *gitHubAuthMethod) Login(ctx context.Context, client *api.Client) error 
 	mount := findValue(m.mount, "VAULT_AUTH_GITHUB_MOUNT", "github", m.fsys)
 
 	secret, err := remoteAuth(ctx, client, mount, "",
-		map[string]string{"token": ghtoken})
+		map[string]interface{}{"token": ghtoken})
 	if err != nil {
 		return fmt.Errorf("github login failed: %w", err)
 	}
@@ -336,7 +335,7 @@ func (m *userPassAuthMethod) Login(ctx context.Context, client *api.Client) erro
 	mount := findValue(m.mount, "VAULT_AUTH_USERPASS_MOUNT", "userpass", m.fsys)
 
 	secret, err := remoteAuth(ctx, client, mount, username,
-		map[string]string{"password": password})
+		map[string]interface{}{"password": password})
 	if err != nil {
 		return fmt.Errorf("userpass login failed: %w", err)
 	}
@@ -362,43 +361,19 @@ func findValue(s, envvar, def string, fsys fs.FS) string {
 	return s
 }
 
-func remoteAuth(ctx context.Context, client *api.Client, mount, extra string, vars map[string]string) (*api.Secret, error) {
-	p := fmt.Sprintf("/v1/auth/%s/login", mount)
-	p = path.Join(p, extra)
+func remoteAuth(ctx context.Context, client *api.Client, mount, extra string, vars map[string]interface{}) (*api.Secret, error) {
+	p := path.Join("auth", mount, "login", extra)
 
-	req := client.NewRequest(http.MethodPut, p)
-
-	err := req.SetJSONBody(vars)
-	if err != nil {
-		return nil, err
-	}
-
-	// equivalent to client.Logical().Write(), but with support for ctx
-	resp, err := client.RawRequestWithContext(ctx, req)
+	secret, err := client.Logical().WriteWithContext(ctx, p, vars)
 	if err != nil {
 		return nil, fmt.Errorf("vault write to %s failed: %w", p, vaultFSError(err))
-	}
-	defer resp.Body.Close()
-
-	secret, err := api.ParseSecret(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	if secret == nil || secret.Auth == nil {
-		return nil, fmt.Errorf("invalid response from vault write")
 	}
 
 	return secret, nil
 }
 
 func revokeToken(ctx context.Context, client *api.Client) error {
-	r := client.NewRequest("POST", "/v1/auth/token/revoke-self")
-
-	resp, err := client.RawRequestWithContext(ctx, r)
-	if err == nil {
-		resp.Body.Close()
-	}
+	_, err := client.Logical().WriteWithContext(ctx, "auth/token/revoke-self", nil)
 
 	client.ClearToken()
 
