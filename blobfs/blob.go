@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-storage-blob-go/azblob"
+	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -372,7 +372,7 @@ func (f *blobFile) Stat() (fs.FileInfo, error) {
 	mode := fs.FileMode(0o644)
 
 	azResp := azblob.BlobGetPropertiesResponse{}
-	if out.As(&azResp) && azResp.ContentType() == "" {
+	if out.As(&azResp) && *azResp.ContentType == "" {
 		// this is likely a directory
 		mode = fs.ModeDir
 	}
