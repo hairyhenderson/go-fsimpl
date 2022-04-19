@@ -1,5 +1,10 @@
 name: Build
-on: [push]
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    # only run on PRs targeting main
+    branches: [ main ]
 
 jobs:
   linux-build:
