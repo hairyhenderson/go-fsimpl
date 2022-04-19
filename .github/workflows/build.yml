@@ -15,7 +15,7 @@ jobs:
       - run: |
           git config --global user.email "bogus@example.com"
           git config --global user.name "Someone"
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - run: make test
   windows-build:
     runs-on: windows-latest
@@ -28,12 +28,12 @@ jobs:
       - run: |
           git config --global user.email "bogus@example.com"
           git config --global user.name "Someone"
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - run: make test
   lint:
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/hairyhenderson/gomplate-ci-build:latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - run: make ci-lint
