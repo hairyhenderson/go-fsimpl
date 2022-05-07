@@ -496,7 +496,6 @@ func TestVaultFS_AppIDAuth(t *testing.T) {
 	fsys, err := vaultfs.New(tests.MustURL("http://" + addr))
 	assert.NoError(t, err)
 
-	//nolint:staticcheck
 	fsys = vaultfs.WithAuthMethod(vaultfs.AppIDAuthMethod("testappid", "testuserid", ""), fsys)
 
 	b, err := fs.ReadFile(fsys, "secret/foo")
