@@ -10,6 +10,7 @@ import (
 
 	"github.com/hairyhenderson/go-fsimpl"
 	"github.com/hairyhenderson/go-fsimpl/awssmfs"
+	"github.com/hairyhenderson/go-fsimpl/awssmpfs"
 	"github.com/hairyhenderson/go-fsimpl/blobfs"
 	"github.com/hairyhenderson/go-fsimpl/consulfs"
 	"github.com/hairyhenderson/go-fsimpl/filefs"
@@ -31,6 +32,7 @@ func Lookup(u string) (fs.FS, error) {
 	muxInit.Do(func() {
 		mux = fsimpl.NewMux()
 		mux.Add(awssmfs.FS)
+		mux.Add(awssmpfs.FS)
 		mux.Add(blobfs.FS)
 		mux.Add(consulfs.FS)
 		mux.Add(filefs.FS)
