@@ -48,10 +48,7 @@ func setupVaultFSTest(t *testing.T) string {
 }
 
 func adminClient(t *testing.T, addr string) *api.Client {
-	os.Setenv("VAULT_ADDR", "http://"+addr)
-	defer os.Unsetenv("VAULT_ADDR")
-
-	client, err := api.NewClient(nil)
+	client, err := api.NewClient(&api.Config{Address: "http://" + addr})
 	require.NoError(t, err)
 
 	client.SetToken(vaultRootToken)
@@ -95,7 +92,7 @@ func startVault(t *testing.T) string {
 		_ = os.Rename(tokenFile, path.Join(homeDir, ".vault-token.bak"))
 	}
 
-	_, vaultAddr := freeport()
+	_, vaultAddr := freeport(t)
 	vault := icmd.Command("vault", "server",
 		"-dev",
 		"-dev-root-token-id="+vaultRootToken,
