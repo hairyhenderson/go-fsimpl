@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/fs"
 	"net/url"
+	"sort"
 	"strings"
 )
 
@@ -11,7 +12,11 @@ import (
 // URL. All filesystems provided in this module can be registered, and
 // additional filesystems can be registered given an implementation of
 // FSProvider.
+// FSMux is itself an FSProvider, which provides the superset of all registered
+// filesystems.
 type FSMux map[string]func(*url.URL) (fs.FS, error)
+
+var _ FSProvider = (FSMux)(nil)
 
 // NewMux returns an FSMux ready for use.
 func NewMux() FSMux {
@@ -34,12 +39,29 @@ func (m FSMux) Lookup(u string) (fs.FS, error) {
 		return nil, err
 	}
 
-	f, ok := m[base.Scheme]
-	if !ok {
-		return nil, fmt.Errorf("no filesystem registered for scheme %q", base.Scheme)
+	return m.New(base)
+}
+
+// Schemes - implements FSProvider
+func (m FSMux) Schemes() []string {
+	schemes := make([]string, 0, len(m))
+	for scheme := range m {
+		schemes = append(schemes, scheme)
 	}
 
-	return f(base)
+	sort.Strings(schemes)
+
+	return schemes
+}
+
+// New - implements FSProvider
+func (m FSMux) New(u *url.URL) (fs.FS, error) {
+	f, ok := m[u.Scheme]
+	if !ok {
+		return nil, fmt.Errorf("no filesystem registered for scheme %q", u.Scheme)
+	}
+
+	return f(u)
 }
 
 // FSProvider provides a filesystem for a set of defined schemes

@@ -42,6 +42,15 @@ func TestFSMux(t *testing.T) {
 
 	_, err = m.Lookup("file:///")
 	assert.Error(t, err)
+
+	// test out FSProvider functionality
+	assert.Equal(t, []string{"bar", "baz", "foo", "qux"}, m.Schemes())
+	actual, err = m.New(tests.MustURL("foo:///"))
+	assert.NoError(t, err)
+	assert.Equal(t, fsys, actual)
+	actual, err = m.New(tests.MustURL("bar:///"))
+	assert.NoError(t, err)
+	assert.Equal(t, fsys, actual)
 }
 
 func TestWrappedFSProvider(t *testing.T) {
