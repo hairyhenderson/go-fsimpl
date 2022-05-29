@@ -33,9 +33,9 @@ func TestSplitRepoPath(t *testing.T) {
 
 	u := tests.MustURL("http://example.com//foo")
 	assert.Equal(t, "//foo", u.Path)
-	parts := strings.SplitN(u.Path, "//", 2)
-	assert.Equal(t, 2, len(parts))
-	assert.EqualValues(t, []string{"", "foo"}, parts)
+	left, right, _ := strings.Cut(u.Path, "//")
+	assert.Equal(t, "", left)
+	assert.Equal(t, "foo", right)
 
 	data := []struct {
 		in         string
@@ -67,6 +67,30 @@ func TestSplitRepoPath(t *testing.T) {
 			repo, path := splitRepoPath(d.in)
 			assert.Equal(t, d.repo, repo)
 			assert.Equal(t, d.path, path)
+		})
+	}
+}
+
+func BenchmarkSplitRepoPath(b *testing.B) {
+	data := []string{
+		"/",
+		"/repo",
+		"/foo//foo",
+		"/foo//foo/bar",
+		"//foo/bar",
+		"/foo/bar//baz/",
+		"/foo//",
+	}
+
+	for i, d := range data {
+		b.ResetTimer()
+
+		d := d
+
+		b.Run(fmt.Sprintf("%d", i), func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				splitRepoPath(d)
+			}
 		})
 	}
 }
