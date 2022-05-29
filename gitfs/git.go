@@ -148,22 +148,9 @@ func (f *gitFS) ReadDir(name string) ([]fs.DirEntry, error) {
 
 // Split the git repo path from the subpath, delimited by "//"
 func splitRepoPath(repopath string) (repo, subpath string) {
-	parts := strings.SplitN(repopath, "//", 2)
-	switch len(parts) {
-	case 1:
-		subpath = "/"
-	case 2:
-		subpath = "/" + parts[1]
+	repopath, subpath, _ = strings.Cut(repopath, "//")
 
-		i := strings.LastIndex(repopath, subpath)
-		repopath = repopath[:i-1]
-	}
-
-	if subpath != "/" {
-		subpath = strings.TrimSuffix(subpath, "/")
-	}
-
-	return repopath, subpath
+	return repopath, "/" + strings.TrimSuffix(subpath, "/")
 }
 
 func refFromURL(u url.URL) plumbing.ReferenceName {
