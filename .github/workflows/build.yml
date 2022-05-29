@@ -20,11 +20,12 @@ jobs:
   windows-build:
     runs-on: windows-latest
     env:
-      TMP: D:\tmp
+      TMP: D:\a\tmp
     steps:
-      - uses: actions/setup-go@v1
+      - run: pwd
+      - uses: actions/setup-go@v3
         with:
-          go-version: 1.17.x
+          go-version: 1.18.x
       - run: |
           git config --global user.email "bogus@example.com"
           git config --global user.name "Someone"
