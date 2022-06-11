@@ -13,7 +13,7 @@ require (
 	github.com/go-git/go-git/v5 v5.4.2
 	github.com/hashicorp/vault/api v1.7.2
 	github.com/johannesboyne/gofakes3 v0.0.0-20220517215058-83a58ec253b6
-	github.com/stretchr/testify v1.7.1
+	github.com/stretchr/testify v1.7.2
 	gocloud.dev v0.25.1-0.20220408200107-09b10f7359f7
 	golang.org/x/crypto v0.0.0-20220525230936-793ad666bf5e
 	gotest.tools/v3 v3.2.0
