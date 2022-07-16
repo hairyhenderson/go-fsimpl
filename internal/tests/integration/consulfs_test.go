@@ -4,7 +4,6 @@ package integration
 
 import (
 	"io"
-	"os"
 	"strconv"
 	"testing"
 	"testing/fstest"
@@ -228,33 +227,17 @@ func TestConsulFS_WithVaultAuth(t *testing.T) {
 
 	_, _ = kv.Put(&api.KVPair{Key: "vkeys/foo", Value: []byte("bar")}, nil)
 
-	// os.Setenv("VAULT_TOKEN", vaultRootToken)
-	// os.Setenv("VAULT_ADDR", "http://"+vaultAddr)
-	// os.Setenv("CONSUL_VAULT_ROLE", "readonly")
-	os.Setenv("CONSUL_HTTP_ADDR", "http://"+tcfg.consulAddr)
-
-	// defer os.Unsetenv("VAULT_TOKEN")
-	// defer os.Unsetenv("VAULT_ADDR")
-	// defer os.Unsetenv("CONSUL_VAULT_ROLE")
-	defer os.Unsetenv("CONSUL_HTTP_ADDR")
-
-	// o, e, err := cmd(t,
-	// 	"-d", "consul=consul://",
-	// 	"-i", `{{(ds "consul" "foo")}}`).
-	// 	withEnv("VAULT_TOKEN", vaultRootToken).
-	// 	withEnv("VAULT_ADDR", "http://"+v.addr).
-	// 	withEnv("CONSUL_VAULT_ROLE", "readonly").
-	// 	withEnv("CONSUL_HTTP_ADDR", "http://"+consulAddr).
-	// 	run()
-	// assertSuccess(t, o, e, err, "bar")
-
-	fsys, err := consulfs.New(tests.MustURL("consul:///vkeys/"))
+	fsys, err := consulfs.New(tests.MustURL("consul://" + tcfg.consulAddr + "/vkeys/"))
 	require.NoError(t, err)
 
 	fsys = consulfs.WithConsulClientFS(tcfg.testClient, fsys)
 
+	// this should error as we're not authorized with the correct role
+	_, err = fsys.Open("foo")
+	require.Error(t, err)
+
 	f, err := fsys.Open("foo")
-	require.NoError(t, err)
+	require.Error(t, err)
 
 	defer f.Close()
 
