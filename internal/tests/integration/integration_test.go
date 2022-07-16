@@ -12,10 +12,12 @@ import (
 )
 
 // freeport - find a free TCP port for immediate use. No guarantees!
-func freeport() (port int, addr string) {
+func freeport(t *testing.T) (port int, addr string) {
+	t.Helper()
+
 	l, err := net.ListenTCP("tcp", &net.TCPAddr{IP: net.ParseIP("127.0.0.1")})
 	if err != nil {
-		panic(err)
+		t.Fatal(err)
 	}
 	defer l.Close()
 	a := l.Addr().(*net.TCPAddr)
