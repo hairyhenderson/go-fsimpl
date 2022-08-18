@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"path"
@@ -35,6 +34,7 @@ type vaultFS struct {
 // otherwise a Vault token may be leaked!
 //
 // The filesystem may be configured with:
+//
 //	WithAuthMethod		// set the Vault auth method
 //	fsimpl.WithContextFS	// set the context
 //	fsimpl.WithHeaderFS	// set custom HTTP headers
@@ -340,7 +340,7 @@ func (f *vaultFile) Read(p []byte) (int, error) {
 		}
 	}
 
-	f.body = ioutil.NopCloser(bytes.NewReader(b))
+	f.body = io.NopCloser(bytes.NewReader(b))
 
 	return f.body.Read(p)
 }

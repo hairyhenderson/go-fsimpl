@@ -3,7 +3,7 @@
 //
 // This filesystem's behaviour complies with fstest.TestFS.
 //
-// Usage
+// # Usage
 //
 // To use this filesystem, call New with a base URL. All reads from the
 // filesystem are relative to this base URL. The schemes "vault", "vault+https",
@@ -34,7 +34,7 @@
 // See the Vault Secret Engines docs for more details:
 // https://vaultproject.io/docs/secrets.
 //
-// Authentication
+// # Authentication
 //
 // A number of authentication methods are supported. By default, the auth method
 // will be chosen based on environment variables (using EnvAuthMethod), but
@@ -57,7 +57,7 @@
 // Note that only a few auth methods are currently supported by this package. If
 // you need additional methods, please file an issue!
 //
-// Permissions
+// # Permissions
 //
 // The correct capabilities must be allowed for the authenticated credentials.
 // Regular secret read operations require the "read" capability, dynamic secret
@@ -67,7 +67,7 @@
 // See https://www.vaultproject.io/docs/concepts/policies#capabilities for more
 // details on how to configure these in Vault.
 //
-// Environment Variables
+// # Environment Variables
 //
 // All auth methods can be configured with the AuthMethod functions, but they
 // also each support inferring values from environment variables. See the docs
