@@ -6,14 +6,14 @@
 //
 // This filesystem's behaviour complies with fstest.TestFS.
 //
-// Usage
+// # Usage
 //
 // To use this filesystem, call New with a base URL. All reads from the
 // filesystem are relative to this base URL. Valid schemes are 'git', 'file',
 // 'http', 'https', 'ssh', and the same prefixed with 'git+' (e.g.
 // 'git+ssh://example.com').
 //
-// URL Format
+// # URL Format
 //
 // The scheme, authority (with userinfo), path, and fragment are used by this
 // filesystem.
@@ -55,13 +55,13 @@
 //	git+https://github.com/hairyhenderson/go-which//cmd/which#refs/tags/v0.1.0
 //	git+ssh://git@github.com/hairyhenderson/go-which.git
 //
-// Authentication
+// # Authentication
 //
 // The authentication mechanisms used by gitfs are dependent on the URL scheme.
 // A number of Authenticators are provided in this package. See the
 // documentation for the Authenticator type for more information.
 //
-// Environment Variables
+// # Environment Variables
 //
 // The Authenticators in this package optionally support the use of environment
 // variables to provide credentials. These are:

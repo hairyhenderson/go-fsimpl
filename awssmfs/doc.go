@@ -3,7 +3,7 @@
 //
 // This filesystem's behaviour complies with fstest.TestFS.
 //
-// Usage
+// # Usage
 //
 // To use this filesystem, call New with a base URL. All reads from the
 // filesystem are relative to this base URL. Only the scheme "aws+sm" is
@@ -23,7 +23,7 @@
 //
 //	aws+sm:prod/bar/
 //
-// Configuration
+// # Configuration
 //
 // The AWS Secrets Manager client is configured using the default credential
 // chain (see https://aws.github.io/aws-sdk-go-v2/docs/configuring-sdk/#specifying-credentials
@@ -31,5 +31,4 @@
 //
 // If you require more customized configuration, you can override the default
 // client with the WithSMClientFS function.
-//
 package awssmfs

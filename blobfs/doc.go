@@ -4,7 +4,7 @@
 //
 // This filesystem's behaviour complies with fstest.TestFS.
 //
-// Usage
+// # Usage
 //
 // To use this filesystem, call New with a base URL. All reads from the
 // filesystem are relative to this base URL. The schemes "s3", "gs", and "azblob"

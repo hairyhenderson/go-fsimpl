@@ -43,6 +43,7 @@ func WithHTTPClientFS(client *http.Client, fsys fs.FS) fs.FS {
 }
 
 // common types we want to be able to handle which can be missing by default
+//
 //nolint:gochecknoglobals
 var (
 	extraMimeTypes = map[string]string{

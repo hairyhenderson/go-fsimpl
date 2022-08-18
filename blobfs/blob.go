@@ -39,6 +39,7 @@ type blobFS struct {
 
 // Some blob APIs don't return valid modTimes, and some do. To conform to fstest
 // set this to a fake value
+//
 //nolint:gochecknoglobals
 var fakeModTime *time.Time
 
