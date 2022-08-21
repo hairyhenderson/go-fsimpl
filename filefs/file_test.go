@@ -4,6 +4,7 @@ import (
 	"net/url"
 	"testing"
 	"testing/fstest"
+	"time"
 
 	"github.com/hairyhenderson/go-fsimpl/internal/tests"
 	"github.com/stretchr/testify/assert"
@@ -11,10 +12,16 @@ import (
 )
 
 func setupFileSystem(t *testing.T) *tfs.Dir {
+	staticTimeStamps := tfs.WithTimestamps(
+		time.Date(2022, 8, 1, 13, 14, 15, 0, time.UTC),
+		time.Date(2022, 8, 1, 13, 14, 15, 0, time.UTC),
+	)
+
 	tmpDir := tfs.NewDir(t, "go-fsimplTests",
-		tfs.WithFile("hello.txt", "hello world\n"),
+		tfs.WithFile("hello.txt", "hello world\n", staticTimeStamps),
 		tfs.WithDir("sub",
-			tfs.WithFile("subfile.txt", "hi there"),
+			tfs.WithFile("subfile.txt", "hi there", staticTimeStamps),
+			staticTimeStamps,
 		),
 	)
 	t.Cleanup(tmpDir.Remove)
