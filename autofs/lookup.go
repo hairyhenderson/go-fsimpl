@@ -11,6 +11,7 @@ import (
 	"github.com/hairyhenderson/go-fsimpl"
 	"github.com/hairyhenderson/go-fsimpl/awssmfs"
 	"github.com/hairyhenderson/go-fsimpl/blobfs"
+	"github.com/hairyhenderson/go-fsimpl/consulfs"
 	"github.com/hairyhenderson/go-fsimpl/filefs"
 	"github.com/hairyhenderson/go-fsimpl/gitfs"
 	"github.com/hairyhenderson/go-fsimpl/httpfs"
@@ -29,12 +30,13 @@ var (
 func Lookup(u string) (fs.FS, error) {
 	muxInit.Do(func() {
 		mux = fsimpl.NewMux()
-		mux.Add(filefs.FS)
-		mux.Add(httpfs.FS)
-		mux.Add(blobfs.FS)
-		mux.Add(gitfs.FS)
-		mux.Add(vaultfs.FS)
 		mux.Add(awssmfs.FS)
+		mux.Add(blobfs.FS)
+		mux.Add(consulfs.FS)
+		mux.Add(filefs.FS)
+		mux.Add(gitfs.FS)
+		mux.Add(httpfs.FS)
+		mux.Add(vaultfs.FS)
 	})
 
 	return mux.Lookup(u)
