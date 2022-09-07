@@ -22,7 +22,7 @@ import (
 )
 
 func setupGitFSTest(t *testing.T) *tfs.Dir {
-	tmpDir := tfs.NewDir(t, "gomplate-inttests",
+	tmpDir := tfs.NewDir(t, "gofsimpl-inttests",
 		tfs.WithDir("repo",
 			tfs.WithFiles(map[string]string{
 				"config.json": `{"foo": {"bar": "baz"}}`,
@@ -47,6 +47,11 @@ func setupGitFSTest(t *testing.T) *tfs.Dir {
 	result := icmd.RunCommand("git", "init", repoPath)
 	result.Assert(t, icmd.Expected{ExitCode: 0, Out: "Initialized empty Git repository"})
 
+	// Modern git >2.28 defaults to branch main. go-git expects master by default
+	// this is a no-op if we're already on master
+	result = icmd.RunCmd(icmd.Command("git", "branch", "-m", "master"), icmd.Dir(repoPath))
+	result.Assert(t, icmd.Expected{ExitCode: 0})
+
 	result = icmd.RunCmd(icmd.Command("git", "add", "-A"), icmd.Dir(repoPath))
 	result.Assert(t, icmd.Expected{ExitCode: 0})
 
@@ -59,7 +64,7 @@ func setupGitFSTest(t *testing.T) *tfs.Dir {
 func startGitDaemon(t *testing.T) string {
 	tmpDir := setupGitFSTest(t)
 
-	pidDir := tfs.NewDir(t, "gomplate-inttests-pid")
+	pidDir := tfs.NewDir(t, "gofsimpl-inttests-pid")
 	t.Cleanup(pidDir.Remove)
 
 	port, addr := freeport(t)

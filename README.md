@@ -120,6 +120,10 @@ func main() {
 }
 ```
 
+## Developing
+
+You will require `git` including `git daemon` and `consul` executables on your path for running the tests.
+
 ## License
 
 [The MIT License](http://opensource.org/licenses/MIT)
