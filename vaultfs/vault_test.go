@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"os"
 	"runtime"
 	"testing"
 	"time"
@@ -118,6 +119,9 @@ func fakeVaultServer(t *testing.T) *api.Client {
 }
 
 func TestVaultConfig(t *testing.T) {
+	err := os.Unsetenv("VAULT_ADDR")
+	assert.NoError(t, err)
+
 	config, err := vaultConfig(tests.MustURL("vault:///"))
 	assert.NoError(t, err)
 	assert.Equal(t, "https://127.0.0.1:8200", config.Address)
