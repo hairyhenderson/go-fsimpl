@@ -231,7 +231,7 @@ func (f *awssmpFS) ReadFile(name string) ([]byte, error) {
 	out, err := smclient.GetParameter(f.ctx, &ssm.GetParameterInput{
 		Name: aws.String(path.Join(f.root, name)),
 		// decrypt the parameter if it's a SecureString
-		WithDecryption: true,
+		WithDecryption: aws.Bool(true),
 	})
 	if err != nil {
 		return nil, &fs.PathError{Op: "readFile", Path: name, Err: convertAWSError(err)}
@@ -289,7 +289,7 @@ func (f *awssmpFile) Stat() (fs.FileInfo, error) {
 	// code path (Open sets f.fi to a DirInfo)
 	params, err := f.client.GetParametersByPath(f.ctx, &ssm.GetParametersByPathInput{
 		Path:      aws.String(path.Join(f.root, f.name) + "/"),
-		Recursive: true,
+		Recursive: aws.Bool(true),
 	})
 	if err != nil {
 		return nil, &fs.PathError{Op: "stat", Path: f.name, Err: convertAWSError(err)}
@@ -336,7 +336,7 @@ func (f *awssmpFile) getParameter() error {
 
 	out, err := f.client.GetParameter(f.ctx, &ssm.GetParameterInput{
 		Name:           aws.String(fullPath),
-		WithDecryption: true,
+		WithDecryption: aws.Bool(true),
 	})
 	if err != nil {
 		return fmt.Errorf("getParameter: %w", convertAWSError(err))
@@ -384,9 +384,9 @@ func (f *awssmpFile) listParameters() ([]types.Parameter, error) {
 	for token := (*string)(nil); ; {
 		out, err := f.client.GetParametersByPath(f.ctx, &ssm.GetParametersByPathInput{
 			Path:           aws.String(prefix),
-			WithDecryption: true,
+			WithDecryption: aws.Bool(true),
 			NextToken:      token,
-			Recursive:      true,
+			Recursive:      aws.Bool(true),
 		})
 		if err != nil {
 			return nil, fmt.Errorf("getParametersByPath: %w", err)

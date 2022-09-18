@@ -88,13 +88,13 @@ func (c *fakeClient) GetParametersByPath(ctx context.Context, params *ssm.GetPar
 		return aws.ToString(paramList[i].Name) < aws.ToString(paramList[j].Name)
 	})
 
-	if params.MaxResults == 0 {
+	if params.MaxResults == aws.Int32(0) {
 		// default to 2 results so we trigger pagination
-		params.MaxResults = 2
+		params.MaxResults = aws.Int32(2)
 	}
 
 	l := len(paramList)
-	m := int(params.MaxResults)
+	m := int(*params.MaxResults)
 
 	high := offset + m
 
