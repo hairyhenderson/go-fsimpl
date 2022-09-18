@@ -3,6 +3,7 @@
 package integration
 
 import (
+	"context"
 	"encoding/json"
 	"io"
 	"io/fs"
@@ -12,7 +13,9 @@ import (
 	"path/filepath"
 	"testing"
 	"testing/fstest"
+	"time"
 
+	"github.com/hairyhenderson/go-fsimpl"
 	"github.com/hairyhenderson/go-fsimpl/internal/tests"
 	"github.com/hairyhenderson/go-fsimpl/vaultfs"
 	"github.com/hashicorp/vault/api"
@@ -24,24 +27,27 @@ import (
 
 const vaultRootToken = "00000000-1111-2222-3333-444455556666"
 
-func setupVaultFSTest(t *testing.T) string {
+func setupVaultFSTest(ctx context.Context, t *testing.T) string {
 	addr := startVault(t)
 
 	t.Helper()
 
 	client := adminClient(t, addr)
 
-	err := client.Sys().PutPolicy("writepol", `path "*" {
-  capabilities = ["create","update","delete"]
-}`)
+	err := client.Sys().PutPolicyWithContext(ctx, "writepol",
+		`path "*" {
+			capabilities = ["create","update","delete"]
+		}`)
 	require.NoError(t, err)
-	err = client.Sys().PutPolicy("readpol", `path "*" {
-  capabilities = ["read","delete"]
-}`)
+	err = client.Sys().PutPolicyWithContext(ctx, "readpol",
+		`path "*" {
+			capabilities = ["read","delete"]
+		}`)
 	require.NoError(t, err)
-	err = client.Sys().PutPolicy("listpol", `path "*" {
-  capabilities = ["read","list","delete"]
-}`)
+	err = client.Sys().PutPolicyWithContext(ctx, "listpol",
+		`path "*" {
+			capabilities = ["read","list","delete"]
+		}`)
 	require.NoError(t, err)
 
 	return addr
@@ -56,14 +62,14 @@ func adminClient(t *testing.T, addr string) *api.Client {
 	return client
 }
 
-func tokenCreate(client *api.Client, policy string, uses int) (string, error) {
+func tokenCreate(ctx context.Context, client *api.Client, policy string, uses int) (string, error) {
 	opts := &api.TokenCreateRequest{
 		Policies: []string{policy},
 		TTL:      "1m",
 		NumUses:  uses,
 	}
 
-	token, err := client.Auth().Token().Create(opts)
+	token, err := client.Auth().Token().CreateWithContext(ctx, opts)
 	if err != nil {
 		return "", err
 	}
@@ -96,8 +102,8 @@ func startVault(t *testing.T) string {
 	vault := icmd.Command("vault", "server",
 		"-dev",
 		"-dev-root-token-id="+vaultRootToken,
-		"-dev-leased-kv",
-		"-log-level=err",
+		"-dev-kv-v1", // default to v1, so we can test v1 and v2
+		"-log-level=error",
 		"-dev-listen-address="+vaultAddr,
 		"-config="+tmpDir.Join("config.json"),
 	)
@@ -131,18 +137,22 @@ func startVault(t *testing.T) string {
 }
 
 func TestVaultFS(t *testing.T) {
-	addr := setupVaultFSTest(t)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	addr := setupVaultFSTest(ctx, t)
 
 	client := adminClient(t, addr)
 
-	_, _ = client.Logical().Write("secret/one", map[string]interface{}{"value": "foo"})
-	_, _ = client.Logical().Write("secret/dir/two", map[string]interface{}{"value": 42})
-	_, _ = client.Logical().Write("secret/dir/three", map[string]interface{}{"value": 43})
-	_, _ = client.Logical().Write("secret/dir/four", map[string]interface{}{"value": 44})
-	_, _ = client.Logical().Write("secret/dir/five", map[string]interface{}{"value": 45})
+	_, _ = client.Logical().WriteWithContext(ctx, "secret/one", map[string]interface{}{"value": "foo"})
+	_, _ = client.Logical().WriteWithContext(ctx, "secret/dir/two", map[string]interface{}{"value": 42})
+	_, _ = client.Logical().WriteWithContext(ctx, "secret/dir/three", map[string]interface{}{"value": 43})
+	_, _ = client.Logical().WriteWithContext(ctx, "secret/dir/four", map[string]interface{}{"value": 44})
+	_, _ = client.Logical().WriteWithContext(ctx, "secret/dir/five", map[string]interface{}{"value": 45})
 
 	fsys, _ := vaultfs.New(tests.MustURL("vault+http://" + addr + "/secret/"))
 	fsys = vaultfs.WithAuthMethod(vaultfs.TokenAuthMethod(vaultRootToken), fsys)
+	fsys = fsimpl.WithContextFS(ctx, fsys)
 
 	err := fstest.TestFS(fsys,
 		"one",
@@ -155,13 +165,17 @@ func TestVaultFS(t *testing.T) {
 }
 
 func TestVaultFS_TokenAuth(t *testing.T) {
-	addr := setupVaultFSTest(t)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	addr := setupVaultFSTest(ctx, t)
 
 	client := adminClient(t, addr)
+	kv1 := client.KVv1("secret")
 
-	_, _ = client.Logical().Write("secret/foo", map[string]interface{}{"value": "bar"})
+	_ = kv1.Put(ctx, "foo", map[string]interface{}{"value": "bar"})
 
-	tok, err := tokenCreate(client, "readpol", 4)
+	tok, err := tokenCreate(ctx, client, "readpol", 4)
 	require.NoError(t, err)
 
 	// address provided, token provided
@@ -169,6 +183,7 @@ func TestVaultFS_TokenAuth(t *testing.T) {
 	assert.NoError(t, err)
 
 	fsys = vaultfs.WithAuthMethod(vaultfs.TokenAuthMethod(tok), fsys)
+	fsys = fsimpl.WithContextFS(ctx, fsys)
 
 	b, err := fs.ReadFile(fsys, "secret/foo")
 	assert.NoError(t, err)
@@ -181,6 +196,8 @@ func TestVaultFS_TokenAuth(t *testing.T) {
 	fsys, err = vaultfs.New(tests.MustURL("vault+http://" + addr))
 	assert.NoError(t, err)
 
+	fsys = fsimpl.WithContextFS(ctx, fsys)
+
 	b, err = fs.ReadFile(fsys, "secret/foo")
 	assert.NoError(t, err)
 	assert.Equal(t, `{"value":"bar"}`, string(b))
@@ -192,6 +209,8 @@ func TestVaultFS_TokenAuth(t *testing.T) {
 	fsys, err = vaultfs.New(tests.MustURL("vault:///"))
 	assert.NoError(t, err)
 
+	fsys = fsimpl.WithContextFS(ctx, fsys)
+
 	b, err = fs.ReadFile(fsys, "secret/foo")
 	assert.NoError(t, err)
 	assert.Equal(t, `{"value":"bar"}`, string(b))
@@ -199,28 +218,32 @@ func TestVaultFS_TokenAuth(t *testing.T) {
 
 //nolint:funlen
 func TestVaultFS_UserPassAuth(t *testing.T) {
-	addr := setupVaultFSTest(t)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	addr := setupVaultFSTest(ctx, t)
 
 	client := adminClient(t, addr)
+	kv1 := client.KVv1("secret")
 
-	_, _ = client.Logical().Write("secret/foo", map[string]interface{}{"value": "bar"})
-	_, _ = client.Logical().Write("secret/dir/foo", map[string]interface{}{"value": "dir"})
-	_, _ = client.Logical().Write("secret/dir/bar", map[string]interface{}{"value": "dir"})
+	_ = kv1.Put(ctx, "foo", map[string]interface{}{"value": "bar"})
+	_ = kv1.Put(ctx, "dir/foo", map[string]interface{}{"value": "dir"})
+	_ = kv1.Put(ctx, "dir/bar", map[string]interface{}{"value": "dir"})
 
 	opts := &api.EnableAuthOptions{Type: "userpass"}
-	err := client.Sys().EnableAuthWithOptions("userpass", opts)
+	err := client.Sys().EnableAuthWithOptionsWithContext(ctx, "userpass", opts)
 	require.NoError(t, err)
 
-	err = client.Sys().EnableAuthWithOptions("userpass2", opts)
+	err = client.Sys().EnableAuthWithOptionsWithContext(ctx, "userpass2", opts)
 	require.NoError(t, err)
 
-	_, err = client.Logical().Write("auth/userpass/users/dave",
+	_, err = client.Logical().WriteWithContext(ctx, "auth/userpass/users/dave",
 		map[string]interface{}{
 			"password": "foo", "ttl": "1000s", "policies": "listpol",
 		})
 	require.NoError(t, err)
 
-	_, err = client.Logical().Write("auth/userpass2/users/dave",
+	_, err = client.Logical().WriteWithContext(ctx, "auth/userpass2/users/dave",
 		map[string]interface{}{
 			"password": "bar", "ttl": "10s", "policies": "readpol",
 		})
@@ -231,6 +254,7 @@ func TestVaultFS_UserPassAuth(t *testing.T) {
 
 	fsys = vaultfs.WithAuthMethod(
 		vaultfs.UserPassAuthMethod("dave", "foo", ""), fsys)
+	fsys = fsimpl.WithContextFS(ctx, fsys)
 
 	b, err := fs.ReadFile(fsys, "foo")
 	assert.NoError(t, err)
@@ -238,7 +262,7 @@ func TestVaultFS_UserPassAuth(t *testing.T) {
 
 	// should only have the root token remaining (Close should logout and revoke
 	// token)
-	list, err := client.Logical().List("auth/token/accessors")
+	list, err := client.Logical().ListWithContext(ctx, "auth/token/accessors")
 	require.NoError(t, err)
 	assert.Len(t, list.Data["keys"], 1)
 
@@ -248,6 +272,7 @@ func TestVaultFS_UserPassAuth(t *testing.T) {
 
 	fsys = vaultfs.WithAuthMethod(
 		vaultfs.UserPassAuthMethod("dave", "bar", "userpass2"), fsys)
+	fsys = fsimpl.WithContextFS(ctx, fsys)
 
 	b, err = fs.ReadFile(fsys, "foo")
 	assert.NoError(t, err)
@@ -265,8 +290,14 @@ func TestVaultFS_UserPassAuth(t *testing.T) {
 	fsys, err = vaultfs.New(tests.MustURL("vault:///secret/"))
 	assert.NoError(t, err)
 
+	fsys = fsimpl.WithContextFS(ctx, fsys)
+
 	f, err := fsys.Open("foo")
 	assert.NoError(t, err)
+
+	fi, err := f.Stat()
+	assert.NoError(t, err)
+	assert.Equal(t, int64(15), fi.Size())
 
 	b, err = io.ReadAll(f)
 	assert.NoError(t, err)
@@ -300,42 +331,47 @@ func TestVaultFS_UserPassAuth(t *testing.T) {
 
 	// should only have the root token remaining (Close should logout and revoke
 	// token)
-	list, err = client.Logical().List("auth/token/accessors")
+	list, err = client.Logical().ListWithContext(ctx, "auth/token/accessors")
 	require.NoError(t, err)
 	assert.Len(t, list.Data["keys"], 1)
 }
 
 //nolint:errcheck,funlen
 func TestVaultFS_AppRoleAuth(t *testing.T) {
-	addr := setupVaultFSTest(t)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	addr := setupVaultFSTest(ctx, t)
 
 	client := adminClient(t, addr)
+	kv1 := client.KVv1("secret")
 
-	_, _ = client.Logical().Write("secret/foo", map[string]interface{}{"value": "bar"})
-	defer client.Logical().Delete("secret/foo")
+	_ = kv1.Put(ctx, "foo", map[string]interface{}{"value": "bar"})
+	defer kv1.Delete(ctx, "foo")
 
-	err := client.Sys().EnableAuth("approle", "approle", "")
+	opts := &api.EnableAuthOptions{Type: "approle"}
+	err := client.Sys().EnableAuthWithOptionsWithContext(ctx, "approle", opts)
 	require.NoError(t, err)
-	err = client.Sys().EnableAuth("approle2", "approle", "")
+	err = client.Sys().EnableAuthWithOptionsWithContext(ctx, "approle2", opts)
 	require.NoError(t, err)
 
-	defer client.Sys().DisableAuth("approle")
-	defer client.Sys().DisableAuth("approle2")
-	_, err = client.Logical().Write("auth/approle/role/testrole", map[string]interface{}{
+	defer client.Sys().DisableAuthWithContext(ctx, "approle")
+	defer client.Sys().DisableAuthWithContext(ctx, "approle2")
+	_, err = client.Logical().WriteWithContext(ctx, "auth/approle/role/testrole", map[string]interface{}{
 		"secret_id_ttl": "10s", "token_ttl": "20s",
 		"secret_id_num_uses": "1", "policies": "readpol",
 		"token_type": "batch",
 	})
 	require.NoError(t, err)
-	_, err = client.Logical().Write("auth/approle2/role/testrole", map[string]interface{}{
+	_, err = client.Logical().WriteWithContext(ctx, "auth/approle2/role/testrole", map[string]interface{}{
 		"secret_id_ttl": "10s", "token_ttl": "20s",
 		"secret_id_num_uses": "1", "policies": "readpol",
 	})
 	require.NoError(t, err)
 
-	rid, _ := client.Logical().Read("auth/approle/role/testrole/role-id")
+	rid, _ := client.Logical().ReadWithContext(ctx, "auth/approle/role/testrole/role-id")
 	roleID := rid.Data["role_id"].(string)
-	sid, _ := client.Logical().Write("auth/approle/role/testrole/secret-id", nil)
+	sid, _ := client.Logical().WriteWithContext(ctx, "auth/approle/role/testrole/secret-id", nil)
 	secretID := sid.Data["secret_id"].(string)
 
 	fsys, err := vaultfs.New(tests.MustURL("http://" + addr + "/secret/"))
@@ -344,6 +380,7 @@ func TestVaultFS_AppRoleAuth(t *testing.T) {
 	fsys = vaultfs.WithAuthMethod(
 		vaultfs.AppRoleAuthMethod(roleID, secretID, ""), fsys,
 	)
+	fsys = fsimpl.WithContextFS(ctx, fsys)
 
 	f, err := fsys.Open("foo")
 	assert.NoError(t, err)
@@ -357,14 +394,14 @@ func TestVaultFS_AppRoleAuth(t *testing.T) {
 
 	// should only have the root token remaining (Close should logout and revoke
 	// token)
-	list, err := client.Logical().List("auth/token/accessors")
+	list, err := client.Logical().ListWithContext(ctx, "auth/token/accessors")
 	require.NoError(t, err)
 	assert.Len(t, list.Data["keys"], 1)
 
 	// now with the other mount point
-	rid, _ = client.Logical().Read("auth/approle2/role/testrole/role-id")
+	rid, _ = client.Logical().ReadWithContext(ctx, "auth/approle2/role/testrole/role-id")
 	roleID = rid.Data["role_id"].(string)
-	sid, _ = client.Logical().Write("auth/approle2/role/testrole/secret-id", nil)
+	sid, _ = client.Logical().WriteWithContext(ctx, "auth/approle2/role/testrole/secret-id", nil)
 	secretID = sid.Data["secret_id"].(string)
 
 	fsys, err = vaultfs.New(tests.MustURL("http://" + addr + "/secret/"))
@@ -373,6 +410,7 @@ func TestVaultFS_AppRoleAuth(t *testing.T) {
 	fsys = vaultfs.WithAuthMethod(
 		vaultfs.AppRoleAuthMethod(roleID, secretID, "approle2"), fsys,
 	)
+	fsys = fsimpl.WithContextFS(ctx, fsys)
 
 	b, err = fs.ReadFile(fsys, "foo")
 	assert.NoError(t, err)
@@ -381,32 +419,38 @@ func TestVaultFS_AppRoleAuth(t *testing.T) {
 
 //nolint:errcheck,funlen
 func TestVaultFS_AppRoleAuth_ReusedToken(t *testing.T) {
-	addr := setupVaultFSTest(t)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	addr := setupVaultFSTest(ctx, t)
 
 	client := adminClient(t, addr)
+	kv1 := client.KVv1("secret")
 
-	_, _ = client.Logical().Write("secret/foo", map[string]interface{}{"value": "foobar"})
-	defer client.Logical().Delete("secret/foo")
+	_ = kv1.Put(ctx, "foo", map[string]interface{}{"value": "foobar"})
+	defer kv1.Delete(ctx, "foo")
 
-	_, _ = client.Logical().Write("secret/bar", map[string]interface{}{"value": "barbar"})
-	defer client.Logical().Delete("secret/bar")
+	_ = kv1.Put(ctx, "bar", map[string]interface{}{"value": "barbar"})
+	defer kv1.Delete(ctx, "bar")
 
-	_, _ = client.Logical().Write("secret/baz", map[string]interface{}{"value": "bazbar"})
-	defer client.Logical().Delete("secret/baz")
+	_ = kv1.Put(ctx, "baz", map[string]interface{}{"value": "bazbar"})
+	defer kv1.Delete(ctx, "baz")
 
-	err := client.Sys().EnableAuth("approle", "approle", "")
+	err := client.Sys().EnableAuthWithOptionsWithContext(ctx, "approle",
+		&api.EnableAuthOptions{Type: "approle"})
 	require.NoError(t, err)
 
-	defer client.Sys().DisableAuth("approle")
-	_, err = client.Logical().Write("auth/approle/role/testrole", map[string]interface{}{
-		"secret_id_ttl": "10s", "token_ttl": "20s",
-		"secret_id_num_uses": "1", "policies": "readpol",
-	})
+	defer client.Sys().DisableAuthWithContext(ctx, "approle")
+	_, err = client.Logical().WriteWithContext(ctx, "auth/approle/role/testrole",
+		map[string]interface{}{
+			"secret_id_ttl": "10s", "token_ttl": "20s",
+			"secret_id_num_uses": "1", "policies": "readpol",
+		})
 	require.NoError(t, err)
 
-	rid, _ := client.Logical().Read("auth/approle/role/testrole/role-id")
+	rid, _ := client.Logical().ReadWithContext(ctx, "auth/approle/role/testrole/role-id")
 	roleID := rid.Data["role_id"].(string)
-	sid, _ := client.Logical().Write("auth/approle/role/testrole/secret-id", nil)
+	sid, _ := client.Logical().WriteWithContext(ctx, "auth/approle/role/testrole/secret-id", nil)
 	secretID := sid.Data["secret_id"].(string)
 
 	fsys, err := vaultfs.New(tests.MustURL("http://" + addr + "/secret/"))
@@ -415,6 +459,7 @@ func TestVaultFS_AppRoleAuth_ReusedToken(t *testing.T) {
 	fsys = vaultfs.WithAuthMethod(
 		vaultfs.AppRoleAuthMethod(roleID, secretID, ""), fsys,
 	)
+	fsys = fsimpl.WithContextFS(ctx, fsys)
 
 	// open 4 files simultaneously, and one of them twice
 	f1, err := fsys.Open("foo")
@@ -460,32 +505,38 @@ func TestVaultFS_AppRoleAuth_ReusedToken(t *testing.T) {
 
 //nolint:errcheck
 func TestVaultFS_AppIDAuth(t *testing.T) {
-	addr := setupVaultFSTest(t)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	addr := setupVaultFSTest(ctx, t)
 
 	client := adminClient(t, addr)
+	kv1 := client.KVv1("secret")
 
-	client.Logical().Write("secret/foo", map[string]interface{}{"value": "bar"})
-	defer client.Logical().Delete("secret/foo")
-	err := client.Sys().EnableAuth("app-id", "app-id", "")
+	_ = kv1.Put(ctx, "foo", map[string]interface{}{"value": "bar"})
+	defer kv1.Delete(ctx, "foo")
+
+	opts := &api.EnableAuthOptions{Type: "app-id"}
+	err := client.Sys().EnableAuthWithOptionsWithContext(ctx, "app-id", opts)
 	require.NoError(t, err)
-	err = client.Sys().EnableAuth("app-id2", "app-id", "")
+	err = client.Sys().EnableAuthWithOptionsWithContext(ctx, "app-id2", opts)
 	require.NoError(t, err)
 
-	defer client.Sys().DisableAuth("app-id")
-	defer client.Sys().DisableAuth("app-id2")
-	_, err = client.Logical().Write("auth/app-id/map/app-id/testappid", map[string]interface{}{
+	defer client.Sys().DisableAuthWithContext(ctx, "app-id")
+	defer client.Sys().DisableAuthWithContext(ctx, "app-id2")
+	_, err = client.Logical().WriteWithContext(ctx, "auth/app-id/map/app-id/testappid", map[string]interface{}{
 		"display_name": "test_app_id", "value": "readpol",
 	})
 	require.NoError(t, err)
-	_, err = client.Logical().Write("auth/app-id/map/user-id/testuserid", map[string]interface{}{
+	_, err = client.Logical().WriteWithContext(ctx, "auth/app-id/map/user-id/testuserid", map[string]interface{}{
 		"value": "testappid",
 	})
 	require.NoError(t, err)
-	_, err = client.Logical().Write("auth/app-id2/map/app-id/testappid", map[string]interface{}{
+	_, err = client.Logical().WriteWithContext(ctx, "auth/app-id2/map/app-id/testappid", map[string]interface{}{
 		"display_name": "test_app_id", "value": "readpol",
 	})
 	require.NoError(t, err)
-	_, err = client.Logical().Write("auth/app-id2/map/user-id/testuserid", map[string]interface{}{
+	_, err = client.Logical().WriteWithContext(ctx, "auth/app-id2/map/user-id/testuserid", map[string]interface{}{
 		"value": "testappid",
 	})
 	require.NoError(t, err)
@@ -495,6 +546,7 @@ func TestVaultFS_AppIDAuth(t *testing.T) {
 
 	//nolint:staticcheck
 	fsys = vaultfs.WithAuthMethod(vaultfs.AppIDAuthMethod("testappid", "testuserid", ""), fsys)
+	fsys = fsimpl.WithContextFS(ctx, fsys)
 
 	b, err := fs.ReadFile(fsys, "secret/foo")
 	assert.NoError(t, err)
@@ -502,16 +554,20 @@ func TestVaultFS_AppIDAuth(t *testing.T) {
 }
 
 func TestVaultFS_DynamicAuth(t *testing.T) {
-	addr := setupVaultFSTest(t)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	addr := setupVaultFSTest(ctx, t)
 
 	client := adminClient(t, addr)
 
-	err := client.Sys().Mount("ssh/", &api.MountInput{Type: "ssh"})
+	err := client.Sys().MountWithContext(ctx, "ssh/", &api.MountInput{Type: "ssh"})
 	require.NoError(t, err)
 
-	_, err = client.Logical().Write("ssh/roles/test", map[string]interface{}{
-		"key_type": "otp", "default_user": "user", "cidr_list": "10.0.0.0/8",
-	})
+	_, err = client.Logical().WriteWithContext(ctx, "ssh/roles/test",
+		map[string]interface{}{
+			"key_type": "otp", "default_user": "user", "cidr_list": "10.0.0.0/8",
+		})
 	require.NoError(t, err)
 
 	testCommands := []struct {
@@ -522,7 +578,7 @@ func TestVaultFS_DynamicAuth(t *testing.T) {
 		{"/ssh/creds/", "test?ip=10.1.2.3&username=user"},
 	}
 
-	tok, err := tokenCreate(client, "writepol", len(testCommands)*2)
+	tok, err := tokenCreate(ctx, client, "writepol", len(testCommands)*2)
 	require.NoError(t, err)
 
 	for _, d := range testCommands {
@@ -532,6 +588,7 @@ func TestVaultFS_DynamicAuth(t *testing.T) {
 			assert.NoError(t, err)
 
 			fsys = vaultfs.WithAuthMethod(vaultfs.TokenAuthMethod(tok), fsys)
+			fsys = fsimpl.WithContextFS(ctx, fsys)
 
 			b, err := fs.ReadFile(fsys, d.path)
 			assert.NoError(t, err)
@@ -546,20 +603,25 @@ func TestVaultFS_DynamicAuth(t *testing.T) {
 }
 
 func TestVaultFS_List(t *testing.T) {
-	addr := setupVaultFSTest(t)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	addr := setupVaultFSTest(ctx, t)
 
 	client := adminClient(t, addr)
 
-	_, _ = client.Logical().Write("secret/dir/foo", map[string]interface{}{"value": "one"})
-	_, _ = client.Logical().Write("secret/dir/bar", map[string]interface{}{"value": "two"})
+	kv1 := client.KVv1("secret")
+	_ = kv1.Put(ctx, "dir/foo", map[string]interface{}{"value": "one"})
+	_ = kv1.Put(ctx, "dir/bar", map[string]interface{}{"value": "two"})
 
-	tok, err := tokenCreate(client, "listpol", 5)
+	tok, err := tokenCreate(ctx, client, "listpol", 5)
 	require.NoError(t, err)
 
 	fsys, err := vaultfs.New(tests.MustURL("http://" + addr + "/secret/dir/"))
 	assert.NoError(t, err)
 
 	fsys = vaultfs.WithAuthMethod(vaultfs.TokenAuthMethod(tok), fsys)
+	fsys = fsimpl.WithContextFS(ctx, fsys)
 
 	de, err := fs.ReadDir(fsys, ".")
 	assert.NoError(t, err)
@@ -567,4 +629,67 @@ func TestVaultFS_List(t *testing.T) {
 
 	assert.Equal(t, "bar", de[0].Name())
 	assert.Equal(t, "foo", de[1].Name())
+}
+
+func TestVaultFS_KVv2(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	addr := setupVaultFSTest(ctx, t)
+	client := adminClient(t, addr)
+
+	err := client.Sys().MountWithContext(ctx, "kv2", &api.MountInput{Type: "kv",
+		Options: map[string]string{"version": "2"},
+	})
+	require.NoError(t, err)
+
+	s, err := client.KVv2("kv2").Put(ctx, "foo",
+		map[string]interface{}{"first": "one"}, api.WithCheckAndSet(0))
+	require.NoError(t, err)
+	require.Equal(t, 1, s.VersionMetadata.Version)
+
+	s, err = client.KVv2("kv2").Put(ctx, "foo",
+		map[string]interface{}{"second": "two"}, api.WithCheckAndSet(1))
+	require.NoError(t, err)
+	require.Equal(t, 2, s.VersionMetadata.Version)
+
+	tok, err := tokenCreate(ctx, client, "readpol", 5)
+	require.NoError(t, err)
+
+	fsys, err := vaultfs.New(tests.MustURL("http://" + addr))
+	require.NoError(t, err)
+
+	fsys = vaultfs.WithAuthMethod(vaultfs.TokenAuthMethod(tok), fsys)
+	fsys = fsimpl.WithContextFS(ctx, fsys)
+
+	b, err := fs.ReadFile(fsys, "kv2/foo")
+	require.NoError(t, err)
+	assert.Equal(t, `{"second":"two"}`, string(b))
+
+	f, err := fsys.Open("kv2/foo")
+	require.NoError(t, err)
+
+	fi, err := f.Stat()
+	require.NoError(t, err)
+	assert.Equal(t, "application/json", fsimpl.ContentType(fi))
+	assert.Equal(t, int64(16), fi.Size())
+
+	v2Time := fi.ModTime()
+	assert.NotEqual(t, time.Time{}, v2Time)
+
+	// version 1 should be available
+	f, err = fsys.Open("kv2/foo?version=1")
+	require.NoError(t, err)
+
+	b, err = io.ReadAll(f)
+	require.NoError(t, err)
+	assert.Equal(t, `{"first":"one"}`, string(b))
+
+	fi, err = f.Stat()
+	require.NoError(t, err)
+	assert.Equal(t, "application/json", fsimpl.ContentType(fi))
+	assert.Equal(t, int64(15), fi.Size())
+
+	// v1 should have an earlier mod time than v2
+	assert.NotEqual(t, v2Time, fi.ModTime())
 }

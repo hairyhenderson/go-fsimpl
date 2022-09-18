@@ -250,9 +250,9 @@ func TestReadDirFS(t *testing.T) {
 	assert.NoError(t, err)
 
 	des := []fs.DirEntry{
-		internal.FileInfo("bar", 25, 0o644, time.Time{}, "application/json").(fs.DirEntry),
+		internal.FileInfo("bar", 15, 0o644, time.Time{}, "application/json").(fs.DirEntry),
 		internal.DirInfo("bazDir", time.Time{}).(fs.DirEntry),
-		internal.FileInfo("foo", 25, 0o644, time.Time{}, "application/json").(fs.DirEntry),
+		internal.FileInfo("foo", 15, 0o644, time.Time{}, "application/json").(fs.DirEntry),
 	}
 	assert.EqualValues(t, des, de)
 
@@ -263,9 +263,9 @@ func TestReadDirFS(t *testing.T) {
 	assert.NoError(t, err)
 
 	des = []fs.DirEntry{
-		internal.FileInfo("bar", 25, 0o644, time.Time{}, "application/json").(fs.DirEntry),
+		internal.FileInfo("bar", 15, 0o644, time.Time{}, "application/json").(fs.DirEntry),
 		internal.DirInfo("bazDir", time.Time{}).(fs.DirEntry),
-		internal.FileInfo("foo", 25, 0o644, time.Time{}, "application/json").(fs.DirEntry),
+		internal.FileInfo("foo", 15, 0o644, time.Time{}, "application/json").(fs.DirEntry),
 	}
 	assert.EqualValues(t, des, de)
 }
@@ -289,7 +289,7 @@ func TestReadDirN(t *testing.T) {
 	assert.NoError(t, err)
 
 	des := []fs.DirEntry{
-		internal.FileInfo("foo", 25, 0o644, time.Time{}, "application/json").(fs.DirEntry),
+		internal.FileInfo("foo", 15, 0o644, time.Time{}, "application/json").(fs.DirEntry),
 	}
 	assert.EqualValues(t, des, de)
 
@@ -297,7 +297,7 @@ func TestReadDirN(t *testing.T) {
 	assert.NoError(t, err)
 
 	des = []fs.DirEntry{
-		internal.FileInfo("bar", 25, 0o644, time.Time{}, "application/json").(fs.DirEntry),
+		internal.FileInfo("bar", 15, 0o644, time.Time{}, "application/json").(fs.DirEntry),
 		internal.DirInfo("bazDir", time.Time{}).(fs.DirEntry),
 	}
 	assert.EqualValues(t, des, de)
@@ -451,4 +451,28 @@ func TestFileAuthCaching(t *testing.T) {
 	err = f2.Close()
 	assert.NoError(t, err)
 	assert.False(t, am.loggedin)
+}
+
+func TestCreatedTimeFromData(t *testing.T) {
+	// missing metadata, KV v1 style
+	created := createdTimeFromData(map[string]interface{}{"value": "ahoy"})
+	assert.Equal(t, time.Time{}, created)
+
+	created = createdTimeFromData(map[string]interface{}{"metadata": nil})
+	assert.Equal(t, time.Time{}, created)
+
+	created = createdTimeFromData(map[string]interface{}{
+		"metadata": map[string]interface{}{
+			"created_time": 42}})
+	assert.Equal(t, time.Time{}, created)
+
+	created = createdTimeFromData(map[string]interface{}{
+		"metadata": map[string]interface{}{
+			"created_time": "not a time"}})
+	assert.Equal(t, time.Time{}, created)
+
+	created = createdTimeFromData(map[string]interface{}{
+		"metadata": map[string]interface{}{
+			"created_time": "2022-09-12T00:22:20.370537Z"}})
+	assert.Equal(t, time.Date(2022, 9, 12, 0, 22, 20, 370537000, time.UTC), created)
 }

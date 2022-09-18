@@ -211,7 +211,6 @@ type vaultFile struct {
 	auth   AuthMethod
 
 	body     io.ReadCloser
-	fi       fs.FileInfo
 	children []string
 	diridx   int
 
@@ -246,44 +245,59 @@ func (f *vaultFile) newRequest(method string) (*api.Request, error) {
 	return req, nil
 }
 
-func (f *vaultFile) request(method string) (*api.Response, error) {
+func (f *vaultFile) newKVv2Request(method string) *api.Request {
+	// path gets munged for KV v2 - "data/" is added after the mountpoint for
+	// reads, "metadata/" for lists
+	mount, rest, _ := strings.Cut(strings.TrimPrefix(f.u.Path, "/v1/"), "/")
+
+	p := path.Join("/v1", mount)
+	if method == http.MethodGet {
+		p = path.Join(p, "data", rest)
+	} else if method == "LIST" {
+		p = path.Join(p, "metadata", rest)
+	}
+
+	req := f.client.NewRequest(method, p)
+
+	q := f.u.Query()
+	for k := range q {
+		req.Params.Set(k, q.Get(k))
+	}
+
+	return req
+}
+
+func (f *vaultFile) request(method string) (resp *api.Response, isV2 bool, err error) {
 	if f.client.Token() == "" {
-		if err := f.auth.Login(f.ctx, f.client.Client); err != nil {
-			return nil, fmt.Errorf("vault login failure: %w", err)
+		if err = f.auth.Login(f.ctx, f.client.Client); err != nil {
+			return nil, false, fmt.Errorf("vault login failure: %w", err)
 		}
 	}
 
-	req, err := f.newRequest(method)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create vault request: %w", err)
+	var req *api.Request
+
+	isV2 = f.isKVv2()
+	if isV2 {
+		req = f.newKVv2Request(method)
+	} else {
+		req, err = f.newRequest(method)
+		if err != nil {
+			return nil, false, fmt.Errorf("failed to create vault request: %w", err)
+		}
 	}
 
 	//nolint:staticcheck
-	resp, err := f.client.RawRequestWithContext(f.ctx, req)
+	resp, err = f.client.RawRequestWithContext(f.ctx, req)
 	if err != nil {
-		return nil, fmt.Errorf("http %s %s failed with: %w", method, f.u.Path,
+		return nil, isV2, fmt.Errorf("http %s %s failed with: %w", method, f.u.Path,
 			vaultFSError(err))
 	}
 
-	modTime := time.Time{}
-	if mod := resp.Header.Get("Last-Modified"); mod != "" {
-		// best-effort - if it can't be parsed, just ignore it...
-		modTime, _ = http.ParseTime(mod)
-	}
-
-	f.fi = internal.FileInfo(
-		strings.TrimSuffix(path.Base(f.name), "/"),
-		resp.ContentLength,
-		0o644,
-		modTime,
-		"application/json",
-	)
-
 	if resp.StatusCode == 0 || resp.StatusCode >= 400 {
-		return nil, fmt.Errorf("http %s %s failed with status %d", method, f.u, resp.StatusCode)
+		return nil, isV2, fmt.Errorf("http %s %s failed with status %d", method, f.u, resp.StatusCode)
 	}
 
-	return resp, nil
+	return resp, isV2, nil
 }
 
 // Close the file. Will error on second call. Decrements the ref count on first
@@ -315,7 +329,7 @@ func (f *vaultFile) Read(p []byte) (int, error) {
 		return f.body.Read(p)
 	}
 
-	resp, err := f.request(http.MethodGet)
+	resp, isV2, err := f.request(http.MethodGet)
 	if err != nil {
 		return 0, err
 	}
@@ -330,8 +344,14 @@ func (f *vaultFile) Read(p []byte) (int, error) {
 	}
 
 	var b []byte
-	if s != nil {
-		b, err = json.Marshal(s.Data)
+
+	if s != nil && s.Data != nil {
+		if isV2 {
+			b, err = json.Marshal(s.Data["data"])
+		} else {
+			b, err = json.Marshal(s.Data)
+		}
+
 		if err != nil {
 			return 0, &fs.PathError{
 				Op: "read", Path: f.name,
@@ -345,8 +365,9 @@ func (f *vaultFile) Read(p []byte) (int, error) {
 	return f.body.Read(p)
 }
 
+//nolint:funlen
 func (f *vaultFile) Stat() (fs.FileInfo, error) {
-	resp, err := f.request(http.MethodGet)
+	resp, isV2, err := f.request(http.MethodGet)
 
 	rerr := &api.ResponseError{}
 	if errors.As(err, &rerr) {
@@ -357,27 +378,63 @@ func (f *vaultFile) Stat() (fs.FileInfo, error) {
 				Err: vaultFSError(err),
 			}
 		}
-	} else if err == nil {
-		defer resp.Body.Close()
+	} else if err != nil {
+		_, err = f.list()
+		if err != nil {
+			return nil, &fs.PathError{Op: "stat", Path: f.name, Err: err}
+		}
 
-		return f.fi, nil
+		fi := internal.DirInfo(strings.TrimSuffix(path.Base(f.name), "/"), time.Time{})
+
+		return fi, nil
 	}
 
-	_, err = f.list()
+	defer resp.Body.Close()
+
+	secret, err := api.ParseSecret(resp.Body)
 	if err != nil {
-		return nil, &fs.PathError{Op: "stat", Path: f.name, Err: err}
+		return nil, &fs.PathError{
+			Op: "stat", Path: f.name,
+			Err: fmt.Errorf("failed to parse vault secret: %w", err),
+		}
 	}
 
-	f.fi = internal.DirInfo(
-		strings.TrimSuffix(path.Base(f.name), "/"),
-		f.fi.ModTime(),
+	if secret == nil || secret.Data == nil {
+		return nil, &fs.PathError{
+			Op: "stat", Path: f.name, Err: fmt.Errorf("malformed secret"),
+		}
+	}
+
+	var (
+		b       []byte
+		modTime time.Time
 	)
 
-	return f.fi, nil
+	if isV2 {
+		b, err = json.Marshal(secret.Data["data"])
+		modTime = createdTimeFromData(secret.Data)
+	} else {
+		b, err = json.Marshal(secret.Data)
+	}
+
+	if err != nil {
+		return nil, &fs.PathError{
+			Op: "stat", Path: f.name,
+			Err: fmt.Errorf("malformed secret: %w", err),
+		}
+	}
+
+	return internal.FileInfo(
+		strings.TrimSuffix(path.Base(f.name), "/"),
+		int64(len(b)),
+		0o644,
+		modTime,
+		"application/json",
+	), nil
 }
 
 func (f *vaultFile) list() ([]string, error) {
-	resp, err := f.request("LIST")
+	resp, _, err := f.request("LIST")
 	if err != nil {
 		return nil, err
 	}
@@ -488,4 +545,68 @@ func vaultFSError(err error) error {
 	}
 
 	return err
+}
+
+// isKVv2 - figure out if our path is on a KV v2 engine. Errors just result in
+// false being returned - we'll get an error when we try to read the file later!
+//
+// To consider: cache the result for each mount point - this isn't necessarily
+// straightforward as KV v1 mount points can be upgraded to v2 at runtime...
+func (f *vaultFile) isKVv2() bool {
+	nonV1Path := strings.TrimPrefix(f.u.Path, "/v1/")
+	p := path.Join("/v1/sys/internal/ui/mounts", nonV1Path)
+
+	r := f.client.NewRequest(http.MethodGet, p)
+
+	//nolint:staticcheck
+	resp, err := f.client.RawRequestWithContext(f.ctx, r)
+	// defer the close in all cases - when errors are returned, the response
+	// body may not be nil
+	if resp != nil {
+		defer resp.Body.Close()
+	}
+
+	if err != nil {
+		return false
+	}
+
+	secret, err := api.ParseSecret(resp.Body)
+	if err != nil || secret == nil {
+		return false
+	}
+
+	// v2 response has an "options" key, assume v1 if it's missing
+	options, ok := secret.Data["options"].(map[string]interface{})
+	if !ok {
+		return false
+	}
+
+	// v2 response has a "version" option, assume v1 if it's missing
+	version, ok := options["version"].(string)
+	if !ok {
+		return false
+	}
+
+	return version == "2"
+}
+
+func createdTimeFromData(data map[string]interface{}) time.Time {
+	t := time.Time{}
+
+	metadata, ok := data["metadata"].(map[string]interface{})
+	if !ok {
+		return t
+	}
+
+	createdTime, ok := metadata["created_time"].(string)
+	if !ok {
+		return t
+	}
+
+	created, err := time.Parse(time.RFC3339Nano, createdTime)
+	if err != nil {
+		return t
+	}
+
+	return created
 }
