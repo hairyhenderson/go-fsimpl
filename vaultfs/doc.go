@@ -31,6 +31,12 @@
 // that is, the "/v1" prefix is not needed, and with the K/V Version 2 secret
 // engine the "data" prefix should not be provided.
 //
+// When reading from K/V v2 secret engines, specific versions of the secret can
+// be read by providing a "version" query parameter. For example, to read the
+// fifth version of the secret at "secret/mysecret", you could use a URL like:
+//
+//	vault:///secret/mysecret?version=5
+//
 // See the Vault Secret Engines docs for more details:
 // https://vaultproject.io/docs/secrets.
 //
