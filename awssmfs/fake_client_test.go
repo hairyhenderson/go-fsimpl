@@ -98,13 +98,13 @@ func (c *fakeClient) ListSecrets(ctx context.Context, params *secretsmanager.Lis
 		return aws.ToString(secretList[i].Name) < aws.ToString(secretList[j].Name)
 	})
 
-	if params.MaxResults == 0 {
+	if params.MaxResults == nil || params.MaxResults == aws.Int32(0) {
 		// default to 2 results so we trigger pagination
-		params.MaxResults = 2
+		params.MaxResults = aws.Int32(2)
 	}
 
 	l := len(secretList)
-	m := int(params.MaxResults)
+	m := int(*params.MaxResults)
 
 	high := offset + m
 
