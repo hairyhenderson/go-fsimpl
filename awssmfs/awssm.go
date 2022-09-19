@@ -272,7 +272,7 @@ func (f *awssmFile) Stat() (fs.FileInfo, error) {
 	// no need for special handling for opaque paths, as "." will never hit this
 	// code path (Open sets f.fi to a DirInfo)
 	filters := []smtypes.Filter{{Key: "name", Values: []string{path.Join(f.root, f.name) + "/"}}}
-	params := secretsmanager.ListSecretsInput{MaxResults: 1, Filters: filters}
+	params := secretsmanager.ListSecretsInput{MaxResults: aws.Int32(1), Filters: filters}
 
 	secrets, err := f.client.ListSecrets(f.ctx, &params)
 	if err != nil {
