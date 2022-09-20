@@ -354,26 +354,26 @@ func (m *userPassAuthMethod) Logout(ctx context.Context, client *api.Client) err
 
 // KubernetesAuthMethod authenticates to Vault with the kubernetes auth method. If
 // role is omitted, the value will be read from the $VAULT_AUTH_ROLE. If jwtPath is
-// omitted we will attempt to read from $VAULT_AUTH_JWTPATH environment variable or
-// the kubernetes default service account jwt token path if that is not set.
+// omitted we will attempt to read from $VAULT_AUTH_SATOKEN_PATH environment variable or
+// the kubernetes default service account token path if that is not set.
 //
 // If mount is not set, it defaults to the value of $VAULT_AUTH_KUBERNETES_MOUNT
 // or "kubernetes".
 //
 // See also https://www.vaultproject.io/docs/auth/kubernetes
-func KubernetesAuthMethod(role, jwtPath, mount string) AuthMethod {
+func KubernetesAuthMethod(role, saTokenPath, mount string) AuthMethod {
 	return &kubernetesAuthMethod{
-		fsys:    os.DirFS("/"),
-		role:    role,
-		jwtPath: jwtPath,
-		mount:   mount,
+		fsys:        os.DirFS("/"),
+		role:        role,
+		saTokenPath: saTokenPath,
+		mount:       mount,
 	}
 }
 
 type kubernetesAuthMethod struct {
-	fsys          fs.FS
-	role, jwtPath string
-	mount         string
+	fsys              fs.FS
+	role, saTokenPath string
+	mount             string
 }
 
 func (m *kubernetesAuthMethod) Login(ctx context.Context, client *api.Client) error {
@@ -382,27 +382,27 @@ func (m *kubernetesAuthMethod) Login(ctx context.Context, client *api.Client) er
 		return fmt.Errorf("kubernetes auth failure: no role provided")
 	}
 
-	jwtPath := findValue(m.jwtPath, "VAULT_AUTH_JWTPATH",
+	saTokenPath := findValue(m.saTokenPath, "VAULT_AUTH_SATOKEN_PATH",
 		"/var/run/secrets/kubernetes.io/serviceaccount/token", m.fsys)
-	if jwtPath == "" {
-		return fmt.Errorf("kubernetes auth failure: no jwtPath provided")
+	if saTokenPath == "" {
+		return fmt.Errorf("kubernetes auth failure: no saTokenPath provided")
 	}
 
-	jwtPath = strings.TrimPrefix(jwtPath, "/")
-	jwt, err := fs.ReadFile(m.fsys, jwtPath)
+	saTokenPath = strings.TrimPrefix(saTokenPath, "/")
+	saToken, err := fs.ReadFile(m.fsys, saTokenPath)
 
 	if err != nil {
-		return fmt.Errorf("kubernetes jwt load failed: %w", err)
+		return fmt.Errorf("kubernetes saToken load failed: %w", err)
 	}
 
-	if len(jwt) == 0 {
-		return fmt.Errorf("kubernetes auth failure: file %q is empty", jwtPath)
+	if len(saToken) == 0 {
+		return fmt.Errorf("kubernetes auth failure: file %q is empty", saTokenPath)
 	}
 
 	mount := findValue(m.mount, "VAULT_AUTH_KUBERNETES_MOUNT", "kubernetes", m.fsys)
 
 	secret, err := remoteAuth(ctx, client, mount, "",
-		map[string]interface{}{"role": role, "jwt": string(jwt)})
+		map[string]interface{}{"role": role, "saToken": string(saToken)})
 	if err != nil {
 		return fmt.Errorf("kubernetes login failed: %w", err)
 	}

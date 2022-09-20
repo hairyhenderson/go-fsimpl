@@ -272,7 +272,7 @@ func TestAppIDAuthMethod(t *testing.T) {
 
 func TestKubernetesAuthMethod(t *testing.T) {
 	mount := "kubernetes"
-	jwtPath := "tmp/file"
+	saTokenPath := "tmp/file"
 	role := "alice"
 	token := "k8stoken"
 
@@ -293,7 +293,7 @@ func TestKubernetesAuthMethod(t *testing.T) {
 	defer cancel()
 
 	fsys := fstest.MapFS{}
-	fsys[jwtPath] = &fstest.MapFile{Data: []byte("tempfiletoken")}
+	fsys[saTokenPath] = &fstest.MapFile{Data: []byte("tempfiletoken")}
 
 	m := KubernetesAuthMethod("", "", "")
 	err := m.Login(ctx, client)
@@ -303,13 +303,13 @@ func TestKubernetesAuthMethod(t *testing.T) {
 	err = m.Login(ctx, client)
 	assert.Error(t, err)
 
-	m = &kubernetesAuthMethod{fsys: fsys, role: role, jwtPath: jwtPath}
+	m = &kubernetesAuthMethod{fsys: fsys, role: role, saTokenPath: saTokenPath}
 	err = m.Login(ctx, client)
 	assert.NoError(t, err)
 	assert.Equal(t, token, client.Token())
 
 	mount = "setenrebuk"
-	m = &kubernetesAuthMethod{fsys: fsys, role: role, jwtPath: jwtPath, mount: mount}
+	m = &kubernetesAuthMethod{fsys: fsys, role: role, saTokenPath: saTokenPath, mount: mount}
 	err = m.Login(ctx, client)
 	assert.NoError(t, err)
 	assert.Equal(t, token, client.Token())
