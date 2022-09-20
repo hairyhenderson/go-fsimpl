@@ -396,7 +396,7 @@ func (m *kubernetesAuthMethod) Login(ctx context.Context, client *api.Client) er
 	}
 
 	if len(jwt) == 0 {
-		return fmt.Errorf("kubernetes auth failure: no jwt found at %s", jwtPath)
+		return fmt.Errorf("kubernetes auth failure: file %q is empty", jwtPath)
 	}
 
 	mount := findValue(m.mount, "VAULT_AUTH_KUBERNETES_MOUNT", "kubernetes", m.fsys)
