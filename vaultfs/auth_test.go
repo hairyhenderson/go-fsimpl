@@ -269,3 +269,48 @@ func TestAppIDAuthMethod(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, token, client.Token())
 }
+
+func TestKubernetesAuthMethod(t *testing.T) {
+	mount := "kubernetes"
+	jwtPath := "tmp/file"
+	role := "alice"
+	token := "k8stoken"
+
+	client := fakeVault(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, "/v1/auth/"+mount+"/login", r.URL.Path)
+
+		out := map[string]interface{}{
+			"auth": map[string]interface{}{
+				"client_token": token,
+			},
+		}
+
+		enc := json.NewEncoder(w)
+		_ = enc.Encode(out)
+	}))
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	fsys := fstest.MapFS{}
+	fsys[jwtPath] = &fstest.MapFile{Data: []byte("tempfiletoken")}
+
+	m := KubernetesAuthMethod("", "", "")
+	err := m.Login(ctx, client)
+	assert.Error(t, err)
+
+	m = KubernetesAuthMethod(role, "", "")
+	err = m.Login(ctx, client)
+	assert.Error(t, err)
+
+	m = &kubernetesAuthMethod{fsys: fsys, role: role, jwtPath: jwtPath}
+	err = m.Login(ctx, client)
+	assert.NoError(t, err)
+	assert.Equal(t, token, client.Token())
+
+	mount = "setenrebuk"
+	m = &kubernetesAuthMethod{fsys: fsys, role: role, jwtPath: jwtPath, mount: mount}
+	err = m.Login(ctx, client)
+	assert.NoError(t, err)
+	assert.Equal(t, token, client.Token())
+}

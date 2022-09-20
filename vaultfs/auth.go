@@ -46,16 +46,18 @@ var (
 	_ AuthMethod = (*appRoleAuthMethod)(nil)
 	_ AuthMethod = (*gitHubAuthMethod)(nil)
 	_ AuthMethod = (*userPassAuthMethod)(nil)
+	_ AuthMethod = (*kubernetesAuthMethod)(nil)
 )
 
 // EnvAuthMethod chooses the first auth method to have the correct environment
 // variables set, in this order of precedence:
 //
-//	AppRoleAuthMethod
-//	GitHubAuthMethod
-//	UserPassAuthMethod
-//	TokenAuthMethod
-//	AppIDAuthMethod	// Deprecated
+//		AppRoleAuthMethod
+//		GitHubAuthMethod
+//		UserPassAuthMethod
+//		TokenAuthMethod
+//	 	KubernetesAuthMethod
+//		AppIDAuthMethod	// Deprecated
 func EnvAuthMethod() AuthMethod {
 	return &envAuthMethod{
 		// sorted in order of precedence
@@ -64,6 +66,7 @@ func EnvAuthMethod() AuthMethod {
 			GitHubAuthMethod("", ""),
 			UserPassAuthMethod("", "", ""),
 			TokenAuthMethod(""),
+			KubernetesAuthMethod("", "", ""),
 			AppIDAuthMethod("", "", ""),
 		},
 	}
@@ -297,7 +300,7 @@ func (m *gitHubAuthMethod) Logout(ctx context.Context, client *api.Client) error
 	return revokeToken(ctx, client)
 }
 
-// UserPassAuthMethod authenticates to Vault with the UpserPass auth method. If
+// UserPassAuthMethod authenticates to Vault with the UserPass auth method. If
 // either username or password are omitted, the values will be read from the
 // $VAULT_AUTH_USERNAME and/or $VAULT_AUTH_PASSWORD environment variables.
 //
@@ -348,6 +351,72 @@ func (m *userPassAuthMethod) Login(ctx context.Context, client *api.Client) erro
 func (m *userPassAuthMethod) Logout(ctx context.Context, client *api.Client) error {
 	return revokeToken(ctx, client)
 }
+
+// KubernetesAuthMethod authenticates to Vault with the kubernetes auth method. If
+// role is omitted, the value will be read from the $VAULT_AUTH_ROLE. If jwtPath is
+// omitted we will attempt to read from $VAULT_AUTH_JWTPATH environment variable or
+// the kubernetes default service account jwt token path if that is not set.
+//
+// If mount is not set, it defaults to the value of $VAULT_AUTH_KUBERNETES_MOUNT
+// or "kubernetes".
+//
+// See also https://www.vaultproject.io/docs/auth/kubernetes
+func KubernetesAuthMethod(role, jwtPath, mount string) AuthMethod {
+	return &kubernetesAuthMethod{
+		fsys:    os.DirFS("/"),
+		role:    role,
+		jwtPath: jwtPath,
+		mount:   mount,
+	}
+}
+
+type kubernetesAuthMethod struct {
+	fsys          fs.FS
+	role, jwtPath string
+	mount         string
+}
+
+func (m *kubernetesAuthMethod) Login(ctx context.Context, client *api.Client) error {
+	role := findValue(m.role, "VAULT_AUTH_ROLE", "", m.fsys)
+	if role == "" {
+		return fmt.Errorf("kubernetes auth failure: no role provided")
+	}
+
+	jwtPath := findValue(m.jwtPath, "VAULT_AUTH_JWTPATH",
+		"/var/run/secrets/kubernetes.io/serviceaccount/token", m.fsys)
+	if jwtPath == "" {
+		return fmt.Errorf("kubernetes auth failure: no jwtPath provided")
+	}
+
+	jwtPath = strings.TrimPrefix(jwtPath, "/")
+	jwt, err := fs.ReadFile(m.fsys, jwtPath)
+
+	if err != nil {
+		return fmt.Errorf("kubernetes jwt load failed: %w", err)
+	}
+
+	if len(jwt) == 0 {
+		return fmt.Errorf("kubernetes auth failure: no jwt found at %s", jwtPath)
+	}
+
+	mount := findValue(m.mount, "VAULT_AUTH_KUBERNETES_MOUNT", "kubernetes", m.fsys)
+
+	secret, err := remoteAuth(ctx, client, mount, "",
+		map[string]interface{}{"role": role, "jwt": string(jwt)})
+	if err != nil {
+		return fmt.Errorf("kubernetes login failed: %w", err)
+	}
+
+	client.SetToken(secret.Auth.ClientToken)
+
+	return nil
+}
+
+func (m *kubernetesAuthMethod) Logout(ctx context.Context, client *api.Client) error {
+	return revokeToken(ctx, client)
+}
+
+// Various helper functions
 
 func findValue(s, envvar, def string, fsys fs.FS) string {
 	if s == "" {
