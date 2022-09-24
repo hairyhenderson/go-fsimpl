@@ -4,13 +4,15 @@
 [![Build][gh-actions-image]][gh-actions-url]
 
 This module contains a collection of Go _filesystem implementations_ that can
-be discovered dynamically by URL scheme. All filesystems are read-only.
+be discovered dynamically by URL scheme.
 
 These filesystems implement the [`fs.FS`](https://pkg.go.dev/io/fs#FS) interface
-[introduced in Go 1.16]()
+[introduced in Go 1.16](). This means that currently all implementations are
+read-only, however this may change in the future (see
+[golang/go#45757](https://github.com/golang/go/issues/45757) for progress).
 
 Most implementations implement the [`fs.ReadDirFS`](https://pkg.go.dev/io/fs#ReadDirFS)
-interface, though the `https` filesystem does not.
+interface, though the `httpfs` filesystem does not.
 
 Some extensions are available to help add specific functionality to certain
 filesystems:
@@ -22,6 +24,8 @@ filesystems:
 - `WithHTTPClientFS` - sets the `*http.Client` for all HTTP requests to be made
 	with.
 
+Many of the filesystem packages also have their own extensions.
+
 This module also provides `ContentType`, an extension to the
 [`fs.FileInfo`](https://pkg.go.dev/io/fs#FileInfo) type to help identify an
 appropriate MIME content type for a given file. For filesystems that support it,
@@ -30,8 +34,11 @@ from the file extension.
 
 ## History & Project Status
 
-This module is _in development_, and the API is still subject to change. The
-filesystems that are supported should operate correctly.
+This module is _in active development_, and the API is still subject to breaking
+changes.
+
+The filesystem pacakges should operate correctly, based on the tests, but there
+may be edge cases that are not covered. Please open an issue if you find one!
 
 Most of these filesystems are based on code from [gomplate](https://github.com/hairyhenderson/gomplate),
 which supports all of these as datasources. This module is intended to 
@@ -39,27 +46,26 @@ eventually be used within gomplate.
 
 ## Supported Filesystems
 
-Here's the list of planned filesystem support, along with status:
+Here's the list of filesystems & URL schemes supported by this module:
 
-| Scheme(s) | Description | Supported? |
-|-----------|-------------|:----------:|
-| [`aws+sm`](./url_schemes.md#awssm) | [AWS Secrets Manager][] | ✅ |
-| [`aws+smp`](./url_schemes.md#awssmp) | [AWS Systems Manager Parameter Store][AWS SMP] | ✅ |
-| [`azblob`](./url_schemes.md#azblob) | [Azure Blob Storage][] | ✅ |
-| [`consul`, `consul+http`, `consul+https`](./url_schemes.md#consul) | [HashiCorp Consul][] | ✅ |
-| [`file`](./url_schemes.md#file) | local filesystem | ✅ |
-| [`git`, `git+file`, `git+http`, `git+https`, `git+ssh`](./url_schemes.md#git) | local/remote git repository | ✅ |
-| [`gs`](./url_schemes.md#gs) | [Google Cloud Storage][] | ✅ |
-| [`http`, `https`](./url_schemes.md#http) | HTTP server | ✅ |
-| [`s3`](./url_schemes.md#s3) | [Amazon S3][] | ✅ |
-| [`vault`, `vault+http`, `vault+https`](./url_schemes.md#vault) | [HashiCorp Vault][] | ✅ |
+| Package    | Scheme(s) | Description |
+|------------|-----------|-------------|
+| [awssmfs]  | `aws+sm` | [AWS Secrets Manager][] |
+| [awssmpfs] | `aws+smp` | [AWS Systems Manager Parameter Store][AWS SMP] |
+| [blobfs]   | `azblob` | [Azure Blob Storage][] |
+| [blobfs]   | `gs` | [Google Cloud Storage][] |
+| [blobfs]   | `s3` | [Amazon S3][] |
+| [consulfs] | `consul`, `consul+http`, `consul+https` | [HashiCorp Consul][] |
+| [filefs]   | `file` | local filesystem |
+| [gitfs]    | `git`, `git+file`, `git+http`, `git+https`, `git+ssh` | local/remote git repository |
+| [httpfs]   | `http`, `https` | HTTP server |
+| [vaultfs]  | `vault`, `vault+http`, `vault+https` | [HashiCorp Vault][] |
 
-See [`url_schemes.md`](./url_schemes.md) for more details on each scheme.
+See the individual package documentation for more details.
 
 ## Installation
 
-You need Go 1.16 or above to use this module. Use `go get` to install the latest
-version of `go-fsimpl`:
+Use `go get` to install the latest version of `go-fsimpl`:
 
 ```console
 $ go get -u github.com/hairyhenderson/go-fsimpl
@@ -128,7 +134,7 @@ You will require `git` including `git daemon` and `consul` executables on your p
 
 [The MIT License](http://opensource.org/licenses/MIT)
 
-Copyright (c) 2021 Dave Henderson
+Copyright (c) 2021-2022 Dave Henderson
 
 [godocs]: https://pkg.go.dev/github.com/hairyhenderson/go-fsimpl
 [godoc-image]: https://pkg.go.dev/badge/github.com/hairyhenderson/go-fsimpl
@@ -142,3 +148,14 @@ Copyright (c) 2021 Dave Henderson
 [Amazon S3]: https://aws.amazon.com/s3/
 [Google Cloud Storage]: https://cloud.google.com/storage/
 [Azure Blob Storage]: https://azure.microsoft.com/en-us/services/storage/blobs/
+
+[awssmfs]: https://pkg.go.dev/github.com/hairyhenderson/go-fsimpl/awssmfs
+[awssmpfs]: https://pkg.go.dev/github.com/hairyhenderson/go-fsimpl/awssmpfs
+[blobfs]: https://pkg.go.dev/github.com/hairyhenderson/go-fsimpl/blobfs
+[consulfs]: https://pkg.go.dev/github.com/hairyhenderson/go-fsimpl/consulfs
+[filefs]: https://pkg.go.dev/github.com/hairyhenderson/go-fsimpl/filefs
+[gitfs]: https://pkg.go.dev/github.com/hairyhenderson/go-fsimpl/gitfs
+[blobfs]: https://pkg.go.dev/github.com/hairyhenderson/go-fsimpl/blobfs
+[httpfs]: https://pkg.go.dev/github.com/hairyhenderson/go-fsimpl/httpfs
+[blobfs]: https://pkg.go.dev/github.com/hairyhenderson/go-fsimpl/blobfs
+[vaultfs]: https://pkg.go.dev/github.com/hairyhenderson/go-fsimpl/vaultfs
