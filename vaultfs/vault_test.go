@@ -17,6 +17,7 @@ import (
 	"github.com/hairyhenderson/go-fsimpl"
 	"github.com/hairyhenderson/go-fsimpl/internal"
 	"github.com/hairyhenderson/go-fsimpl/internal/tests"
+	"github.com/hairyhenderson/go-fsimpl/vaultfs/vaultauth"
 	"github.com/hashicorp/vault/api"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -27,7 +28,7 @@ func Example() {
 	token := "1234abcd"
 
 	fsys, _ := New(base)
-	fsys = WithAuthMethod(TokenAuthMethod(token), fsys)
+	fsys = vaultauth.WithAuthMethod(vaultauth.NewTokenAuth(token), fsys)
 
 	b, _ := fs.ReadFile(fsys, "secret/mysecret")
 
@@ -156,8 +157,8 @@ func TestNew(t *testing.T) {
 		vfs := fsys.(*vaultFS)
 		assert.Equal(t, d.expected, vfs.base.String())
 
-		// defaults to env auth method
-		assert.IsType(t, &envAuthMethod{}, vfs.auth)
+		// defaults to token auth method
+		assert.IsType(t, vaultauth.NewTokenAuth(""), vfs.auth)
 	}
 }
 
@@ -386,71 +387,65 @@ func TestStat(t *testing.T) {
 }
 
 type spyAuthMethod struct {
-	t        *testing.T
-	loggedin bool
+	t      *testing.T
+	called bool
 }
 
-var _ AuthMethod = (*spyAuthMethod)(nil)
+var _ api.AuthMethod = (*spyAuthMethod)(nil)
 
-func (m *spyAuthMethod) Login(_ context.Context, client *api.Client) error {
-	// should only ever be called once
-	assert.False(m.t, m.loggedin)
+func (m *spyAuthMethod) Login(_ context.Context, client *api.Client) (*api.Secret, error) {
+	// should only ever be called once, so token should be empty
+	require.Empty(m.t, client.Token())
+	require.False(m.t, m.called)
 
-	client.SetToken("foo")
-
-	m.loggedin = true
-
-	return nil
+	return &api.Secret{Auth: &api.SecretAuth{ClientToken: "foo"}}, nil
 }
 
-func (m *spyAuthMethod) Logout(_ context.Context, client *api.Client) error {
+// make sure logout functionality works
+func (m *spyAuthMethod) Logout(client *api.Client) {
 	client.ClearToken()
-
-	m.loggedin = false
-
-	return nil
 }
 
 func TestFileAuthCaching(t *testing.T) {
 	v := newRefCountedClient(fakeVaultServer(t))
 
-	am := &spyAuthMethod{}
-	fsys := WithAuthMethod(am, newWithVaultClient(tests.MustURL("vault:///secret/"), v))
+	am := &spyAuthMethod{t: t}
+	fsys := vaultauth.WithAuthMethod(am, newWithVaultClient(tests.MustURL("vault:///secret/"), v))
 
 	f, err := fsys.Open("foo")
-	assert.NoError(t, err)
-	assert.False(t, am.loggedin)
+	require.NoError(t, err)
+	assert.Empty(t, v.Token())
 
 	_, err = f.Stat()
-	assert.NoError(t, err)
-	assert.True(t, am.loggedin)
+	require.NoError(t, err)
+	assert.Equal(t, "foo", v.Token())
 
 	_, err = f.Read([]byte{})
-	assert.NoError(t, err)
-	assert.True(t, am.loggedin)
+	require.NoError(t, err)
+	assert.Equal(t, "foo", v.Token())
 
 	f2, err := fsys.Open("bar")
-	assert.NoError(t, err)
-	assert.True(t, am.loggedin)
+	require.NoError(t, err)
+	assert.Equal(t, "foo", v.Token())
 
 	_, err = f2.Read([]byte{})
-	assert.NoError(t, err)
-	assert.True(t, am.loggedin)
+	require.NoError(t, err)
+	assert.Equal(t, "foo", v.Token())
 
 	err = f.Close()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	// still loggedin because f2 is still open
-	assert.True(t, am.loggedin)
+	assert.Equal(t, "foo", v.Token())
 
 	// second call errors without logging out or decrementing reference
 	err = f.Close()
 	// errors because already closed, but still loggedin because f2 is still open
-	assert.Error(t, err)
-	assert.True(t, am.loggedin)
+	require.Error(t, err)
+	assert.Equal(t, "foo", v.Token())
 
 	err = f2.Close()
-	assert.NoError(t, err)
-	assert.False(t, am.loggedin)
+	require.NoError(t, err)
+	assert.Empty(t, v.Token())
 }
 
 func TestCreatedTimeFromData(t *testing.T) {

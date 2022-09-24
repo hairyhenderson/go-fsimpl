@@ -12,13 +12,40 @@ import (
 	"github.com/hashicorp/vault/api"
 )
 
+// adapter for a legacy [AuthMethod] to the
+// [github.com/hashicorp/vault/api.AuthMethod] interface
+type wrappedAuth struct{ auth AuthMethod }
+
+func (w *wrappedAuth) Login(ctx context.Context, client *api.Client) (*api.Secret, error) {
+	err := w.auth.Login(ctx, client)
+	if err != nil {
+		return nil, err
+	}
+
+	// the legacy auth methods set the client's token, so we need to get the
+	// token from the client and use it to get a new client
+	return &api.Secret{Auth: &api.SecretAuth{ClientToken: client.Token()}}, nil
+}
+
 // withAuthMethoder is an fs.FS that can be configured with a custom Vault Client
 type withAuthMethoder interface {
 	WithAuthMethod(auth AuthMethod) fs.FS
 }
 
+type withAPIAuthMethoder interface {
+	WithAuthMethod(auth api.AuthMethod) fs.FS
+}
+
+// an optional interface that auth methods may implement to override the regular
+// token revocation
+type authLogouter interface {
+	Logout(client *api.Client)
+}
+
 // AuthMethod is an authentication method that vaultfs can use to acquire a
 // token.
+//
+// Deprecated: see [github.com/hashicorp/vault/api.AuthMethod] instead
 type AuthMethod interface {
 	// Login acquires a Vault token using client for communicating with Vault,
 	// and configures client with the token.
@@ -32,7 +59,13 @@ type AuthMethod interface {
 // filesystem supports it.
 //
 // Note that this is not required if $VAULT_TOKEN is set.
+//
+// Deprecated: use [github.com/hairyhenderson/go-fsimpl/vaultfs/vaultauth.WithAuthMethod] instead
 func WithAuthMethod(auth AuthMethod, fsys fs.FS) fs.FS {
+	if afsys, ok := fsys.(withAPIAuthMethoder); ok {
+		return afsys.WithAuthMethod(&wrappedAuth{auth: auth})
+	}
+
 	if afsys, ok := fsys.(withAuthMethoder); ok {
 		return afsys.WithAuthMethod(auth)
 	}
@@ -44,7 +77,6 @@ var (
 	_ AuthMethod = (*envAuthMethod)(nil)
 	_ AuthMethod = (*appIDAuthMethod)(nil)
 	_ AuthMethod = (*appRoleAuthMethod)(nil)
-	_ AuthMethod = (*gitHubAuthMethod)(nil)
 	_ AuthMethod = (*userPassAuthMethod)(nil)
 )
 
@@ -56,6 +88,8 @@ var (
 //	UserPassAuthMethod
 //	TokenAuthMethod
 //	AppIDAuthMethod	// Deprecated
+//
+// Deprecated: use [github.com/hairyhenderson/go-fsimpl/vaultfs/vaultauth.EnvAuthMethod] instead
 func EnvAuthMethod() AuthMethod {
 	return &envAuthMethod{
 		// sorted in order of precedence
@@ -112,6 +146,8 @@ func (m *envAuthMethod) Logout(ctx context.Context, client *api.Client) (err err
 // $HOME/.vault-token file.
 //
 // See also https://www.vaultproject.io/docs/auth/token
+//
+// Deprecated: use [github.com/hairyhenderson/go-fsimpl/vaultfs/vaultauth.TokenAuthMethod] instead
 func TokenAuthMethod(token string) AuthMethod {
 	return &tokenAuthMethod{token: token, fsys: os.DirFS("/")}
 }
@@ -162,6 +198,8 @@ func (m *tokenAuthMethod) Logout(ctx context.Context, client *api.Client) error 
 // or "approle".
 //
 // See also https://www.vaultproject.io/docs/auth/approle
+//
+// Deprecated: use [github.com/hashicorp/vault/api/auth/approle.NewAppRoleAuth] instead
 func AppRoleAuthMethod(roleID, secretID, mount string) AuthMethod {
 	return &appRoleAuthMethod{
 		fsys:     os.DirFS("/"),
@@ -202,7 +240,9 @@ func (m *appRoleAuthMethod) Login(ctx context.Context, client *api.Client) error
 }
 
 func (m *appRoleAuthMethod) Logout(ctx context.Context, client *api.Client) error {
-	return revokeToken(ctx, client)
+	revokeToken(ctx, client)
+
+	return nil
 }
 
 // AppIDAuthMethod authenticates to Vault with the AppID auth method.
@@ -249,7 +289,9 @@ func (m *appIDAuthMethod) Login(ctx context.Context, client *api.Client) error {
 }
 
 func (m *appIDAuthMethod) Logout(ctx context.Context, client *api.Client) error {
-	return revokeToken(ctx, client)
+	revokeToken(ctx, client)
+
+	return nil
 }
 
 // GitHubAuthMethod authenticates to Vault with the GitHub auth method. If
@@ -260,6 +302,8 @@ func (m *appIDAuthMethod) Logout(ctx context.Context, client *api.Client) error 
 // or "github".
 //
 // See also https://www.vaultproject.io/docs/auth/github
+//
+// Deprecated: use [github.com/hairyhenderson/go-fsimpl/vaultfs/vaultauth.GitHubAuthMethod] instead
 func GitHubAuthMethod(ghtoken, mount string) AuthMethod {
 	return &gitHubAuthMethod{
 		fsys:    os.DirFS("/"),
@@ -294,7 +338,9 @@ func (m *gitHubAuthMethod) Login(ctx context.Context, client *api.Client) error 
 }
 
 func (m *gitHubAuthMethod) Logout(ctx context.Context, client *api.Client) error {
-	return revokeToken(ctx, client)
+	revokeToken(ctx, client)
+
+	return nil
 }
 
 // UserPassAuthMethod authenticates to Vault with the UpserPass auth method. If
@@ -305,6 +351,8 @@ func (m *gitHubAuthMethod) Logout(ctx context.Context, client *api.Client) error
 // or "userpass".
 //
 // See also https://www.vaultproject.io/docs/auth/userpass
+//
+// Deprecated: use [github.com/hashicorp/vault/api/auth/userpass.NewUserPassAuth] instead
 func UserPassAuthMethod(username, password, mount string) AuthMethod {
 	return &userPassAuthMethod{
 		fsys:     os.DirFS("/"),
@@ -346,7 +394,9 @@ func (m *userPassAuthMethod) Login(ctx context.Context, client *api.Client) erro
 }
 
 func (m *userPassAuthMethod) Logout(ctx context.Context, client *api.Client) error {
-	return revokeToken(ctx, client)
+	revokeToken(ctx, client)
+
+	return nil
 }
 
 func findValue(s, envvar, def string, fsys fs.FS) string {
@@ -372,10 +422,8 @@ func remoteAuth(ctx context.Context, client *api.Client, mount, extra string, va
 	return secret, nil
 }
 
-func revokeToken(ctx context.Context, client *api.Client) error {
-	_, err := client.Logical().WriteWithContext(ctx, "auth/token/revoke-self", nil)
+func revokeToken(ctx context.Context, client *api.Client) {
+	_, _ = client.Logical().WriteWithContext(ctx, "auth/token/revoke-self", nil)
 
 	client.ClearToken()
-
-	return err
 }
