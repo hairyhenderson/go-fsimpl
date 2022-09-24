@@ -17,13 +17,14 @@ import (
 
 	"github.com/hairyhenderson/go-fsimpl"
 	"github.com/hairyhenderson/go-fsimpl/internal"
+	"github.com/hairyhenderson/go-fsimpl/vaultfs/vaultauth"
 	"github.com/hashicorp/vault/api"
 )
 
 type vaultFS struct {
 	ctx  context.Context
 	base *url.URL
-	auth AuthMethod
+	auth api.AuthMethod
 
 	client *refCountedClient
 }
@@ -35,9 +36,9 @@ type vaultFS struct {
 //
 // The filesystem may be configured with:
 //
-//	WithAuthMethod		// set the Vault auth method
-//	fsimpl.WithContextFS	// set the context
-//	fsimpl.WithHeaderFS	// set custom HTTP headers
+//   - [vaultauth.WithAuthMethod] (set the auth method)
+//   - [fsimpl.WithContextFS] (inject a context)
+//   - [fsimpl.WithHeaderFS] (inject custom HTTP headers)
 func New(u *url.URL) (fs.FS, error) {
 	if u == nil {
 		return nil, fmt.Errorf("url must not be nil")
@@ -61,7 +62,8 @@ func New(u *url.URL) (fs.FS, error) {
 		return nil, fmt.Errorf("vault client creation failed: %w", err)
 	}
 
-	fsys := WithAuthMethod(EnvAuthMethod(), newWithVaultClient(u, newRefCountedClient(c)))
+	fsys := newWithVaultClient(u, newRefCountedClient(c))
+	fsys.auth = vaultauth.NewTokenAuth("")
 
 	return fsys, nil
 }
@@ -88,7 +90,8 @@ func vaultConfig(u *url.URL) (*api.Config, error) {
 	}
 
 	// handle compound URL scheme not supported by the client, but only if the
-	// URL has a host part set - otherwise use the scheme from $VAULT_ADDR
+	// URL has a host part set - otherwise use the scheme from $VAULT_ADDR, as
+	// set by api.DefaultConfig() above
 	if u.Host != "" {
 		scheme := strings.TrimPrefix(u.Scheme, "vault+")
 		if scheme == "vault" {
@@ -132,7 +135,7 @@ func (f vaultFS) WithHeader(headers http.Header) fs.FS {
 	return &fsys
 }
 
-func (f vaultFS) WithAuthMethod(auth AuthMethod) fs.FS {
+func (f vaultFS) WithAuthMethod(auth api.AuthMethod) fs.FS {
 	fsys := f
 	fsys.auth = auth
 
@@ -190,7 +193,7 @@ func (f *vaultFS) subURL(name string) (*url.URL, error) {
 // newVaultFile opens a vault file/dir for reading - if this file is not closed
 // a vault token may be leaked!
 func newVaultFile(ctx context.Context, name string, u *url.URL,
-	client *refCountedClient, auth AuthMethod) *vaultFile {
+	client *refCountedClient, auth api.AuthMethod) *vaultFile {
 	// add reference to shared client - will be removed on Close
 	client.AddRef()
 
@@ -208,7 +211,7 @@ type vaultFile struct {
 	name   string
 	u      *url.URL
 	client *refCountedClient
-	auth   AuthMethod
+	auth   api.AuthMethod
 
 	body     io.ReadCloser
 	children []string
@@ -269,9 +272,14 @@ func (f *vaultFile) newKVv2Request(method string) *api.Request {
 
 func (f *vaultFile) request(method string) (resp *api.Response, isV2 bool, err error) {
 	if f.client.Token() == "" {
-		if err = f.auth.Login(f.ctx, f.client.Client); err != nil {
+		var secret *api.Secret
+
+		secret, err = f.auth.Login(f.ctx, f.client.Client)
+		if err != nil {
 			return nil, false, fmt.Errorf("vault login failure: %w", err)
 		}
+
+		f.client.SetToken(secret.Auth.ClientToken)
 	}
 
 	var req *api.Request
@@ -314,7 +322,13 @@ func (f *vaultFile) Close() error {
 	f.client.RemoveRef()
 
 	if f.client.Refs() == 0 {
-		_ = f.auth.Logout(f.ctx, f.client.Client)
+		// the token auth method manages its own logout, to avoid revoking the
+		// token, which shouldn't be managed here
+		if lauth, ok := f.auth.(authLogouter); ok {
+			lauth.Logout(f.client.Client)
+		} else {
+			revokeToken(f.ctx, f.client.Client)
+		}
 	}
 
 	if f.body == nil {

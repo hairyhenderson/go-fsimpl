@@ -1,11 +1,11 @@
-// Package vaultfs provides an interface to Hashicorp Vault which allows you to
+// Package vaultfs provides an interface to [Hashicorp Vault] which allows you to
 // interact with the Vault API as a standard filesystem.
 //
-// This filesystem's behaviour complies with fstest.TestFS.
+// This filesystem's behaviour complies with [testing/fstest.TestFS].
 //
 // # Usage
 //
-// To use this filesystem, call New with a base URL. All reads from the
+// To use this filesystem, call [New] with a base URL. All reads from the
 // filesystem are relative to this base URL. The schemes "vault", "vault+https",
 // "https", "vault+http", and "http" are supported, though the http schemes
 // should only be used in development/test environments. If no authority part
@@ -37,31 +37,26 @@
 //
 //	vault:///secret/mysecret?version=5
 //
-// See the Vault Secret Engines docs for more details:
-// https://vaultproject.io/docs/secrets.
+// See the [Vault Secret Engine Docs] for more details.
 //
 // # Authentication
 //
-// A number of authentication methods are supported. By default, the auth method
-// will be chosen based on environment variables (using EnvAuthMethod), but
-// specific auth methods may be chosen by wrapping the filesystem with the
-// WithAuthMethod function.
+// A number of authentication methods are supported and documented in detail
+// by the [vaultauth] package. Use the [vaultauth.WithAuthMethod]
+// function to set your desired auth method. Custom auth methods can be created
+// by implementing the [github.com/hashicorp/vault/api.AuthMethod] interface.
+//
+// By default, the $VAULT_TOKEN environment variable will be used as the Vault
+// token, falling back to the content of $HOME/.vault-token.
 //
 // When multiple files are opened simultaneously, the same authentication token
 // will be used for each of them, and will only be revoked when the last file is
 // closed. This ensures that a minimal number of tokens are acquired, however
 // this also means that tokens may be leaked if all opened files are not closed.
 //
-// If you wish to manage authentication tokens yourself, you can use the
-// TokenAuthMethod and manage that token outside of vaultfs.
+// See the [vaultauth] docs for details on each auth method.
 //
-// See the function documentation for details on each AuthMethod.
-//
-// For help in deciding which Auth Method to use, consult the Vault
-// Documentation: https://vaultproject.io/docs/auth.
-//
-// Note that only a few auth methods are currently supported by this package. If
-// you need additional methods, please file an issue!
+// For help in deciding which auth method to use, consult the [Vault Auth Docs].
 //
 // # Permissions
 //
@@ -70,16 +65,18 @@
 // generation requires "create" and "update", and listing (ReadDir) requires the
 // "list" capability.
 //
-// See https://www.vaultproject.io/docs/concepts/policies#capabilities for more
-// details on how to configure these in Vault.
+// See [Vault Capabilities Docs] for more details on how to configure these on
+// your Vault server.
 //
 // # Environment Variables
 //
-// All auth methods can be configured with the AuthMethod functions, but they
-// also each support inferring values from environment variables. See the docs
-// for each AuthMethod for details.
+// A number of environment variables are understood by the Go Vault client that
+// vaultfs uses internally. See [Vault Client Environment Variable Docs] for
+// detail.
 //
-// In addition, a number of environment variables are understood by the Vault
-// client used internally. See the Vault Documentation for details:
-// https://vaultproject.io/docs/commands#environment-variables
+// [Vault Auth Docs]: https://vaultproject.io/docs/auth
+// [Vault Capabilities Docs]: https://vaultproject.io/docs/concepts/policies#capabilities
+// [Vault Client Environment Variable Docs]: https://vaultproject.io/docs/commands#environment-variables
+// [Vault Secret Engine Docs]: https://vaultproject.io/docs/secrets
+// [Hashicorp Vault]: https://vaultproject.io
 package vaultfs

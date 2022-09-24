@@ -14,6 +14,8 @@ require (
 	github.com/go-git/go-git/v5 v5.4.2
 	github.com/hashicorp/consul/api v1.15.2
 	github.com/hashicorp/vault/api v1.8.0
+	github.com/hashicorp/vault/api/auth/approle v0.3.0
+	github.com/hashicorp/vault/api/auth/userpass v0.3.0
 	github.com/johannesboyne/gofakes3 v0.0.0-20220517215058-83a58ec253b6
 	github.com/stretchr/testify v1.8.0
 	gocloud.dev v0.25.1-0.20220408200107-09b10f7359f7
