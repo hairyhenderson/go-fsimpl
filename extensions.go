@@ -57,17 +57,22 @@ var (
 	extraMimeInit sync.Once
 )
 
-// ContentType returns the MIME content type for the given fs.FileInfo. If fi
-// has a ContentType method, that will be used, otherwise the type will be
-// guessed by the filename's extension. See the docs for mime.TypeByExtension
-// for details on how extension lookup works.
-// Some additional
+// ContentType returns the MIME content type for the given [io/fs.FileInfo]. If
+// fi has a ContentType method, it will be used first, otherwise the filename's
+// extension will be used. See the docs for [mime.TypeByExtension] for details
+// on how extension lookup works.
 //
-// The returned value may have parameters (e.g. "application/json; charset=utf-8")
-// which can be parsed with mime.ParseMediaType.
+// The returned value may have parameters (e.g.
+// "application/json; charset=utf-8") which can be parsed with
+// [mime.ParseMediaType].
 func ContentType(fi fs.FileInfo) string {
+	ct := ""
 	if cf, ok := fi.(internal.ContentTypeFileInfo); ok {
-		return cf.ContentType()
+		ct = cf.ContentType()
+	}
+
+	if ct != "" {
+		return ct
 	}
 
 	extraMimeInit.Do(func() {
@@ -78,6 +83,7 @@ func ContentType(fi fs.FileInfo) string {
 
 	// fall back to guessing based on extension
 	ext := filepath.Ext(fi.Name())
+	ct = mime.TypeByExtension(ext)
 
-	return mime.TypeByExtension(ext)
+	return ct
 }
