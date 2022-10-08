@@ -20,7 +20,7 @@ require (
 	github.com/stretchr/testify v1.8.0
 	gocloud.dev v0.25.1-0.20220408200107-09b10f7359f7
 	golang.org/x/crypto v0.0.0-20220525230936-793ad666bf5e
-	gotest.tools/v3 v3.3.0
+	gotest.tools/v3 v3.4.0
 )
 
 // use an older version of github.com/mattn/go-ieproxy to avoid CGO dependency
