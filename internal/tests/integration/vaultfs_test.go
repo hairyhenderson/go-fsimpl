@@ -518,6 +518,11 @@ func TestVaultFS_AppRoleAuth_ReusedToken(t *testing.T) {
 
 //nolint:errcheck
 func TestVaultFS_AppIDAuth(t *testing.T) {
+	// temporarily allow the deprecated pending-removal appID auth method
+	// when this starts failing completely, we should remove support
+	_ = os.Setenv("VAULT_ALLOW_PENDING_REMOVAL_MOUNTS", "true")
+	defer os.Unsetenv("VAULT_ALLOW_PENDING_REMOVAL_MOUNTS")
+
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
