@@ -13,7 +13,7 @@ require (
 	github.com/go-git/go-billy/v5 v5.3.1
 	github.com/go-git/go-git/v5 v5.4.2
 	github.com/hashicorp/consul/api v1.15.2
-	github.com/hashicorp/vault/api v1.8.0
+	github.com/hashicorp/vault/api v1.8.1
 	github.com/hashicorp/vault/api/auth/approle v0.3.0
 	github.com/hashicorp/vault/api/auth/userpass v0.3.0
 	github.com/johannesboyne/gofakes3 v0.0.0-20220517215058-83a58ec253b6
