@@ -11,7 +11,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/ssm v1.33.1
 	github.com/fsouza/fake-gcs-server v1.42.2
 	github.com/go-git/go-billy/v5 v5.3.1
-	github.com/go-git/go-git/v5 v5.4.2
+	github.com/go-git/go-git/v5 v5.5.0
 	github.com/hashicorp/consul/api v1.17.0
 	github.com/hashicorp/vault/api v1.8.2
 	github.com/hashicorp/vault/api/auth/approle v0.3.0
@@ -19,7 +19,7 @@ require (
 	github.com/johannesboyne/gofakes3 v0.0.0-20220517215058-83a58ec253b6
 	github.com/stretchr/testify v1.8.1
 	gocloud.dev v0.25.1-0.20220408200107-09b10f7359f7
-	golang.org/x/crypto v0.0.0-20220525230936-793ad666bf5e
+	golang.org/x/crypto v0.3.0
 	gotest.tools/v3 v3.4.0
 )
 
@@ -44,7 +44,7 @@ require (
 	github.com/Azure/go-autorest/logger v0.2.1 // indirect
 	github.com/Azure/go-autorest/tracing v0.6.0 // indirect
 	github.com/Microsoft/go-winio v0.5.2 // indirect
-	github.com/ProtonMail/go-crypto v0.0.0-20220517143526-88bb52951d5b // indirect
+	github.com/ProtonMail/go-crypto v0.0.0-20221026131551-cf6655e29de4 // indirect
 	github.com/acomagu/bufpipe v1.0.3 // indirect
 	github.com/armon/go-metrics v0.4.0 // indirect
 	github.com/armon/go-radix v1.0.0 // indirect
@@ -66,6 +66,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sts v1.17.5 // indirect
 	github.com/aws/smithy-go v1.13.4 // indirect
 	github.com/cenkalti/backoff/v3 v3.2.2 // indirect
+	github.com/cloudflare/circl v1.1.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/fatih/color v1.13.0 // indirect
@@ -115,6 +116,7 @@ require (
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
 	github.com/oklog/run v1.1.0 // indirect
 	github.com/pierrec/lz4 v2.6.1+incompatible // indirect
+	github.com/pjbgf/sha1cd v0.2.0 // indirect
 	github.com/pkg/xattr v0.4.9 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/ryanuber/go-glob v1.0.0 // indirect
@@ -122,13 +124,14 @@ require (
 	github.com/sergi/go-diff v1.2.0 // indirect
 	github.com/shabbyrobe/gocovmerge v0.0.0-20190829150210-3e036491d500 // indirect
 	github.com/sirupsen/logrus v1.9.0 // indirect
-	github.com/xanzy/ssh-agent v0.3.1 // indirect
+	github.com/skeema/knownhosts v1.1.0 // indirect
+	github.com/xanzy/ssh-agent v0.3.2 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
-	golang.org/x/net v0.1.0 // indirect
+	golang.org/x/net v0.2.0 // indirect
 	golang.org/x/oauth2 v0.0.0-20221014153046-6fdb5e3db783 // indirect
 	golang.org/x/sync v0.1.0 // indirect
-	golang.org/x/sys v0.1.0 // indirect
+	golang.org/x/sys v0.2.0 // indirect
 	golang.org/x/text v0.4.0 // indirect
 	golang.org/x/time v0.0.0-20220922220347-f3bd1da661af // indirect
 	golang.org/x/tools v0.1.12 // indirect
