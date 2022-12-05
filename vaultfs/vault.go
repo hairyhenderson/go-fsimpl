@@ -116,6 +116,10 @@ var (
 	_ internal.WithHeaderer  = (*vaultFS)(nil)
 )
 
+func (f vaultFS) URL() string {
+	return f.base.String()
+}
+
 func (f vaultFS) WithContext(ctx context.Context) fs.FS {
 	fsys := f
 	fsys.ctx = ctx

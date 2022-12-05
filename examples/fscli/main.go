@@ -54,6 +54,7 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
+	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
@@ -62,9 +63,17 @@ import (
 
 	"github.com/hairyhenderson/go-fsimpl"
 	"github.com/hairyhenderson/go-fsimpl/autofs"
+	"github.com/hairyhenderson/go-fsimpl/tracefs"
+	"go.opentelemetry.io/otel"
 )
 
-func parseFlags(args []string) (string, []string) {
+type opts struct {
+	baseURL       string
+	enableTracing bool
+	useOpen       bool
+}
+
+func parseFlags(args []string) (*opts, []string) {
 	prog := args[0]
 
 	fs := flag.NewFlagSet("root", flag.ExitOnError)
@@ -85,24 +94,27 @@ commands:
 `)
 	}
 
-	baseURL := fs.String("base-url", "", "Base URL of the filesystem")
+	o := opts{}
+	fs.StringVar(&o.baseURL, "base-url", "", "Base URL of the filesystem")
+	fs.BoolVar(&o.enableTracing, "tracing", false, "Enable tracing with OTel")
+	fs.BoolVar(&o.useOpen, "use-open", false, "Open first instead of using filesystem shortcut methods")
 
 	_ = fs.Parse(args[1:])
 
 	fsArgs := fs.Args()
 
-	return *baseURL, fsArgs
+	return &o, fsArgs
 }
 
 func main() {
-	base, fsArgs := parseFlags(os.Args)
-	if err := run(base, fsArgs); err != nil {
-		fmt.Fprintf(os.Stderr, "%s\n", err)
+	o, fsArgs := parseFlags(os.Args)
+	if err := run(o, fsArgs); err != nil {
+		slog.Error("exiting with error", slog.Any("err", err))
 		os.Exit(1)
 	}
 }
 
-func run(base string, fsArgs []string) error {
+func run(o *opts, fsArgs []string) error {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGQUIT, syscall.SIGTERM)
 	defer stop()
 
@@ -112,20 +124,45 @@ func run(base string, fsArgs []string) error {
 
 	subCmd := fsArgs[0]
 
-	fsys, err := autofs.Lookup(base)
+	fsys, err := autofs.Lookup(o.baseURL)
 	if err != nil {
 		return err
 	}
 
 	fsys = fsimpl.WithContextFS(ctx, fsys)
 
+	if o.enableTracing {
+		closer, err := initTracing(context.WithoutCancel(ctx))
+		if err != nil {
+			return fmt.Errorf("init trace exporter: %w", err)
+		}
+
+		defer func() { _ = closer(context.WithoutCancel(ctx)) }()
+
+		ctx2, span := otel.Tracer("fscli").Start(ctx, subCmd)
+		defer span.End()
+
+		fsys, err = tracefs.New(ctx2, fsys)
+		if err != nil {
+			return fmt.Errorf("new tracefs: %w", err)
+		}
+	}
+
+	return cmd(fsys, subCmd, o.useOpen, fsArgs)
+}
+
+func cmd(fsys fs.FS, subCmd string, useOpen bool, fsArgs []string) error {
 	switch subCmd {
 	case "ls":
 		if len(fsArgs) == 1 {
 			fsArgs = append(fsArgs, ".")
 		}
 
-		return ls(fsys, fsArgs[1], os.Stdout)
+		if useOpen {
+			return openLs(fsys, fsArgs[1], os.Stdout)
+		}
+
+		return fsLs(fsys, fsArgs[1], os.Stdout)
 	case "cat":
 		if len(fsArgs) == 1 {
 			return fmt.Errorf("no files specified")
@@ -137,18 +174,45 @@ func run(base string, fsArgs []string) error {
 			fsArgs = append(fsArgs, ".")
 		}
 
-		return stat(fsys, fsArgs[1], os.Stdout)
+		if useOpen {
+			return openStat(fsys, fsArgs[1], os.Stdout)
+		}
+
+		return fsStat(fsys, fsArgs[1], os.Stdout)
 	}
 
 	return fmt.Errorf("unknown command: %s", subCmd)
 }
 
-func ls(fsys fs.FS, dir string, w io.Writer) error {
+func openLs(fsys fs.FS, dir string, w io.Writer) error {
+	f, err := fsys.Open(dir)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	if d, ok := f.(fs.ReadDirFile); ok {
+		des, err := d.ReadDir(-1)
+		if err != nil {
+			return err
+		}
+
+		return ls(des, w)
+	}
+
+	return fmt.Errorf("not a directory: %s", dir)
+}
+
+func fsLs(fsys fs.FS, dir string, w io.Writer) error {
 	des, err := fs.ReadDir(fsys, dir)
 	if err != nil {
 		return fmt.Errorf("%T: %w", fsys, err)
 	}
 
+	return ls(des, w)
+}
+
+func ls(des []fs.DirEntry, w io.Writer) error {
 	tw := tabwriter.NewWriter(w, 0, 0, 1, ' ', tabwriter.AlignRight)
 	defer tw.Flush()
 
@@ -179,9 +243,10 @@ func cat(fsys fs.FS, files []string, w io.Writer) error {
 		if err != nil {
 			return err
 		}
-		defer f.Close()
 
 		if _, err := io.Copy(w, f); err != nil {
+			_ = f.Close()
+
 			return err
 		}
 
@@ -191,12 +256,31 @@ func cat(fsys fs.FS, files []string, w io.Writer) error {
 	return nil
 }
 
-func stat(fsys fs.FS, name string, w io.Writer) error {
+func openStat(fsys fs.FS, name string, w io.Writer) error {
+	f, err := fsys.Open(name)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	fi, err := f.Stat()
+	if err != nil {
+		return err
+	}
+
+	return stat(fi, name, w)
+}
+
+func fsStat(fsys fs.FS, name string, w io.Writer) error {
 	fi, err := fs.Stat(fsys, name)
 	if err != nil {
 		return err
 	}
 
+	return stat(fi, name, w)
+}
+
+func stat(fi fs.FileInfo, name string, w io.Writer) error {
 	ct := fsimpl.ContentType(fi)
 
 	fmt.Fprintf(w, `%s:

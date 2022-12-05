@@ -15,7 +15,7 @@ func TestLs(t *testing.T) {
 
 	w := &bytes.Buffer{}
 
-	err := ls(fsys, ".", w)
+	err := fsLs(fsys, ".", w)
 	assert.NoError(t, err)
 	assert.Equal(t, "", w.String())
 
@@ -34,7 +34,7 @@ func TestLs(t *testing.T) {
 		"dir/b":    {ModTime: mtime, Mode: 0o644, Data: []byte("bb")},
 	}
 
-	err = ls(fsys, ".", w)
+	err = fsLs(fsys, ".", w)
 	assert.NoError(t, err)
 	assert.Equal(t, ` -rw-r--r--     1B 1970-01-01 00:00 a
  -rwxr-x---   512B 1971-02-02 12:00 b
@@ -63,7 +63,7 @@ func TestStat(t *testing.T) {
 
 	w := &bytes.Buffer{}
 
-	err := stat(fsys, "a.txt", w)
+	err := fsStat(fsys, "a.txt", w)
 	assert.NoError(t, err)
 	assert.Equal(t, `a.txt:
 	Size:         3B

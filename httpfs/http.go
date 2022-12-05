@@ -50,6 +50,10 @@ var (
 	_ internal.WithHTTPClienter = (*httpFS)(nil)
 )
 
+func (f httpFS) URL() string {
+	return f.base.String()
+}
+
 func (f httpFS) WithContext(ctx context.Context) fs.FS {
 	fsys := f
 	fsys.ctx = ctx

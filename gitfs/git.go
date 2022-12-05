@@ -74,6 +74,10 @@ var (
 	_ withAuthenticatorer    = (*gitFS)(nil)
 )
 
+func (f gitFS) URL() string {
+	return f.repo.String()
+}
+
 func (f gitFS) WithAuthenticator(auth Authenticator) fs.FS {
 	fsys := f
 	fsys.auth = auth
