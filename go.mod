@@ -10,7 +10,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.16.11
 	github.com/aws/aws-sdk-go-v2/service/ssm v1.33.4
 	github.com/fsouza/fake-gcs-server v1.42.2
-	github.com/go-git/go-billy/v5 v5.3.1
+	github.com/go-git/go-billy/v5 v5.4.0
 	github.com/go-git/go-git/v5 v5.5.1
 	github.com/hashicorp/consul/api v1.18.0
 	github.com/hashicorp/vault/api v1.8.2
