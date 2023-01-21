@@ -6,13 +6,11 @@ else
 LINT_PROCS ?= $(shell nproc)
 endif
 
-ifeq ($(OS),Windows_NT)
 test:
-	go test -coverprofile=c.out ./...
-else
-test:
+	CGO_ENABLED=0 go test -coverprofile=c.out ./...
+
+test-race:
 	go test -race -coverprofile=c.out ./...
-endif
 
 lint:
 	@golangci-lint run --verbose --max-same-issues=0 --max-issues-per-linter=0
