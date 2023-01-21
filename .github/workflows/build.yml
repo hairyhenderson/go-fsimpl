@@ -18,6 +18,20 @@ jobs:
       - uses: actions/checkout@v3
       - run: make test
       - run: make test-race
+  fscli-build:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/hairyhenderson/gomplate-ci-build:latest
+    steps:
+      - uses: actions/checkout@v3
+      - run: |
+          make bin/fscli_linux-amd64
+          make bin/fscli_linux-arm-v7
+          make bin/fscli_linux-arm64
+          make bin/fscli_linux-ppc64le
+          make bin/fscli_darwin-amd64
+          make bin/fscli_darwin-arm64
+          make bin/fscli_windows-amd64.exe
   windows-build:
     runs-on: windows-latest
     env:
@@ -26,7 +40,7 @@ jobs:
       - run: pwd
       - uses: actions/setup-go@v3
         with:
-          go-version: 1.18.x
+          go-version: 1.19.x
       - run: |
           git config --global user.email "bogus@example.com"
           git config --global user.name "Someone"
