@@ -70,6 +70,7 @@ func startGitDaemon(t *testing.T) string {
 	port, addr := freeport(t)
 	gitDaemon := icmd.Command("git", "daemon",
 		"--verbose",
+		"--listen=127.0.0.1",
 		"--port="+strconv.Itoa(port),
 		"--base-path="+tmpDir.Path(),
 		"--pid-file="+pidDir.Join("git.pid"),

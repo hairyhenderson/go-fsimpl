@@ -13,7 +13,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
+	azblobblob "github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/blob"
+	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/container"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -211,22 +212,6 @@ func (f *blobFS) newOpener(ctx context.Context, scheme string) (opener blob.Buck
 		return &gcsblob.URLOpener{Client: client}, nil
 	case azureblob.Scheme:
 		return blob.DefaultURLMux(), nil
-		// accountName, _ := azureblob.DefaultAccountName()
-		// accountKey, _ := azureblob.DefaultAccountKey()
-
-		// azureblob.DefaultProtocol()
-
-		// cred, err := azureblob.NewCredential(accountName, accountKey)
-		// if err != nil {
-		// 	return nil, err
-		// }
-
-		// pipeline := azureblob.NewPipeline(cred, azblob.PipelineOptions{})
-
-		// return &azureblob.URLOpener{
-		// 	AccountName: accountName,
-		// 	Pipeline:    pipeline,
-		// }, nil
 	default:
 		return nil, fmt.Errorf("unsupported scheme: %s", scheme)
 	}
@@ -372,7 +357,7 @@ func (f *blobFile) Stat() (fs.FileInfo, error) {
 
 	mode := fs.FileMode(0o644)
 
-	azResp := azblob.BlobGetPropertiesResponse{}
+	azResp := azblobblob.GetPropertiesResponse{}
 	if out.As(&azResp) && *azResp.ContentType == "" {
 		// this is likely a directory
 		mode = fs.ModeDir
@@ -449,8 +434,8 @@ func (f *blobFile) ReadDir(n int) ([]fs.DirEntry, error) {
 			mode = fs.ModeDir
 		}
 
-		// azblob.BlobItemInternal for objects, azblob.BlobPrefix for "directories"
-		azItem := azblob.BlobItemInternal{}
+		// container.BlobItem for objects, container.BlobPrefix for "directories"
+		azItem := container.BlobItem{}
 		if obj.As(&azItem) && (azItem.Properties.ContentType == nil || *azItem.Properties.ContentType == "") {
 			// this is likely a directory, so ignore it
 			continue
