@@ -281,6 +281,22 @@ func TestGitFS_Clone_BareFileRepo(t *testing.T) {
 	assert.Equal(t, "hello world", string(b))
 }
 
+func TestGitFS_Clone_HTTPS(t *testing.T) {
+	ctx := context.Background()
+
+	g := &gitFS{auth: NoopAuthenticator()}
+
+	fsys, _, err := g.gitClone(ctx, *tests.MustURL("https://github.com/hairyhenderson/git-fixtures.git"), 0)
+	require.NoError(t, err)
+
+	f, err := fsys.Open("small_test.json")
+	require.NoError(t, err)
+
+	b, err := io.ReadAll(f)
+	require.NoError(t, err)
+	assert.Equal(t, "{\"foo\": \"bar\"}\n", string(b))
+}
+
 func TestGitFS_ReadDir(t *testing.T) {
 	_ = setupGitRepo(t)
 
