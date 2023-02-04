@@ -4,11 +4,11 @@ go 1.18
 
 require (
 	github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v0.6.1
-	github.com/aws/aws-sdk-go v1.44.189
+	github.com/aws/aws-sdk-go v1.44.194
 	github.com/aws/aws-sdk-go-v2 v1.17.4
 	github.com/aws/aws-sdk-go-v2/config v1.18.12
-	github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.18.2
-	github.com/aws/aws-sdk-go-v2/service/ssm v1.35.1
+	github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.18.3
+	github.com/aws/aws-sdk-go-v2/service/ssm v1.35.2
 	github.com/fsouza/fake-gcs-server v1.44.0
 	github.com/go-git/go-billy/v5 v5.4.0
 	github.com/go-git/go-git/v5 v5.5.2
@@ -16,7 +16,7 @@ require (
 	github.com/hashicorp/vault/api v1.8.3
 	github.com/hashicorp/vault/api/auth/approle v0.3.0
 	github.com/hashicorp/vault/api/auth/userpass v0.3.0
-	github.com/johannesboyne/gofakes3 v0.0.0-20230108161031-df26ca44a1e9
+	github.com/johannesboyne/gofakes3 v0.0.0-20230129080941-f6a8a9ae6fd3
 	github.com/stretchr/testify v1.8.1
 	gocloud.dev v0.28.0
 	golang.org/x/crypto v0.5.0
