@@ -31,21 +31,21 @@ bin/fscli_%v7$(call extension,$(GOOS)): $(shell find . -type f -name "*.go")
 	GOARCH=$(shell echo $* | cut -f2 -d- ) \
 	GOARM=7 \
 	CGO_ENABLED=0 \
-		go build -o $@ ./examples/fscli
+		go build $(BUILD_ARGS) -o $@ ./examples/fscli
 
 bin/fscli_windows-%.exe: $(shell find . -type f -name "*.go")
 	GOOS=windows \
 	GOARCH=$* \
 	GOARM= \
 	CGO_ENABLED=0 \
-		go build -o $@ ./examples/fscli
+		go build $(BUILD_ARGS) -o $@ ./examples/fscli
 
 bin/fscli_%$(TARGETVARIANT)$(call extension,$(GOOS)): $(shell find . -type f -name "*.go")
 	GOOS=$(shell echo $* | cut -f1 -d-) \
 	GOARCH=$(shell echo $* | cut -f2 -d- ) \
 	GOARM=$(GOARM) \
 	CGO_ENABLED=0 \
-		go build -o $@ ./examples/fscli
+		go build $(BUILD_ARGS) -o $@ ./examples/fscli
 
 lint:
 	@golangci-lint run --verbose --max-same-issues=0 --max-issues-per-linter=0
