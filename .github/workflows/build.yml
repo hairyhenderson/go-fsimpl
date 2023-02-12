@@ -24,8 +24,10 @@ jobs:
       image: ghcr.io/hairyhenderson/gomplate-ci-build:latest
     steps:
       - uses: actions/checkout@v3
-      - run: |
-          expose BUILD_ARGS="-buildvcs=false"
+      - name: Build fscli
+        env:
+          BUILD_ARGS: '-buildvcs=false'
+        run: |
           make bin/fscli_linux-amd64
           make bin/fscli_linux-arm-v7
           make bin/fscli_linux-arm64
