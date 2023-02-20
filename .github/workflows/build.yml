@@ -6,6 +6,9 @@ on:
     # only run on PRs targeting main
     branches: [ main ]
 
+permissions:
+  contents: read
+
 jobs:
   linux-build:
     runs-on: ubuntu-latest
@@ -25,8 +28,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Build fscli
-        env:
-          BUILD_ARGS: '-buildvcs=false'
         run: |
           make bin/fscli_linux-amd64
           make bin/fscli_linux-arm-v7
