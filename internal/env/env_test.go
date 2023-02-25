@@ -19,15 +19,14 @@ func TestGetenvFS(t *testing.T) {
 	assert.Equal(t, os.Getenv("USER"), GetenvFS(fsys, "USER"))
 	assert.Equal(t, "default value", GetenvFS(fsys, "BLAHBLAHBLAH", "default value"))
 
-	defer os.Unsetenv("FOO_FILE")
-	os.Setenv("FOO_FILE", "/tmp/foo")
+	t.Setenv("FOO_FILE", "/tmp/foo")
 	assert.Equal(t, "foo", GetenvFS(fsys, "FOO", "bar"))
 
-	os.Setenv("FOO_FILE", "/tmp/missing")
+	t.Setenv("FOO_FILE", "/tmp/missing")
 	assert.Equal(t, "bar", GetenvFS(fsys, "FOO", "bar"))
 
 	fsys["tmp/unreadable"] = &fstest.MapFile{Mode: 0o100}
 
-	os.Setenv("FOO_FILE", "/tmp/unreadable")
+	t.Setenv("FOO_FILE", "/tmp/unreadable")
 	assert.Equal(t, "bar", GetenvFS(fsys, "FOO", "bar"))
 }
