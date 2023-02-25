@@ -20,6 +20,8 @@ import (
 )
 
 func setupTestS3Bucket(t *testing.T) *url.URL {
+	t.Helper()
+
 	backend := s3mem.New()
 	faker := gofakes3.New(backend)
 
@@ -49,6 +51,8 @@ func fakeGCSObject(name, contentType, content string) fakestorage.Object {
 }
 
 func setupTestGCSBucket(t *testing.T) *fakestorage.Server {
+	t.Helper()
+
 	objs := []fakestorage.Object{
 		fakeGCSObject("file1", "text/plain", "hello"),
 		fakeGCSObject("file2", "application/json", `{"value": "goodbye world"}`),
@@ -98,8 +102,7 @@ func TestBlobFS_S3(t *testing.T) {
 
 	defer cancel()
 
-	os.Setenv("AWS_ANON", "true")
-	defer os.Unsetenv("AWS_ANON")
+	t.Setenv("AWS_ANON", "true")
 
 	fsys, err := New(tests.MustURL("s3://mybucket/?region=us-east-1&disableSSL=true&s3ForcePathStyle=true&endpoint=" + srvURL.Host))
 	assert.NoError(t, err)
@@ -113,17 +116,10 @@ func TestBlobFS_S3(t *testing.T) {
 
 	os.Unsetenv("AWS_ANON")
 
-	os.Setenv("AWS_ACCESS_KEY_ID", "fake")
-	defer os.Unsetenv("AWS_ACCESS_KEY_ID")
-
-	os.Setenv("AWS_SECRET_ACCESS_KEY", "fake")
-	defer os.Unsetenv("AWS_SECRET_ACCESS_KEY")
-
-	os.Setenv("AWS_S3_ENDPOINT", srvURL.Host)
-	defer os.Unsetenv("AWS_S3_ENDPOINT")
-
-	os.Setenv("AWS_REGION", "eu-west-1")
-	defer os.Unsetenv("AWS_REGION")
+	t.Setenv("AWS_ACCESS_KEY_ID", "fake")
+	t.Setenv("AWS_SECRET_ACCESS_KEY", "fake")
+	t.Setenv("AWS_S3_ENDPOINT", srvURL.Host)
+	t.Setenv("AWS_REGION", "eu-west-1")
 
 	fsys, err = New(tests.MustURL("s3://mybucket/dir2/?disableSSL=true&s3ForcePathStyle=true"))
 	assert.NoError(t, err)
@@ -140,8 +136,7 @@ func TestBlobFS_GCS(t *testing.T) {
 
 	srv := setupTestGCSBucket(t)
 
-	os.Setenv("GOOGLE_ANON", "true")
-	defer os.Unsetenv("GOOGLE_ANON")
+	t.Setenv("GOOGLE_ANON", "true")
 
 	fsys, err := New(tests.MustURL("gs://mybucket"))
 	assert.NoError(t, err)
@@ -176,7 +171,7 @@ func TestBlobFS_Azure(t *testing.T) {
 
 	defer cancel()
 
-	os.Setenv("AZURE_STORAGE_ACCOUNT", "azureopendatastorage")
+	t.Setenv("AZURE_STORAGE_ACCOUNT", "azureopendatastorage")
 
 	fsys, err := New(tests.MustURL("azblob://citydatacontainer/Crime/Processed/2020/1/20/"))
 	assert.NoError(t, err)
@@ -208,8 +203,7 @@ func TestBlobFS_Azure(t *testing.T) {
 func TestBlobFS_ReadDir(t *testing.T) {
 	srvURL := setupTestS3Bucket(t)
 
-	os.Setenv("AWS_ANON", "true")
-	defer os.Unsetenv("AWS_ANON")
+	t.Setenv("AWS_ANON", "true")
 
 	fsys, err := New(tests.MustURL("s3://mybucket/?region=us-east-1&disableSSL=true&s3ForcePathStyle=true&endpoint=" + srvURL.Host))
 	assert.NoError(t, err)

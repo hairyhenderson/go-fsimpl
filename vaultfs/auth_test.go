@@ -20,8 +20,7 @@ func TestEnvAuthLogin(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	os.Setenv("VAULT_TOKEN", "foo")
-	defer os.Unsetenv("VAULT_TOKEN")
+	t.Setenv("VAULT_TOKEN", "foo")
 
 	m := EnvAuthMethod()
 	err := m.Login(ctx, v)
@@ -42,8 +41,7 @@ func TestTokenLogin(t *testing.T) {
 	client := &api.Client{}
 
 	// use env var if none provided
-	os.Setenv("VAULT_TOKEN", "foo")
-	defer os.Unsetenv("VAULT_TOKEN")
+	t.Setenv("VAULT_TOKEN", "foo")
 
 	m := TokenAuthMethod("")
 	err := m.Login(ctx, client)
@@ -59,8 +57,7 @@ func TestTokenLogin(t *testing.T) {
 	// support VAULT_TOKEN_FILE
 	os.Unsetenv("VAULT_TOKEN")
 
-	os.Setenv("VAULT_TOKEN_FILE", "/tmp/file")
-	defer os.Unsetenv("VAULT_TOKEN_FILE")
+	t.Setenv("VAULT_TOKEN_FILE", "/tmp/file")
 
 	fsys := fstest.MapFS{}
 	fsys["tmp/file"] = &fstest.MapFile{Data: []byte("tempfiletoken")}

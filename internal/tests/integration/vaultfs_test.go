@@ -194,8 +194,7 @@ func TestVaultFS_TokenAuth(t *testing.T) {
 	assert.Equal(t, `{"value":"bar"}`, string(b))
 
 	// token in env var
-	os.Setenv("VAULT_TOKEN", tok)
-	defer os.Unsetenv("VAULT_TOKEN")
+	t.Setenv("VAULT_TOKEN", tok)
 
 	fsys, err = vaultfs.New(tests.MustURL("vault+http://" + addr))
 	assert.NoError(t, err)
@@ -207,8 +206,7 @@ func TestVaultFS_TokenAuth(t *testing.T) {
 	assert.Equal(t, `{"value":"bar"}`, string(b))
 
 	// address and token in env var
-	os.Setenv("VAULT_ADDR", "http://"+addr)
-	defer os.Unsetenv("VAULT_ADDR")
+	t.Setenv("VAULT_ADDR", "http://"+addr)
 
 	fsys, err = vaultfs.New(tests.MustURL("vault:///"))
 	assert.NoError(t, err)
@@ -288,13 +286,9 @@ func TestVaultFS_UserPassAuth(t *testing.T) {
 	assert.Equal(t, `{"value":"bar"}`, string(b))
 
 	// with a bunch of env vars
-	os.Setenv("VAULT_ADDR", "http://"+addr)
-	os.Setenv("VAULT_AUTH_USERNAME", "dave")
-	os.Setenv("VAULT_AUTH_PASSWORD", "foo")
-
-	defer os.Unsetenv("VAULT_ADDR")
-	defer os.Unsetenv("VAULT_AUTH_USERNAME")
-	defer os.Unsetenv("VAULT_AUTH_PASSWORD")
+	t.Setenv("VAULT_ADDR", "http://"+addr)
+	t.Setenv("VAULT_AUTH_USERNAME", "dave")
+	t.Setenv("VAULT_AUTH_PASSWORD", "foo")
 
 	fsys, err = vaultfs.New(tests.MustURL("vault:///secret/"))
 	assert.NoError(t, err)
@@ -520,8 +514,7 @@ func TestVaultFS_AppRoleAuth_ReusedToken(t *testing.T) {
 func TestVaultFS_AppIDAuth(t *testing.T) {
 	// temporarily allow the deprecated pending-removal appID auth method
 	// when this starts failing completely, we should remove support
-	_ = os.Setenv("VAULT_ALLOW_PENDING_REMOVAL_MOUNTS", "true")
-	defer os.Unsetenv("VAULT_ALLOW_PENDING_REMOVAL_MOUNTS")
+	t.Setenv("VAULT_ALLOW_PENDING_REMOVAL_MOUNTS", "true")
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()

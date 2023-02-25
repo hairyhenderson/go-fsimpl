@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
-	"os"
 	"testing"
 
 	"github.com/hashicorp/vault/api"
@@ -18,8 +17,7 @@ func TestEnvAuthLogin(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	os.Setenv("VAULT_TOKEN", "foo")
-	defer os.Unsetenv("VAULT_TOKEN")
+	t.Setenv("VAULT_TOKEN", "foo")
 
 	m := EnvAuthMethod()
 	s, err := m.Login(ctx, v)

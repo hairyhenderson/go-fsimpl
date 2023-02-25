@@ -58,8 +58,7 @@ func TestAutoAuthenticator(t *testing.T) {
 	// ssh public key auth with env var
 	key := base64.StdEncoding.EncodeToString(testdata.PEMBytes["rsa"])
 
-	os.Setenv("GIT_SSH_KEY", key)
-	defer os.Unsetenv("GIT_SSH_KEY")
+	t.Setenv("GIT_SSH_KEY", key)
 
 	am, err = a.Authenticate(tests.MustURL("ssh://git@example.com"))
 	assert.NoError(t, err)
@@ -131,8 +130,7 @@ func TestBasicAuthenticator(t *testing.T) {
 		&githttp.BasicAuth{Username: "user", Password: "swordfish"}, am)
 
 	// credentials from env used when none are provided
-	os.Setenv("GIT_HTTP_PASSWORD", "swordfish")
-	defer os.Unsetenv("GIT_HTTP_PASSWORD")
+	t.Setenv("GIT_HTTP_PASSWORD", "swordfish")
 
 	am, err = a.Authenticate(tests.MustURL("https://example.com/foo"))
 	assert.NoError(t, err)
@@ -140,8 +138,7 @@ func TestBasicAuthenticator(t *testing.T) {
 		&githttp.BasicAuth{Username: "", Password: "swordfish"}, am)
 
 	// provided credentials override env used when none are provided
-	os.Setenv("GIT_HTTP_PASSWORD", "pufferfish")
-	defer os.Unsetenv("GIT_HTTP_PASSWORD")
+	t.Setenv("GIT_HTTP_PASSWORD", "pufferfish")
 
 	a.username = "user"
 	a.password = "swordfish"
@@ -209,8 +206,7 @@ func TestTokenAuthenticator(t *testing.T) {
 	assert.Error(t, err)
 
 	// token from env
-	os.Setenv("GIT_HTTP_TOKEN", "foo")
-	defer os.Unsetenv("GIT_HTTP_TOKEN")
+	t.Setenv("GIT_HTTP_TOKEN", "foo")
 
 	am, err := a.Authenticate(tests.MustURL("http://example.com/foo"))
 	assert.NoError(t, err)
@@ -223,7 +219,6 @@ func TestTokenAuthenticator(t *testing.T) {
 	assert.EqualValues(t, &githttp.TokenAuth{Token: "bar"}, am)
 }
 
-//nolint:funlen
 func TestPublicKeyAuthenticator(t *testing.T) {
 	envfsys := fstest.MapFS{}
 	a := &publicKeyAuthenticator{envfsys: envfsys}
@@ -246,8 +241,7 @@ func TestPublicKeyAuthenticator(t *testing.T) {
 
 	enckey := base64.StdEncoding.EncodeToString([]byte(key))
 
-	os.Setenv("GIT_SSH_KEY", enckey)
-	defer os.Unsetenv("GIT_SSH_KEY")
+	t.Setenv("GIT_SSH_KEY", enckey)
 
 	am, err := a.Authenticate(tests.MustURL("ssh://example.com/foo"))
 	assert.NoError(t, err)
@@ -256,8 +250,7 @@ func TestPublicKeyAuthenticator(t *testing.T) {
 	// key from file referenced by env (non-base64)
 	os.Unsetenv("GIT_SSH_KEY")
 
-	os.Setenv("GIT_SSH_KEY_FILE", "/testdata/key.pem")
-	defer os.Unsetenv("GIT_SSH_KEY_FILE")
+	t.Setenv("GIT_SSH_KEY_FILE", "/testdata/key.pem")
 
 	envfsys["testdata/key.pem"] = &fstest.MapFile{Data: []byte(key)}
 
@@ -268,8 +261,7 @@ func TestPublicKeyAuthenticator(t *testing.T) {
 	// provided key overrides env
 	os.Unsetenv("GIT_SSH_KEY_FILE")
 
-	os.Setenv("GIT_SSH_KEY", "unparseable key, but will be ignored")
-	defer os.Unsetenv("GIT_SSH_KEY")
+	t.Setenv("GIT_SSH_KEY", "unparseable key, but will be ignored")
 
 	a.username = "user"
 	a.privKey = testdata.PEMBytes["ed25519"]
