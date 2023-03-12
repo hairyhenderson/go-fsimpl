@@ -75,7 +75,6 @@ func WithAuthMethod(auth AuthMethod, fsys fs.FS) fs.FS {
 
 var (
 	_ AuthMethod = (*envAuthMethod)(nil)
-	_ AuthMethod = (*appIDAuthMethod)(nil)
 	_ AuthMethod = (*appRoleAuthMethod)(nil)
 	_ AuthMethod = (*userPassAuthMethod)(nil)
 )
@@ -87,7 +86,6 @@ var (
 //	GitHubAuthMethod
 //	UserPassAuthMethod
 //	TokenAuthMethod
-//	AppIDAuthMethod	// Deprecated
 //
 // Deprecated: use [github.com/hairyhenderson/go-fsimpl/vaultfs/vaultauth.EnvAuthMethod] instead
 func EnvAuthMethod() AuthMethod {
@@ -98,7 +96,6 @@ func EnvAuthMethod() AuthMethod {
 			GitHubAuthMethod("", ""),
 			UserPassAuthMethod("", "", ""),
 			TokenAuthMethod(""),
-			AppIDAuthMethod("", "", ""),
 		},
 	}
 }
@@ -245,55 +242,6 @@ func (m *appRoleAuthMethod) Logout(ctx context.Context, client *api.Client) erro
 	return nil
 }
 
-// AppIDAuthMethod authenticates to Vault with the AppID auth method.
-//
-// Deprecated: transition to AppRole instead - see https://www.vaultproject.io/docs/auth/app-id
-func AppIDAuthMethod(appID, userID, mount string) AuthMethod {
-	return &appIDAuthMethod{
-		fsys:   os.DirFS("/"),
-		appID:  appID,
-		userID: userID,
-		mount:  mount,
-	}
-}
-
-type appIDAuthMethod struct {
-	fsys          fs.FS
-	appID, userID string
-	mount         string
-}
-
-//nolint:dupl
-func (m *appIDAuthMethod) Login(ctx context.Context, client *api.Client) error {
-	appID := findValue(m.appID, "VAULT_APP_ID", "", m.fsys)
-	if appID == "" {
-		return fmt.Errorf("app-id auth failure: no app_id provided")
-	}
-
-	userID := findValue(m.userID, "VAULT_USER_ID", "", m.fsys)
-	if userID == "" {
-		return fmt.Errorf("app-id auth failure: no user_id provided")
-	}
-
-	mount := findValue(m.mount, "VAULT_AUTH_APP_ID_MOUNT", "app-id", m.fsys)
-
-	secret, err := remoteAuth(ctx, client, mount, appID,
-		map[string]interface{}{"user_id": userID})
-	if err != nil {
-		return fmt.Errorf("app-id login failed: %w", err)
-	}
-
-	client.SetToken(secret.Auth.ClientToken)
-
-	return nil
-}
-
-func (m *appIDAuthMethod) Logout(ctx context.Context, client *api.Client) error {
-	revokeToken(ctx, client)
-
-	return nil
-}
-
 // GitHubAuthMethod authenticates to Vault with the GitHub auth method. If
 // ghtoken is omitted, its value will be read from the $VAULT_AUTH_GITHUB_TOKEN
 // environment variable.
@@ -368,7 +316,6 @@ type userPassAuthMethod struct {
 	mount              string
 }
 
-//nolint:dupl
 func (m *userPassAuthMethod) Login(ctx context.Context, client *api.Client) error {
 	username := findValue(m.username, "VAULT_AUTH_USERNAME", "", m.fsys)
 	if username == "" {

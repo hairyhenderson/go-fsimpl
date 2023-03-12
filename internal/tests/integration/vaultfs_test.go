@@ -510,60 +510,6 @@ func TestVaultFS_AppRoleAuth_ReusedToken(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-//nolint:errcheck
-func TestVaultFS_AppIDAuth(t *testing.T) {
-	// temporarily allow the deprecated pending-removal appID auth method
-	// when this starts failing completely, we should remove support
-	t.Setenv("VAULT_ALLOW_PENDING_REMOVAL_MOUNTS", "true")
-
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	addr := setupVaultFSTest(ctx, t)
-
-	client := adminClient(t, addr)
-	kv1 := client.KVv1("secret")
-
-	_ = kv1.Put(ctx, "foo", map[string]interface{}{"value": "bar"})
-	defer kv1.Delete(ctx, "foo")
-
-	opts := &api.EnableAuthOptions{Type: "app-id"}
-	err := client.Sys().EnableAuthWithOptionsWithContext(ctx, "app-id", opts)
-	require.NoError(t, err)
-	err = client.Sys().EnableAuthWithOptionsWithContext(ctx, "app-id2", opts)
-	require.NoError(t, err)
-
-	defer client.Sys().DisableAuthWithContext(ctx, "app-id")
-	defer client.Sys().DisableAuthWithContext(ctx, "app-id2")
-	_, err = client.Logical().WriteWithContext(ctx, "auth/app-id/map/app-id/testappid", map[string]interface{}{
-		"display_name": "test_app_id", "value": "readpol",
-	})
-	require.NoError(t, err)
-	_, err = client.Logical().WriteWithContext(ctx, "auth/app-id/map/user-id/testuserid", map[string]interface{}{
-		"value": "testappid",
-	})
-	require.NoError(t, err)
-	_, err = client.Logical().WriteWithContext(ctx, "auth/app-id2/map/app-id/testappid", map[string]interface{}{
-		"display_name": "test_app_id", "value": "readpol",
-	})
-	require.NoError(t, err)
-	_, err = client.Logical().WriteWithContext(ctx, "auth/app-id2/map/user-id/testuserid", map[string]interface{}{
-		"value": "testappid",
-	})
-	require.NoError(t, err)
-
-	fsys, err := vaultfs.New(tests.MustURL("http://" + addr))
-	assert.NoError(t, err)
-
-	//nolint:staticcheck
-	fsys = vaultfs.WithAuthMethod(vaultfs.AppIDAuthMethod("testappid", "testuserid", ""), fsys)
-	fsys = fsimpl.WithContextFS(ctx, fsys)
-
-	b, err := fs.ReadFile(fsys, "secret/foo")
-	assert.NoError(t, err)
-	assert.Equal(t, `{"value":"bar"}`, string(b))
-}
-
 func TestVaultFS_DynamicAuth(t *testing.T) {
 	t.Skip("broken?")
 
