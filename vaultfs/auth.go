@@ -154,7 +154,7 @@ type tokenAuthMethod struct {
 	token string
 }
 
-func (m *tokenAuthMethod) Login(ctx context.Context, client *api.Client) error {
+func (m *tokenAuthMethod) Login(_ context.Context, client *api.Client) error {
 	token := findValue(m.token, "VAULT_TOKEN", "", m.fsys)
 	if token != "" {
 		client.SetToken(token)
@@ -180,7 +180,7 @@ func (m *tokenAuthMethod) Login(ctx context.Context, client *api.Client) error {
 	return nil
 }
 
-func (m *tokenAuthMethod) Logout(ctx context.Context, client *api.Client) error {
+func (m *tokenAuthMethod) Logout(_ context.Context, client *api.Client) error {
 	// just clear the client's token, nothing else needs to be done here
 	client.ClearToken()
 

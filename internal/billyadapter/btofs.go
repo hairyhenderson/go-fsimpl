@@ -123,7 +123,7 @@ type billyDir struct {
 var _ fs.ReadDirFile = (*billyDir)(nil)
 
 func (f billyDir) Stat() (fs.FileInfo, error) { return f.fi, nil }
-func (f billyDir) Read(p []byte) (int, error) { return 0, nil }
+func (f billyDir) Read(_ []byte) (int, error) { return 0, nil }
 func (f billyDir) Close() error               { return nil }
 
 // If n > 0, ReadDir returns at most n DirEntry structures.

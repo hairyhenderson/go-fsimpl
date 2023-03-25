@@ -29,7 +29,7 @@ type tokenAuthMethod struct {
 	token string
 }
 
-func (m *tokenAuthMethod) Login(ctx context.Context, client *api.Client) (*api.Secret, error) {
+func (m *tokenAuthMethod) Login(_ context.Context, _ *api.Client) (*api.Secret, error) {
 	if m.token != "" {
 		return &api.Secret{Auth: &api.SecretAuth{ClientToken: m.token}}, nil
 	}
