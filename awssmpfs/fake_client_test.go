@@ -8,7 +8,6 @@ import (
 	"strconv"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
@@ -111,7 +110,6 @@ func (c *fakeClient) GetParametersByPath(_ context.Context, params *ssm.GetParam
 	}
 
 	// un-sort for a slightly more realistic test
-	rand.Seed(time.Now().UnixNano())
 	rand.Shuffle(len(paramList), func(i, j int) {
 		paramList[i], paramList[j] = paramList[j], paramList[i]
 	})
