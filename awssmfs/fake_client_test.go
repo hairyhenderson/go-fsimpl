@@ -8,7 +8,6 @@ import (
 	"strconv"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
@@ -121,7 +120,6 @@ func (c *fakeClient) ListSecrets(_ context.Context, params *secretsmanager.ListS
 	}
 
 	// un-sort for a slightly more realistic test
-	rand.Seed(time.Now().UnixNano())
 	rand.Shuffle(len(secretList), func(i, j int) {
 		secretList[i], secretList[j] = secretList[j], secretList[i]
 	})
