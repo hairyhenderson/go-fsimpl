@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v1.0.0
-	github.com/aws/aws-sdk-go v1.44.234
+	github.com/aws/aws-sdk-go v1.44.239
 	github.com/aws/aws-sdk-go-v2 v1.17.8
 	github.com/aws/aws-sdk-go-v2/config v1.18.20
 	github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.19.2
