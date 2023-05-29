@@ -15,7 +15,7 @@ require (
 	github.com/hashicorp/consul/api v1.20.0
 	github.com/hashicorp/vault/api v1.9.2
 	github.com/hashicorp/vault/api/auth/approle v0.4.1
-	github.com/hashicorp/vault/api/auth/userpass v0.4.0
+	github.com/hashicorp/vault/api/auth/userpass v0.4.1
 	github.com/johannesboyne/gofakes3 v0.0.0-20230310080033-c0edf658332b
 	github.com/stretchr/testify v1.8.3
 	gocloud.dev v0.29.0
