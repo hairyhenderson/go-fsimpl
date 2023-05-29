@@ -13,7 +13,7 @@ require (
 	github.com/go-git/go-billy/v5 v5.4.1
 	github.com/go-git/go-git/v5 v5.7.0
 	github.com/hashicorp/consul/api v1.20.0
-	github.com/hashicorp/vault/api v1.9.1
+	github.com/hashicorp/vault/api v1.9.2
 	github.com/hashicorp/vault/api/auth/approle v0.4.0
 	github.com/hashicorp/vault/api/auth/userpass v0.4.0
 	github.com/johannesboyne/gofakes3 v0.0.0-20230310080033-c0edf658332b
@@ -64,6 +64,7 @@ require (
 	github.com/fatih/color v1.15.0 // indirect
 	github.com/felixge/httpsnoop v1.0.3 // indirect
 	github.com/go-git/gcfg v1.5.1-0.20230307220236-3a3c6141e376 // indirect
+	github.com/go-jose/go-jose/v3 v3.0.0 // indirect
 	github.com/golang-jwt/jwt/v4 v4.5.0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
@@ -126,7 +127,6 @@ require (
 	google.golang.org/genproto v0.0.0-20230410155749-daa745c078e1 // indirect
 	google.golang.org/grpc v1.55.0 // indirect
 	google.golang.org/protobuf v1.30.0 // indirect
-	gopkg.in/square/go-jose.v2 v2.6.0 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
