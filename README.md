@@ -7,7 +7,7 @@ This module contains a collection of Go _filesystem implementations_ that can
 be discovered dynamically by URL scheme.
 
 These filesystems implement the [`fs.FS`](https://pkg.go.dev/io/fs#FS) interface
-[introduced in Go 1.16](). This means that currently all implementations are
+[introduced in Go 1.16](https://go.dev/doc/go1.16#fs). This means that currently all implementations are
 read-only, however this may change in the future (see
 [golang/go#45757](https://github.com/golang/go/issues/45757) for progress).
 
