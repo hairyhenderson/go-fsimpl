@@ -20,7 +20,7 @@ require (
 	github.com/stretchr/testify v1.8.4
 	gocloud.dev v0.30.0
 	golang.org/x/crypto v0.10.0
-	gotest.tools/v3 v3.4.0
+	gotest.tools/v3 v3.5.0
 )
 
 require (
