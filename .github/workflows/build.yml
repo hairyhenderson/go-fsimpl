@@ -44,7 +44,7 @@ jobs:
       - run: pwd
       - uses: actions/setup-go@v4
         with:
-          go-version: 1.20.x
+          go-version: 1.21.x
       - run: |
           git config --global user.email "bogus@example.com"
           git config --global user.name "Someone"

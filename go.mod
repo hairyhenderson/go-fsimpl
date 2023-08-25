@@ -1,6 +1,6 @@
 module github.com/hairyhenderson/go-fsimpl
 
-go 1.20
+go 1.21
 
 require (
 	github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v1.1.0
