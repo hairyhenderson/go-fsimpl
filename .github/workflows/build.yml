@@ -18,7 +18,7 @@ jobs:
       - run: |
           git config --global user.email "bogus@example.com"
           git config --global user.name "Someone"
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - run: make test
       - run: make test-race
   fscli-build:
@@ -26,7 +26,7 @@ jobs:
     container:
       image: ghcr.io/hairyhenderson/gomplate-ci-build:latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Build fscli
         run: |
           make bin/fscli_linux-amd64
@@ -48,5 +48,5 @@ jobs:
       - run: |
           git config --global user.email "bogus@example.com"
           git config --global user.name "Someone"
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - run: make test
