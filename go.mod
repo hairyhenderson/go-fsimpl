@@ -12,7 +12,7 @@ require (
 	github.com/fsouza/fake-gcs-server v1.47.4
 	github.com/go-git/go-billy/v5 v5.4.1
 	github.com/go-git/go-git/v5 v5.8.1
-	github.com/hashicorp/consul/api v1.23.0
+	github.com/hashicorp/consul/api v1.25.1
 	github.com/hashicorp/vault/api v1.10.0
 	github.com/hashicorp/vault/api/auth/approle v0.5.0
 	github.com/hashicorp/vault/api/auth/userpass v0.4.1
