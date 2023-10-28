@@ -187,8 +187,10 @@ func (f *consulFS) Open(name string) (fs.File, error) {
 // ReadFile implements fs.ReadFileFS
 func (f *consulFS) ReadFile(name string) ([]byte, error) {
 	if !internal.ValidPath(name) {
-		return nil, &fs.PathError{Op: "readFile", Path: name,
-			Err: fs.ErrInvalid}
+		return nil, &fs.PathError{
+			Op: "readFile", Path: name,
+			Err: fs.ErrInvalid,
+		}
 	}
 
 	u, err := subURL(f.base, name)

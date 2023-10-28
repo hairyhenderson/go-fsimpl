@@ -597,18 +597,17 @@ func TestVaultFS_KVv2(t *testing.T) {
 	addr := setupVaultFSTest(ctx, t)
 	client := adminClient(t, addr)
 
-	err := client.Sys().MountWithContext(ctx, "kv2", &api.MountInput{Type: "kv",
+	err := client.Sys().MountWithContext(ctx, "kv2", &api.MountInput{
+		Type:    "kv",
 		Options: map[string]string{"version": "2"},
 	})
 	require.NoError(t, err)
 
-	s, err := client.KVv2("kv2").Put(ctx, "foo",
-		map[string]interface{}{"first": "one"}, api.WithCheckAndSet(0))
+	s, err := client.KVv2("kv2").Put(ctx, "foo", map[string]interface{}{"first": "one"}, api.WithCheckAndSet(0))
 	require.NoError(t, err)
 	require.Equal(t, 1, s.VersionMetadata.Version)
 
-	s, err = client.KVv2("kv2").Put(ctx, "foo",
-		map[string]interface{}{"second": "two"}, api.WithCheckAndSet(1))
+	s, err = client.KVv2("kv2").Put(ctx, "foo", map[string]interface{}{"second": "two"}, api.WithCheckAndSet(1))
 	require.NoError(t, err)
 	require.Equal(t, 2, s.VersionMetadata.Version)
 

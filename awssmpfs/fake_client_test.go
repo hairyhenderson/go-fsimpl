@@ -23,8 +23,9 @@ type fakeClient struct {
 
 var _ SSMClient = (*fakeClient)(nil)
 
-func (c *fakeClient) GetParameter(_ context.Context, params *ssm.GetParameterInput,
-	_ ...func(*ssm.Options)) (*ssm.GetParameterOutput, error) {
+func (c *fakeClient) GetParameter(
+	_ context.Context, params *ssm.GetParameterInput, _ ...func(*ssm.Options),
+) (*ssm.GetParameterOutput, error) {
 	c.t.Helper()
 
 	if c.getErr != nil {
@@ -50,8 +51,9 @@ func (c *fakeClient) GetParameter(_ context.Context, params *ssm.GetParameterInp
 }
 
 //nolint:funlen,gocyclo
-func (c *fakeClient) GetParametersByPath(_ context.Context, params *ssm.GetParametersByPathInput,
-	_ ...func(*ssm.Options)) (out *ssm.GetParametersByPathOutput, err error) {
+func (c *fakeClient) GetParametersByPath(
+	_ context.Context, params *ssm.GetParametersByPathInput, _ ...func(*ssm.Options),
+) (out *ssm.GetParametersByPathOutput, err error) {
 	c.t.Helper()
 
 	if *params.Path == "//" {

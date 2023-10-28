@@ -1,8 +1,7 @@
 linters-settings:
   govet:
     check-shadowing: true
-    enable:
-      - fieldalignment
+    enable-all: true
   gocyclo:
     min-complexity: 10
   dupl:
@@ -10,6 +9,7 @@ linters-settings:
   goconst:
     min-len: 2
     min-occurrences: 4
+    ignore-tests: true
   lll:
     line-length: 140
   nolintlint:
@@ -38,14 +38,13 @@ linters:
     - gocyclo
     - godox
     - gofmt
-    # - gofumpt
+    - gofumpt
     - goheader
     - goimports
     # - gomnd
     - gomodguard
     - goprintffuncname
     - gosec
-    - gosimple
     - govet
     - ineffassign
     - lll
@@ -57,17 +56,19 @@ linters:
     - nolintlint
     - prealloc
     - revive
-    # - rowserrcheck
+    - rowserrcheck
     - sqlclosecheck
-    - staticcheck
-    - stylecheck
     - typecheck
     - unconvert
     - unparam
     - unused
     - whitespace
     - wsl
+    # slower linters
+    - gosimple
+    - staticcheck
+    - stylecheck
 
 run:
-  concurrency: 4
-  timeout: 5m
+  concurrency: 8
+  timeout: 10m
