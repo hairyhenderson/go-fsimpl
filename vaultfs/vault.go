@@ -192,8 +192,7 @@ func (f *vaultFS) subURL(name string) (*url.URL, error) {
 
 // newVaultFile opens a vault file/dir for reading - if this file is not closed
 // a vault token may be leaked!
-func newVaultFile(ctx context.Context, name string, u *url.URL,
-	client *refCountedClient, auth api.AuthMethod) *vaultFile {
+func newVaultFile(ctx context.Context, name string, u *url.URL, client *refCountedClient, auth api.AuthMethod) *vaultFile {
 	// add reference to shared client - will be removed on Close
 	client.AddRef()
 

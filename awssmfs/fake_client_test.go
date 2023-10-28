@@ -23,8 +23,11 @@ type fakeClient struct {
 
 var _ SecretsManagerClient = (*fakeClient)(nil)
 
-func (c *fakeClient) GetSecretValue(_ context.Context, params *secretsmanager.GetSecretValueInput,
-	_ ...func(*secretsmanager.Options)) (*secretsmanager.GetSecretValueOutput, error) {
+func (c *fakeClient) GetSecretValue(
+	_ context.Context,
+	params *secretsmanager.GetSecretValueInput,
+	_ ...func(*secretsmanager.Options),
+) (*secretsmanager.GetSecretValueOutput, error) {
 	c.t.Helper()
 
 	if c.getErr != nil {
@@ -51,8 +54,11 @@ func (c *fakeClient) GetSecretValue(_ context.Context, params *secretsmanager.Ge
 }
 
 //nolint:funlen,gocyclo
-func (c *fakeClient) ListSecrets(_ context.Context, params *secretsmanager.ListSecretsInput,
-	_ ...func(*secretsmanager.Options)) (out *secretsmanager.ListSecretsOutput, err error) {
+func (c *fakeClient) ListSecrets(
+	_ context.Context,
+	params *secretsmanager.ListSecretsInput,
+	_ ...func(*secretsmanager.Options),
+) (out *secretsmanager.ListSecretsOutput, err error) {
 	c.t.Helper()
 
 	if c.listErr != nil {

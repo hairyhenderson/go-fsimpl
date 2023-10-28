@@ -457,17 +457,17 @@ func TestCreatedTimeFromData(t *testing.T) {
 	assert.Equal(t, time.Time{}, created)
 
 	created = createdTimeFromData(map[string]interface{}{
-		"metadata": map[string]interface{}{
-			"created_time": 42}})
+		"metadata": map[string]interface{}{"created_time": 42},
+	})
 	assert.Equal(t, time.Time{}, created)
 
 	created = createdTimeFromData(map[string]interface{}{
-		"metadata": map[string]interface{}{
-			"created_time": "not a time"}})
+		"metadata": map[string]interface{}{"created_time": "not a time"},
+	})
 	assert.Equal(t, time.Time{}, created)
 
 	created = createdTimeFromData(map[string]interface{}{
-		"metadata": map[string]interface{}{
-			"created_time": "2022-09-12T00:22:20.370537Z"}})
+		"metadata": map[string]interface{}{"created_time": "2022-09-12T00:22:20.370537Z"},
+	})
 	assert.Equal(t, time.Date(2022, 9, 12, 0, 22, 20, 370537000, time.UTC), created)
 }
