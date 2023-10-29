@@ -9,6 +9,7 @@ import (
 	"sync"
 
 	"github.com/hairyhenderson/go-fsimpl"
+	"github.com/hairyhenderson/go-fsimpl/awsimdsfs"
 	"github.com/hairyhenderson/go-fsimpl/awssmfs"
 	"github.com/hairyhenderson/go-fsimpl/awssmpfs"
 	"github.com/hairyhenderson/go-fsimpl/blobfs"
@@ -31,6 +32,7 @@ var (
 func Lookup(u string) (fs.FS, error) {
 	muxInit.Do(func() {
 		mux = fsimpl.NewMux()
+		mux.Add(awsimdsfs.FS)
 		mux.Add(awssmfs.FS)
 		mux.Add(awssmpfs.FS)
 		mux.Add(blobfs.FS)
