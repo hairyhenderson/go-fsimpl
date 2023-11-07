@@ -7,7 +7,7 @@ require (
 	github.com/aws/aws-sdk-go v1.47.3
 	github.com/aws/aws-sdk-go-v2 v1.22.1
 	github.com/aws/aws-sdk-go-v2/config v1.19.1
-	github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.21.6
+	github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.23.0
 	github.com/aws/aws-sdk-go-v2/service/ssm v1.42.0
 	github.com/fsouza/fake-gcs-server v1.47.6
 	github.com/go-git/go-billy/v5 v5.5.0
