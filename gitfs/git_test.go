@@ -216,7 +216,7 @@ func setupGitRepo(t *testing.T) map[string]string {
 
 func TestGitFS(t *testing.T) {
 	if runtime.GOOS == "windows" {
-		t.Skip("not running on Windows yet...")
+		t.Skip("not running on Windows")
 	}
 
 	_ = setupGitRepo(t)
