@@ -10,8 +10,6 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.23.2
 	github.com/aws/aws-sdk-go-v2/service/ssm v1.43.1
 	github.com/fsouza/fake-gcs-server v1.47.6
-	github.com/go-git/go-billy/v5 v5.5.0
-	github.com/go-git/go-git/v5 v5.10.0
 	github.com/hashicorp/consul/api v1.26.1
 	github.com/hashicorp/vault/api v1.10.0
 	github.com/hashicorp/vault/api/auth/approle v0.5.0
@@ -21,6 +19,16 @@ require (
 	gocloud.dev v0.34.0
 	golang.org/x/crypto v0.15.0
 	gotest.tools/v3 v3.5.1
+)
+
+// TODO: once https://github.com/go-git/go-git/pull/416 is merged, this can be
+// removed and we can use the upstream module. This commit on my fork is a
+// cherry-pick from the PR on top of v5.10.0
+replace github.com/go-git/go-git/v5 => github.com/hairyhenderson/go-git/v5 v5.0.0-20231120010526-e49f9324b2fc
+
+require (
+	github.com/go-git/go-billy/v5 v5.5.0
+	github.com/go-git/go-git/v5 v5.10.0
 )
 
 require (

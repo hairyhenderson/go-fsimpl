@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/fs"
 	"os"
+	"path"
 	"path/filepath"
 	"runtime"
 	"strconv"
@@ -102,6 +103,9 @@ func TestGitFS_File(t *testing.T) {
 	tmpDir := setupGitFSTest(t)
 
 	repoPath := filepath.ToSlash(tmpDir.Join("repo"))
+	// on Windows the path will start with a volume, but we need a 'file:///'
+	// prefix for the URL to be properly interpreted
+	repoPath = path.Join("/", repoPath)
 
 	fsys, _ := gitfs.New(tests.MustURL("git+file://" + repoPath))
 	f, err := fsys.Open("config.json")
