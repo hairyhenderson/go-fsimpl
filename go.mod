@@ -17,7 +17,7 @@ require (
 	github.com/johannesboyne/gofakes3 v0.0.0-20230914150226-f005f5cc03aa
 	github.com/stretchr/testify v1.8.4
 	gocloud.dev v0.35.0
-	golang.org/x/crypto v0.16.0
+	golang.org/x/crypto v0.17.0
 	gotest.tools/v3 v3.5.1
 )
 
