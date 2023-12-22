@@ -355,7 +355,7 @@ func (f *awssmFile) getSecret() error {
 	}
 
 	// populate fi
-	f.fi = internal.FileInfo(f.name, seclen, 0o644, *modTime, "")
+	f.fi = internal.FileInfo(f.name, seclen, 0o444, *modTime, "")
 
 	return nil
 }

@@ -235,7 +235,7 @@ func TestBlobFS_ReadDir(t *testing.T) {
 
 	fi, err = f.Stat()
 	assert.NoError(t, err)
-	assert.Equal(t, fs.FileMode(0o644), fi.Mode())
+	assert.Equal(t, fs.FileMode(0o444), fi.Mode())
 }
 
 func TestBlobFS_CleanCdkURL(t *testing.T) {

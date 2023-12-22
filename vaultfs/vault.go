@@ -440,7 +440,7 @@ func (f *vaultFile) Stat() (fs.FileInfo, error) {
 	return internal.FileInfo(
 		strings.TrimSuffix(path.Base(f.name), "/"),
 		int64(len(b)),
-		0o644,
+		0o444,
 		modTime,
 		"application/json",
 	), nil

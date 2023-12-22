@@ -278,7 +278,7 @@ func (f *consulFile) get() error {
 	}
 
 	f.fi = internal.FileInfo(name, int64(len(kvPair.Value)),
-		0o644, time.Time{}, "",
+		0o444, time.Time{}, "",
 	)
 
 	f.body = io.NopCloser(bytes.NewReader(kvPair.Value))

@@ -355,12 +355,12 @@ func (f *blobFile) Stat() (fs.FileInfo, error) {
 		return nil, err
 	}
 
-	mode := fs.FileMode(0o644)
+	mode := fs.FileMode(0o444)
 
 	azResp := azblobblob.GetPropertiesResponse{}
 	if out.As(&azResp) && *azResp.ContentType == "" {
 		// this is likely a directory
-		mode = fs.ModeDir
+		mode |= fs.ModeDir | 0o111
 	}
 
 	if fakeModTime != nil {
@@ -429,9 +429,9 @@ func (f *blobFile) ReadDir(n int) ([]fs.DirEntry, error) {
 			return nil, err
 		}
 
-		mode := fs.FileMode(0o644)
+		mode := fs.FileMode(0o444)
 		if obj.IsDir {
-			mode = fs.ModeDir
+			mode |= fs.ModeDir | 0o111
 		}
 
 		// container.BlobItem for objects, container.BlobPrefix for "directories"

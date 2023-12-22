@@ -267,9 +267,9 @@ func TestReadDirFS(t *testing.T) {
 	assert.NoError(t, err)
 
 	des := []fs.DirEntry{
-		internal.FileInfo("bar", 3, 0o644, time.Time{}, "").(fs.DirEntry),
+		internal.FileInfo("bar", 3, 0o444, time.Time{}, "").(fs.DirEntry),
 		internal.DirInfo("bazDir", time.Time{}).(fs.DirEntry),
-		internal.FileInfo("foo", 3, 0o644, time.Time{}, "").(fs.DirEntry),
+		internal.FileInfo("foo", 3, 0o444, time.Time{}, "").(fs.DirEntry),
 	}
 	assert.EqualValues(t, des, de)
 
@@ -282,9 +282,9 @@ func TestReadDirFS(t *testing.T) {
 	assert.NoError(t, err)
 
 	des = []fs.DirEntry{
-		internal.FileInfo("bar", 3, 0o644, time.Time{}, "").(fs.DirEntry),
+		internal.FileInfo("bar", 3, 0o444, time.Time{}, "").(fs.DirEntry),
 		internal.DirInfo("bazDir", time.Time{}).(fs.DirEntry),
-		internal.FileInfo("foo", 3, 0o644, time.Time{}, "").(fs.DirEntry),
+		internal.FileInfo("foo", 3, 0o444, time.Time{}, "").(fs.DirEntry),
 	}
 	assert.EqualValues(t, des, de)
 }
@@ -310,7 +310,7 @@ func TestReadDirN(t *testing.T) {
 	assert.NoError(t, err)
 
 	des := []fs.DirEntry{
-		internal.FileInfo("bar", 3, 0o644, time.Time{}, "").(fs.DirEntry),
+		internal.FileInfo("bar", 3, 0o444, time.Time{}, "").(fs.DirEntry),
 	}
 	assert.EqualValues(t, des, de)
 
@@ -319,7 +319,7 @@ func TestReadDirN(t *testing.T) {
 
 	des = []fs.DirEntry{
 		internal.DirInfo("bazDir", time.Time{}).(fs.DirEntry),
-		internal.FileInfo("foo", 3, 0o644, time.Time{}, "").(fs.DirEntry),
+		internal.FileInfo("foo", 3, 0o444, time.Time{}, "").(fs.DirEntry),
 	}
 	assert.EqualValues(t, des, de)
 

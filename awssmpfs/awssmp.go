@@ -360,7 +360,7 @@ func (f *awssmpFile) getParameter() error {
 	}
 
 	// populate fi
-	f.fi = internal.FileInfo(f.name, n, 0o644, *modTime, contentType)
+	f.fi = internal.FileInfo(f.name, n, 0o444, *modTime, contentType)
 
 	return nil
 }
