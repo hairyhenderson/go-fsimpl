@@ -50,6 +50,7 @@ Here's the list of filesystems & URL schemes supported by this module:
 
 | Package    | Scheme(s) | Description |
 |------------|-----------|-------------|
+| [awsimdsfs]| `aws+imds` | [AWS IMDS][] |
 | [awssmfs]  | `aws+sm` | [AWS Secrets Manager][] |
 | [awssmpfs] | `aws+smp` | [AWS Systems Manager Parameter Store][AWS SMP] |
 | [blobfs]   | `azblob` | [Azure Blob Storage][] |
@@ -134,13 +135,14 @@ You will require `git` including `git daemon` and `consul` executables on your p
 
 [The MIT License](http://opensource.org/licenses/MIT)
 
-Copyright (c) 2021-2022 Dave Henderson
+Copyright (c) 2021-2023 Dave Henderson
 
 [godocs]: https://pkg.go.dev/github.com/hairyhenderson/go-fsimpl
 [godoc-image]: https://pkg.go.dev/badge/github.com/hairyhenderson/go-fsimpl
 [gh-actions-image]: https://github.com/hairyhenderson/go-fsimpl/workflows/Build/badge.svg?branch=main
 [gh-actions-url]: https://github.com/hairyhenderson/go-fsimpl/actions?workflow=Build&branch=main
 
+[AWS IMDS]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-metadata.html
 [AWS SMP]: https://aws.amazon.com/systems-manager/features#Parameter_Store
 [AWS Secrets Manager]: https://aws.amazon.com/secrets-manager
 [HashiCorp Consul]: https://consul.io
@@ -149,6 +151,7 @@ Copyright (c) 2021-2022 Dave Henderson
 [Google Cloud Storage]: https://cloud.google.com/storage/
 [Azure Blob Storage]: https://azure.microsoft.com/en-us/services/storage/blobs/
 
+[awssmfs]: https://pkg.go.dev/github.com/hairyhenderson/go-fsimpl/awsimdsfs
 [awssmfs]: https://pkg.go.dev/github.com/hairyhenderson/go-fsimpl/awssmfs
 [awssmpfs]: https://pkg.go.dev/github.com/hairyhenderson/go-fsimpl/awssmpfs
 [blobfs]: https://pkg.go.dev/github.com/hairyhenderson/go-fsimpl/blobfs
