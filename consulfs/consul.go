@@ -66,6 +66,10 @@ var (
 	_ withTokener            = (*consulFS)(nil)
 )
 
+func (f consulFS) URL() string {
+	return f.base.String()
+}
+
 func (f consulFS) WithContext(ctx context.Context) fs.FS {
 	fsys := f
 	fsys.ctx = ctx

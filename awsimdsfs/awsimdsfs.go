@@ -85,6 +85,10 @@ var (
 	_ withIMDSClienter          = (*awsimdsFS)(nil)
 )
 
+func (f awsimdsFS) URL() string {
+	return f.base.String()
+}
+
 func (f awsimdsFS) WithContext(ctx context.Context) fs.FS {
 	fsys := f
 	fsys.ctx = ctx

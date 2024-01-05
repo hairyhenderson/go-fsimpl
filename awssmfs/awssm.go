@@ -88,6 +88,10 @@ var (
 	_ withSMClienter            = (*awssmFS)(nil)
 )
 
+func (f awssmFS) URL() string {
+	return f.base.String()
+}
+
 func (f awssmFS) WithContext(ctx context.Context) fs.FS {
 	fsys := f
 	fsys.ctx = ctx

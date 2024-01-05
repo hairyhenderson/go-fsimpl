@@ -60,6 +60,7 @@ Here's the list of filesystems & URL schemes supported by this module:
 | [filefs]   | `file` | local filesystem |
 | [gitfs]    | `git`, `git+file`, `git+http`, `git+https`, `git+ssh` | local/remote git repository |
 | [httpfs]   | `http`, `https` | HTTP server |
+| [tracefs]  | n/a | a filesystem that instruments other filesystems for tracing with [OpenTelemetry][] |
 | [vaultfs]  | `vault`, `vault+http`, `vault+https` | [HashiCorp Vault][] |
 
 See the individual package documentation for more details.
@@ -150,6 +151,7 @@ Copyright (c) 2021-2023 Dave Henderson
 [Amazon S3]: https://aws.amazon.com/s3/
 [Google Cloud Storage]: https://cloud.google.com/storage/
 [Azure Blob Storage]: https://azure.microsoft.com/en-us/services/storage/blobs/
+[OpenTelemetry]: https://opentelemetry.io
 
 [awssmfs]: https://pkg.go.dev/github.com/hairyhenderson/go-fsimpl/awsimdsfs
 [awssmfs]: https://pkg.go.dev/github.com/hairyhenderson/go-fsimpl/awssmfs

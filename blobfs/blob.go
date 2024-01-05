@@ -79,6 +79,10 @@ var (
 	_ internal.WithHTTPClienter = (*blobFS)(nil)
 )
 
+func (f blobFS) URL() string {
+	return f.base.String()
+}
+
 func (f blobFS) WithContext(ctx context.Context) fs.FS {
 	fsys := f
 	fsys.ctx = ctx

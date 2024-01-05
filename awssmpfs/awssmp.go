@@ -93,6 +93,10 @@ var (
 	_ withClienter              = (*awssmpFS)(nil)
 )
 
+func (f awssmpFS) URL() string {
+	return f.base.String()
+}
+
 func (f awssmpFS) WithContext(ctx context.Context) fs.FS {
 	fsys := f
 	fsys.ctx = ctx
