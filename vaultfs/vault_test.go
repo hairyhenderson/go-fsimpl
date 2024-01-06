@@ -251,9 +251,9 @@ func TestReadDirFS(t *testing.T) {
 	assert.NoError(t, err)
 
 	des := []fs.DirEntry{
-		internal.FileInfo("bar", 15, 0o644, time.Time{}, "application/json").(fs.DirEntry),
+		internal.FileInfo("bar", 15, 0o444, time.Time{}, "application/json").(fs.DirEntry),
 		internal.DirInfo("bazDir", time.Time{}).(fs.DirEntry),
-		internal.FileInfo("foo", 15, 0o644, time.Time{}, "application/json").(fs.DirEntry),
+		internal.FileInfo("foo", 15, 0o444, time.Time{}, "application/json").(fs.DirEntry),
 	}
 	assert.EqualValues(t, des, de)
 
@@ -264,9 +264,9 @@ func TestReadDirFS(t *testing.T) {
 	assert.NoError(t, err)
 
 	des = []fs.DirEntry{
-		internal.FileInfo("bar", 15, 0o644, time.Time{}, "application/json").(fs.DirEntry),
+		internal.FileInfo("bar", 15, 0o444, time.Time{}, "application/json").(fs.DirEntry),
 		internal.DirInfo("bazDir", time.Time{}).(fs.DirEntry),
-		internal.FileInfo("foo", 15, 0o644, time.Time{}, "application/json").(fs.DirEntry),
+		internal.FileInfo("foo", 15, 0o444, time.Time{}, "application/json").(fs.DirEntry),
 	}
 	assert.EqualValues(t, des, de)
 }
@@ -290,7 +290,7 @@ func TestReadDirN(t *testing.T) {
 	assert.NoError(t, err)
 
 	des := []fs.DirEntry{
-		internal.FileInfo("foo", 15, 0o644, time.Time{}, "application/json").(fs.DirEntry),
+		internal.FileInfo("foo", 15, 0o444, time.Time{}, "application/json").(fs.DirEntry),
 	}
 	assert.EqualValues(t, des, de)
 
@@ -298,7 +298,7 @@ func TestReadDirN(t *testing.T) {
 	assert.NoError(t, err)
 
 	des = []fs.DirEntry{
-		internal.FileInfo("bar", 15, 0o644, time.Time{}, "application/json").(fs.DirEntry),
+		internal.FileInfo("bar", 15, 0o444, time.Time{}, "application/json").(fs.DirEntry),
 		internal.DirInfo("bazDir", time.Time{}).(fs.DirEntry),
 	}
 	assert.EqualValues(t, des, de)

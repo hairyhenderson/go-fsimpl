@@ -174,7 +174,7 @@ func (f *httpFile) request(method string) (io.ReadCloser, error) {
 		modTime, _ = http.ParseTime(mod)
 	}
 
-	f.fi = internal.FileInfo(f.name, resp.ContentLength, 0o644, modTime, resp.Header.Get("Content-Type"))
+	f.fi = internal.FileInfo(f.name, resp.ContentLength, 0o444, modTime, resp.Header.Get("Content-Type"))
 
 	if resp.StatusCode == 0 || resp.StatusCode >= 400 {
 		return nil, fmt.Errorf("http GET failed with status %d", resp.StatusCode)

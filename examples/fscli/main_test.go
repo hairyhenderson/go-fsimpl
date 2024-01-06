@@ -22,31 +22,31 @@ func TestLs(t *testing.T) {
 	mtime := time.Unix(0, 0).UTC()
 
 	fsys = fstest.MapFS{
-		"a": {ModTime: mtime, Mode: 0o644, Data: []byte("a")},
+		"a": {ModTime: mtime, Mode: 0o444, Data: []byte("a")},
 		"b": {
 			ModTime: mtime.AddDate(1, 1, 1).Add(12 * time.Hour),
-			Mode:    0o750, Data: bytes.Repeat([]byte("b"), 512),
+			Mode:    0o550, Data: bytes.Repeat([]byte("b"), 512),
 		},
-		"c":        {ModTime: mtime, Mode: 0o600, Data: bytes.Repeat([]byte("c"), 2560)},
-		"emptydir": {ModTime: mtime, Mode: 0o755 | fs.ModeDir},
-		"dir":      {ModTime: mtime, Mode: 0o755 | fs.ModeDir},
-		"dir/a":    {ModTime: mtime, Mode: 0o644, Data: []byte("aa")},
-		"dir/b":    {ModTime: mtime, Mode: 0o644, Data: []byte("bb")},
+		"c":        {ModTime: mtime, Mode: 0o400, Data: bytes.Repeat([]byte("c"), 2560)},
+		"emptydir": {ModTime: mtime, Mode: 0o555 | fs.ModeDir},
+		"dir":      {ModTime: mtime, Mode: 0o555 | fs.ModeDir},
+		"dir/a":    {ModTime: mtime, Mode: 0o444, Data: []byte("aa")},
+		"dir/b":    {ModTime: mtime, Mode: 0o444, Data: []byte("bb")},
 	}
 
 	err = fsLs(fsys, ".", w)
 	assert.NoError(t, err)
-	assert.Equal(t, ` -rw-r--r--     1B 1970-01-01 00:00 a
- -rwxr-x---   512B 1971-02-02 12:00 b
- -rw------- 2.5KiB 1970-01-01 00:00 c
- drwxr-xr-x        1970-01-01 00:00 dir
- drwxr-xr-x        1970-01-01 00:00 emptydir
+	assert.Equal(t, ` -r--r--r--     1B 1970-01-01 00:00 a
+ -r-xr-x---   512B 1971-02-02 12:00 b
+ -r-------- 2.5KiB 1970-01-01 00:00 c
+ dr-xr-xr-x        1970-01-01 00:00 dir
+ dr-xr-xr-x        1970-01-01 00:00 emptydir
 `, w.String())
 }
 
 func TestCat(t *testing.T) {
 	fsys := fstest.MapFS{
-		"a": {ModTime: time.Unix(0, 0).UTC(), Mode: 0o644, Data: []byte("aaa")},
+		"a": {ModTime: time.Unix(0, 0).UTC(), Mode: 0o444, Data: []byte("aaa")},
 	}
 
 	w := &bytes.Buffer{}
@@ -58,7 +58,7 @@ func TestCat(t *testing.T) {
 
 func TestStat(t *testing.T) {
 	fsys := fstest.MapFS{
-		"a.txt": {ModTime: time.Unix(0, 0).UTC(), Mode: 0o644, Data: []byte("aaa")},
+		"a.txt": {ModTime: time.Unix(0, 0).UTC(), Mode: 0o444, Data: []byte("aaa")},
 	}
 
 	w := &bytes.Buffer{}
@@ -68,7 +68,7 @@ func TestStat(t *testing.T) {
 	assert.Equal(t, `a.txt:
 	Size:         3B
 	Modified:     1970-01-01T00:00:00Z
-	Mode:         -rw-r--r--
+	Mode:         -r--r--r--
 	Content-Type: text/plain; charset=utf-8
 `, w.String())
 }

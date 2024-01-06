@@ -25,7 +25,7 @@ func FileInfo(name string, size int64, mode fs.FileMode, modTime time.Time, cont
 // DirInfo creates a fs.FileInfo for a directory with the given name. Use
 // FileInfo to set other values.
 func DirInfo(name string, modTime time.Time) fs.FileInfo {
-	return FileInfo(name, 0, fs.ModeDir, modTime, "")
+	return FileInfo(name, 0, fs.ModeDir|0o555, modTime, "")
 }
 
 type staticFileInfo struct {
