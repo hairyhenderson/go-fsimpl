@@ -153,7 +153,7 @@ Copyright (c) 2021-2023 Dave Henderson
 [Azure Blob Storage]: https://azure.microsoft.com/en-us/services/storage/blobs/
 [OpenTelemetry]: https://opentelemetry.io
 
-[awssmfs]: https://pkg.go.dev/github.com/hairyhenderson/go-fsimpl/awsimdsfs
+[awsimdsfs]: https://pkg.go.dev/github.com/hairyhenderson/go-fsimpl/awsimdsfs
 [awssmfs]: https://pkg.go.dev/github.com/hairyhenderson/go-fsimpl/awssmfs
 [awssmpfs]: https://pkg.go.dev/github.com/hairyhenderson/go-fsimpl/awssmpfs
 [blobfs]: https://pkg.go.dev/github.com/hairyhenderson/go-fsimpl/blobfs
