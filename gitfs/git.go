@@ -221,7 +221,7 @@ func (f *gitFS) gitClone(ctx context.Context, repoURL url.URL, depth int) (billy
 	}
 
 	if err != nil {
-		return nil, nil, fmt.Errorf("git clone for %v failed: %w", repoURL, err)
+		return nil, nil, fmt.Errorf("git clone for %s failed: %w", &repoURL, err)
 	}
 
 	return bfs, repo, nil
