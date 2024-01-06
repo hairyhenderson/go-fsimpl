@@ -2,6 +2,7 @@ documentation:
   - changed_files:
     - any-glob-to-any-file:
       - docs/**/*
+      - '**/doc.go'
       - '*.md'
 
 dependencies:
