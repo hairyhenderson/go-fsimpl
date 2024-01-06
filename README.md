@@ -60,7 +60,7 @@ Here's the list of filesystems & URL schemes supported by this module:
 | [filefs]   | `file` | local filesystem |
 | [gitfs]    | `git`, `git+file`, `git+http`, `git+https`, `git+ssh` | local/remote git repository |
 | [httpfs]   | `http`, `https` | HTTP server |
-| tracefs  | n/a | a filesystem that instruments other filesystems for tracing with [OpenTelemetry][] |
+| [tracefs]  | n/a | a filesystem that instruments other filesystems for tracing with [OpenTelemetry][] |
 | [vaultfs]  | `vault`, `vault+http`, `vault+https` | [HashiCorp Vault][] |
 
 See the individual package documentation for more details.
