@@ -60,3 +60,54 @@ func vaultFSError(err error) error {
 
 	return err
 }
+
+// CompositeAuthMethod returns an AuthMethod that will try each of the given
+// methods in order, until one succeeds.
+func CompositeAuthMethod(methods ...api.AuthMethod) api.AuthMethod {
+	return &compositeAuthMethod{methods: methods}
+}
+
+type compositeAuthMethod struct {
+	chosen  api.AuthMethod
+	methods []api.AuthMethod
+}
+
+func (m *compositeAuthMethod) Login(ctx context.Context, client *api.Client) (secret *api.Secret, err error) {
+	if m.chosen == nil {
+		for _, auth := range m.methods {
+			if auth == nil {
+				continue
+			}
+
+			secret, err = auth.Login(ctx, client)
+			if err == nil {
+				m.chosen = auth
+
+				break
+			}
+		}
+	}
+
+	if m.chosen == nil {
+		return nil, fmt.Errorf("unable to authenticate with vault by any configured method. Last error was: %w", err)
+	}
+
+	return secret, nil
+}
+
+func (m *compositeAuthMethod) Logout(ctx context.Context, client *api.Client) {
+	if m.chosen == nil {
+		return
+	}
+
+	// some auth methods (like the token method) manage their own logout, to
+	// avoid revoking the token, which shouldn't be managed here
+	if lauth, ok := m.chosen.(interface {
+		Logout(ctx context.Context, client *api.Client)
+	}); ok {
+		lauth.Logout(ctx, client)
+	} else {
+		_, _ = client.Logical().WriteWithContext(ctx, "auth/token/revoke-self", nil)
+		client.ClearToken()
+	}
+}

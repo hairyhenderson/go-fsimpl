@@ -23,7 +23,7 @@ func TestEnvAuthLogin(t *testing.T) {
 	s, err := m.Login(ctx, v)
 	require.NoError(t, err)
 	assert.Equal(t, "foo", s.Auth.ClientToken)
-	assert.NotNil(t, m.(*envAuthMethod).chosen)
+	assert.NotNil(t, m.(*compositeAuthMethod).chosen)
 }
 
 func fakeVaultServer(t *testing.T) *api.Client {

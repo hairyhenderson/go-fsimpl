@@ -58,7 +58,7 @@ func (m *tokenAuthMethod) Login(_ context.Context, _ *api.Client) (*api.Secret, 
 
 // Logout implements the vaultfs.authLogouter interface because we need to keep
 // the token unmanaged.
-func (m *tokenAuthMethod) Logout(client *api.Client) {
+func (m *tokenAuthMethod) Logout(_ context.Context, client *api.Client) {
 	// just clear the client's token, nothing else needs to be done here
 	client.ClearToken()
 }

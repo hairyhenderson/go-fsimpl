@@ -328,7 +328,7 @@ func (f *vaultFile) Close() error {
 		// the token auth method manages its own logout, to avoid revoking the
 		// token, which shouldn't be managed here
 		if lauth, ok := f.auth.(authLogouter); ok {
-			lauth.Logout(f.client.Client)
+			lauth.Logout(f.ctx, f.client.Client)
 		} else {
 			revokeToken(f.ctx, f.client.Client)
 		}
@@ -387,17 +387,16 @@ func (f *vaultFile) Stat() (fs.FileInfo, error) {
 	resp, isV2, err := f.request(http.MethodGet)
 
 	rerr := &api.ResponseError{}
-	if errors.As(err, &rerr) {
-		// if it's a 404 it might be a directory - let's try to LIST it instead
-		if rerr.StatusCode != http.StatusNotFound {
-			return nil, &fs.PathError{
-				Op: "stat", Path: f.name,
-				Err: vaultFSError(err),
-			}
+	if errors.As(err, &rerr) && rerr.StatusCode != http.StatusNotFound {
+		return nil, &fs.PathError{
+			Op: "stat", Path: f.name,
+			Err: vaultFSError(err),
 		}
 	} else if err != nil {
-		_, err = f.list()
-		if err != nil {
+		// if it's a 404 it might be a directory - let's try to LIST it instead
+		_, lerr := f.list()
+		if lerr != nil {
+			// return the original error, not the LIST error
 			return nil, &fs.PathError{Op: "stat", Path: f.name, Err: err}
 		}
 
