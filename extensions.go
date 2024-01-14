@@ -42,21 +42,6 @@ func WithHTTPClientFS(client *http.Client, fsys fs.FS) fs.FS {
 	return fsys
 }
 
-// common types we want to be able to handle which can be missing by default
-//
-//nolint:gochecknoglobals
-var (
-	extraMimeTypes = map[string]string{
-		".yml":  "application/yaml",
-		".yaml": "application/yaml",
-		".csv":  "text/csv",
-		".toml": "application/toml",
-		".env":  "application/x-env",
-		".txt":  "text/plain",
-	}
-	extraMimeInit sync.Once
-)
-
 // ContentType returns the MIME content type for the given [io/fs.FileInfo]. If
 // fi has a ContentType method, it will be used first, otherwise the filename's
 // extension will be used. See the docs for [mime.TypeByExtension] for details
@@ -75,11 +60,16 @@ func ContentType(fi fs.FileInfo) string {
 		return ct
 	}
 
-	extraMimeInit.Do(func() {
-		for k, v := range extraMimeTypes {
-			_ = mime.AddExtensionType(k, v)
-		}
-	})
+	sync.OnceFunc(func() {
+		// common types we want to be able to handle which can be missing by default
+		_ = mime.AddExtensionType(".yml", "application/yaml")
+		_ = mime.AddExtensionType(".yaml", "application/yaml")
+		_ = mime.AddExtensionType(".csv", "text/csv")
+		_ = mime.AddExtensionType(".toml", "application/toml")
+		_ = mime.AddExtensionType(".env", "application/x-env")
+		_ = mime.AddExtensionType(".txt", "text/plain")
+		_ = mime.AddExtensionType(".cue", "application/cue")
+	})()
 
 	// fall back to guessing based on extension
 	ext := filepath.Ext(fi.Name())

@@ -6,6 +6,7 @@ package autofs
 
 import (
 	"io/fs"
+	"net/url"
 	"sync"
 
 	"github.com/hairyhenderson/go-fsimpl"
@@ -20,18 +21,33 @@ import (
 	"github.com/hairyhenderson/go-fsimpl/vaultfs"
 )
 
-//nolint:gochecknoglobals
-var (
-	mux     fsimpl.FSMux
-	muxInit sync.Once
-)
-
 // Lookup returns an appropriate filesystem for the given URL.
 // If a filesystem can't be found for the provided URL's scheme, an error will
 // be returned.
 func Lookup(u string) (fs.FS, error) {
-	muxInit.Do(func() {
-		mux = fsimpl.NewMux()
+	return initMux().Lookup(u)
+}
+
+// FS is used to register this filesystem with an fsimpl.FSMux
+//
+//nolint:gochecknoglobals
+var FS = &autoFS{}
+
+type autoFS struct{}
+
+var _ fsimpl.FSProvider = (*autoFS)(nil)
+
+func (c *autoFS) Schemes() []string {
+	return initMux().Schemes()
+}
+
+func (c *autoFS) New(u *url.URL) (fs.FS, error) {
+	return initMux().New(u)
+}
+
+func initMux() fsimpl.FSMux {
+	return sync.OnceValue[fsimpl.FSMux](func() fsimpl.FSMux {
+		mux := fsimpl.NewMux()
 		mux.Add(awsimdsfs.FS)
 		mux.Add(awssmfs.FS)
 		mux.Add(awssmpfs.FS)
@@ -41,7 +57,7 @@ func Lookup(u string) (fs.FS, error) {
 		mux.Add(gitfs.FS)
 		mux.Add(httpfs.FS)
 		mux.Add(vaultfs.FS)
-	})
 
-	return mux.Lookup(u)
+		return mux
+	})()
 }
