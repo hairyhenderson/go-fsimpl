@@ -356,6 +356,16 @@ func TestSubURL(t *testing.T) {
 	sub, err = fsys.subURL("sub/foo?param=foo")
 	assert.NoError(t, err)
 	assert.Equal(t, "vault:///v1/secret/sub/foo?param=foo", sub.String())
+
+	fsys = &vaultFS{base: tests.MustURL("vault:///v1/secret/?param1=foo&param2=bar")}
+	sub, err = fsys.subURL("sub/foo")
+	assert.NoError(t, err)
+	assert.Equal(t, "vault:///v1/secret/sub/foo?param1=foo&param2=bar", sub.String())
+
+	fsys = &vaultFS{base: tests.MustURL("vault:///v1/secret/?param1=foo&param2=bar")}
+	sub, err = fsys.subURL("sub/foo?param3=baz")
+	assert.NoError(t, err)
+	assert.Equal(t, "vault:///v1/secret/sub/foo?param1=foo&param2=bar&param3=baz", sub.String())
 }
 
 func TestStat(t *testing.T) {

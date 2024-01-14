@@ -191,7 +191,21 @@ func (f *vaultFS) subURL(name string) (*url.URL, error) {
 		return nil, err
 	}
 
-	return f.base.ResolveReference(rel), nil
+	u := f.base.ResolveReference(rel)
+
+	// also merge query params
+	if f.base.RawQuery != "" {
+		bq := f.base.Query()
+		rq := rel.Query()
+
+		for k := range rq {
+			bq.Set(k, rq.Get(k))
+		}
+
+		u.RawQuery = bq.Encode()
+	}
+
+	return u, nil
 }
 
 // newVaultFile opens a vault file/dir for reading - if this file is not closed
