@@ -1,8 +1,6 @@
 package vaultauth
 
 import (
-	"context"
-	"fmt"
 	"os"
 
 	"github.com/hashicorp/vault/api"
@@ -41,43 +39,12 @@ import (
 // to be heavily depended upon. It is recommended that you use the auth methods
 // directly, and configure them with the appropriate options.
 func EnvAuthMethod() api.AuthMethod {
-	return &envAuthMethod{
-		// sorted in order of precedence
-		methods: []api.AuthMethod{
-			envAppRoleAdapter(),
-			envGitHubAdapter(),
-			envUserPassAdapter(),
-			NewTokenAuth(""),
-		},
-	}
-}
-
-type envAuthMethod struct {
-	chosen  api.AuthMethod
-	methods []api.AuthMethod
-}
-
-func (m *envAuthMethod) Login(ctx context.Context, client *api.Client) (secret *api.Secret, err error) {
-	if m.chosen == nil {
-		for _, auth := range m.methods {
-			if auth == nil {
-				continue
-			}
-
-			secret, err = auth.Login(ctx, client)
-			if err == nil {
-				m.chosen = auth
-
-				break
-			}
-		}
-	}
-
-	if m.chosen == nil {
-		return nil, fmt.Errorf("unable to authenticate with vault by any configured method. Last error was: %w", err)
-	}
-
-	return secret, nil
+	return CompositeAuthMethod(
+		envAppRoleAdapter(),
+		envGitHubAdapter(),
+		envUserPassAdapter(),
+		NewTokenAuth(""),
+	)
 }
 
 // envAppRoleAdapter builds an AppRoleAuth from environment variables, for use

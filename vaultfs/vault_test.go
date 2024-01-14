@@ -402,7 +402,7 @@ func (m *spyAuthMethod) Login(_ context.Context, client *api.Client) (*api.Secre
 }
 
 // make sure logout functionality works
-func (m *spyAuthMethod) Logout(client *api.Client) {
+func (m *spyAuthMethod) Logout(_ context.Context, client *api.Client) {
 	client.ClearToken()
 }
 

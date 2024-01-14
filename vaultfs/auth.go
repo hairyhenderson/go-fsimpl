@@ -39,7 +39,7 @@ type withAPIAuthMethoder interface {
 // an optional interface that auth methods may implement to override the regular
 // token revocation
 type authLogouter interface {
-	Logout(client *api.Client)
+	Logout(ctx context.Context, client *api.Client)
 }
 
 // AuthMethod is an authentication method that vaultfs can use to acquire a
