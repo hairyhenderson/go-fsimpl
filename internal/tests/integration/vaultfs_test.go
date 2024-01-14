@@ -511,8 +511,6 @@ func TestVaultFS_AppRoleAuth_ReusedToken(t *testing.T) {
 }
 
 func TestVaultFS_DynamicAuth(t *testing.T) {
-	t.Skip("broken?")
-
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
