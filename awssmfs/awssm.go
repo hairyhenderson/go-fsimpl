@@ -92,22 +92,34 @@ func (f awssmFS) URL() string {
 	return f.base.String()
 }
 
-func (f awssmFS) WithContext(ctx context.Context) fs.FS {
-	fsys := f
+func (f *awssmFS) WithContext(ctx context.Context) fs.FS {
+	if ctx == nil {
+		return f
+	}
+
+	fsys := *f
 	fsys.ctx = ctx
 
 	return &fsys
 }
 
-func (f awssmFS) WithHTTPClient(client *http.Client) fs.FS {
-	fsys := f
+func (f *awssmFS) WithHTTPClient(client *http.Client) fs.FS {
+	if client == nil {
+		return f
+	}
+
+	fsys := *f
 	fsys.httpclient = client
 
 	return &fsys
 }
 
-func (f awssmFS) WithSMClient(smclient SecretsManagerClient) fs.FS {
-	fsys := f
+func (f *awssmFS) WithSMClient(smclient SecretsManagerClient) fs.FS {
+	if smclient == nil {
+		return f
+	}
+
+	fsys := *f
 	fsys.smclient = smclient
 
 	return &fsys

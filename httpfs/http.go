@@ -54,19 +54,27 @@ func (f httpFS) URL() string {
 	return f.base.String()
 }
 
-func (f httpFS) WithContext(ctx context.Context) fs.FS {
-	fsys := f
+func (f *httpFS) WithContext(ctx context.Context) fs.FS {
+	if ctx == nil {
+		return f
+	}
+
+	fsys := *f
 	fsys.ctx = ctx
 
 	return &fsys
 }
 
-func (f httpFS) WithHeader(headers http.Header) fs.FS {
-	fsys := f
+func (f *httpFS) WithHeader(headers http.Header) fs.FS {
+	if headers == nil {
+		return f
+	}
+
+	fsys := *f
 	if len(fsys.headers) == 0 {
 		fsys.headers = headers
 	} else {
-		for k, vs := range fsys.headers {
+		for k, vs := range headers {
 			for _, v := range vs {
 				fsys.headers.Add(k, v)
 			}
@@ -76,8 +84,12 @@ func (f httpFS) WithHeader(headers http.Header) fs.FS {
 	return &fsys
 }
 
-func (f httpFS) WithHTTPClient(client *http.Client) fs.FS {
-	fsys := f
+func (f *httpFS) WithHTTPClient(client *http.Client) fs.FS {
+	if client == nil {
+		return f
+	}
+
+	fsys := *f
 	fsys.client = client
 
 	return &fsys

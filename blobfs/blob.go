@@ -83,15 +83,23 @@ func (f blobFS) URL() string {
 	return f.base.String()
 }
 
-func (f blobFS) WithContext(ctx context.Context) fs.FS {
-	fsys := f
+func (f *blobFS) WithContext(ctx context.Context) fs.FS {
+	if ctx == nil {
+		return f
+	}
+
+	fsys := *f
 	fsys.ctx = ctx
 
 	return &fsys
 }
 
-func (f blobFS) WithHTTPClient(client *http.Client) fs.FS {
-	fsys := f
+func (f *blobFS) WithHTTPClient(client *http.Client) fs.FS {
+	if client == nil {
+		return f
+	}
+
+	fsys := *f
 	fsys.hclient = client
 
 	return &fsys

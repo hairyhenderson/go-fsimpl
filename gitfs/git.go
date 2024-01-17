@@ -78,15 +78,23 @@ func (f gitFS) URL() string {
 	return f.repo.String()
 }
 
-func (f gitFS) WithAuthenticator(auth Authenticator) fs.FS {
-	fsys := f
+func (f *gitFS) WithAuthenticator(auth Authenticator) fs.FS {
+	if auth == nil {
+		return f
+	}
+
+	fsys := *f
 	fsys.auth = auth
 
 	return &fsys
 }
 
-func (f gitFS) WithContext(ctx context.Context) fs.FS {
-	fsys := f
+func (f *gitFS) WithContext(ctx context.Context) fs.FS {
+	if ctx == nil {
+		return f
+	}
+
+	fsys := *f
 	fsys.ctx = ctx
 
 	return &fsys
