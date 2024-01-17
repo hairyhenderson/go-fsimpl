@@ -120,15 +120,23 @@ func (f vaultFS) URL() string {
 	return f.base.String()
 }
 
-func (f vaultFS) WithContext(ctx context.Context) fs.FS {
-	fsys := f
+func (f *vaultFS) WithContext(ctx context.Context) fs.FS {
+	if ctx == nil {
+		return f
+	}
+
+	fsys := *f
 	fsys.ctx = ctx
 
 	return &fsys
 }
 
-func (f vaultFS) WithHeader(headers http.Header) fs.FS {
-	fsys := f
+func (f *vaultFS) WithHeader(headers http.Header) fs.FS {
+	if headers == nil {
+		return f
+	}
+
+	fsys := *f
 
 	for k, vs := range headers {
 		for _, v := range vs {

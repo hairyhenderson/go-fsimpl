@@ -89,22 +89,34 @@ func (f awsimdsFS) URL() string {
 	return f.base.String()
 }
 
-func (f awsimdsFS) WithContext(ctx context.Context) fs.FS {
-	fsys := f
+func (f *awsimdsFS) WithContext(ctx context.Context) fs.FS {
+	if ctx == nil {
+		return f
+	}
+
+	fsys := *f
 	fsys.ctx = ctx
 
 	return &fsys
 }
 
-func (f awsimdsFS) WithHTTPClient(client *http.Client) fs.FS {
-	fsys := f
+func (f *awsimdsFS) WithHTTPClient(client *http.Client) fs.FS {
+	if client == nil {
+		return f
+	}
+
+	fsys := *f
 	fsys.httpclient = client
 
 	return &fsys
 }
 
-func (f awsimdsFS) WithIMDSClient(imdsclient IMDSClient) fs.FS {
-	fsys := f
+func (f *awsimdsFS) WithIMDSClient(imdsclient IMDSClient) fs.FS {
+	if imdsclient == nil {
+		return f
+	}
+
+	fsys := *f
 	fsys.imdsclient = imdsclient
 
 	return &fsys

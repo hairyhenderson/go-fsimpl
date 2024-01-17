@@ -70,15 +70,23 @@ func (f consulFS) URL() string {
 	return f.base.String()
 }
 
-func (f consulFS) WithContext(ctx context.Context) fs.FS {
-	fsys := f
+func (f *consulFS) WithContext(ctx context.Context) fs.FS {
+	if ctx == nil {
+		return f
+	}
+
+	fsys := *f
 	fsys.ctx = ctx
 
 	return &fsys
 }
 
-func (f consulFS) WithHeader(header http.Header) fs.FS {
-	fsys := f
+func (f *consulFS) WithHeader(header http.Header) fs.FS {
+	if header == nil {
+		return f
+	}
+
+	fsys := *f
 	fsys.header = header
 
 	if fsys.client != nil {
@@ -92,8 +100,12 @@ func (f consulFS) WithHeader(header http.Header) fs.FS {
 	return &fsys
 }
 
-func (f consulFS) WithConfig(config *api.Config) fs.FS {
-	fsys := f
+func (f *consulFS) WithConfig(config *api.Config) fs.FS {
+	if config == nil {
+		return f
+	}
+
+	fsys := *f
 	fsys.client = nil
 	fsys.config = config
 
