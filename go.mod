@@ -12,7 +12,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/ssm v1.44.7
 	github.com/aws/smithy-go v1.19.0
 	github.com/fsouza/fake-gcs-server v1.47.7
-	github.com/hashicorp/consul/api v1.26.1
+	github.com/hashicorp/consul/api v1.27.0
 	github.com/hashicorp/vault/api v1.10.0
 	github.com/hashicorp/vault/api/auth/approle v0.5.0
 	github.com/hashicorp/vault/api/auth/userpass v0.5.0
