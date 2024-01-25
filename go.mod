@@ -12,14 +12,18 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/ssm v1.44.7
 	github.com/aws/smithy-go v1.19.0
 	github.com/fsouza/fake-gcs-server v1.47.7
+	github.com/go-git/go-billy/v5 v5.5.0
+	github.com/go-git/go-git/v5 v5.11.0
 	github.com/hashicorp/consul/api v1.27.0
 	github.com/hashicorp/vault/api v1.10.0
 	github.com/hashicorp/vault/api/auth/approle v0.5.0
 	github.com/hashicorp/vault/api/auth/userpass v0.5.0
 	github.com/johannesboyne/gofakes3 v0.0.0-20230914150226-f005f5cc03aa
 	github.com/stretchr/testify v1.8.4
+	go.opentelemetry.io/contrib/propagators/autoprop v0.47.0
 	go.opentelemetry.io/otel v1.22.0
-	go.opentelemetry.io/otel/sdk v1.21.0
+	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.22.0
+	go.opentelemetry.io/otel/sdk v1.22.0
 	go.opentelemetry.io/otel/trace v1.22.0
 	gocloud.dev v0.36.0
 	golang.org/x/crypto v0.18.0
@@ -30,13 +34,6 @@ require (
 // removed and we can use the upstream module. This commit on my fork is a
 // cherry-pick from the PR on top of v5.11.0
 replace github.com/go-git/go-git/v5 => github.com/hairyhenderson/go-git/v5 v5.0.0-20240112193603-9068a607f23a
-
-require (
-	github.com/go-git/go-billy/v5 v5.5.0
-	github.com/go-git/go-git/v5 v5.11.0
-	go.opentelemetry.io/contrib/propagators/autoprop v0.46.1
-	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.21.0
-)
 
 require (
 	cloud.google.com/go v0.111.0 // indirect
@@ -129,11 +126,11 @@ require (
 	go.opencensus.io v0.24.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.46.1 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.46.1 // indirect
-	go.opentelemetry.io/contrib/propagators/aws v1.21.1 // indirect
-	go.opentelemetry.io/contrib/propagators/b3 v1.21.1 // indirect
-	go.opentelemetry.io/contrib/propagators/jaeger v1.21.1 // indirect
-	go.opentelemetry.io/contrib/propagators/ot v1.21.1 // indirect
-	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.21.0 // indirect
+	go.opentelemetry.io/contrib/propagators/aws v1.22.0 // indirect
+	go.opentelemetry.io/contrib/propagators/b3 v1.22.0 // indirect
+	go.opentelemetry.io/contrib/propagators/jaeger v1.22.0 // indirect
+	go.opentelemetry.io/contrib/propagators/ot v1.22.0 // indirect
+	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.22.0 // indirect
 	go.opentelemetry.io/otel/metric v1.22.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.0.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
@@ -152,8 +149,8 @@ require (
 	google.golang.org/genproto v0.0.0-20231120223509-83a465c0220f // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20231120223509-83a465c0220f // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20231127180814-3a041ad873d4 // indirect
-	google.golang.org/grpc v1.60.0 // indirect
-	google.golang.org/protobuf v1.31.0 // indirect
+	google.golang.org/grpc v1.60.1 // indirect
+	google.golang.org/protobuf v1.32.0 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
