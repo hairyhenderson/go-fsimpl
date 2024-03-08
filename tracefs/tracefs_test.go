@@ -344,7 +344,7 @@ func TestTraceFS_Dir_Read(t *testing.T) {
 		"fs.path":      ".",
 		"fs.type":      "fstest.MapFS",
 		"file.modtime": "0001-01-01T00:00:00Z",
-		"file.perms":   "d---------",
+		"file.perms":   "dr-xr-xr-x",
 		"file.size":    int64(0),
 	}, attribmap(spans[0].Attributes))
 }
