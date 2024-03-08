@@ -258,6 +258,7 @@ func (f *vaultFile) newRequest(method string) (*api.Request, error) {
 		req.Params = q
 	} else if len(q) > 0 {
 		data := map[string]interface{}{}
+
 		for k, vs := range q {
 			for _, v := range vs {
 				data[k] = v

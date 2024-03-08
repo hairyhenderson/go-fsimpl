@@ -142,7 +142,7 @@ func (f *awssmpFS) getClient(ctx context.Context) (SSMClient, error) {
 
 	// setting a host in the URL is only intended for test purposes
 	if f.base.Host != "" {
-		customResolver := aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
+		customResolver := aws.EndpointResolverWithOptionsFunc(func(_, _ string, _ ...interface{}) (aws.Endpoint, error) {
 			return aws.Endpoint{
 				PartitionID:   "aws",
 				URL:           fmt.Sprintf("http://%s", f.base.Host),

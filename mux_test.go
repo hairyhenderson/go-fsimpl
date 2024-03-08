@@ -13,7 +13,7 @@ import (
 
 func TestFSMux(t *testing.T) {
 	fsys := os.DirFS("/tmp")
-	fn := func(u *url.URL) (fs.FS, error) { return fsys, nil }
+	fn := func(_ *url.URL) (fs.FS, error) { return fsys, nil }
 	fsp := FSProviderFunc(fn, "foo", "bar")
 	fsp2 := FSProviderFunc(fn, "baz", "qux")
 

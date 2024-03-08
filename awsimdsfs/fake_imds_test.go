@@ -371,6 +371,7 @@ eP9n/rGEGGm0cGEbbeB=`),
 			for k, v := range wrec.Header() {
 				w.Header()[k] = v
 			}
+
 			w.WriteHeader(wrec.Code)
 			_, _ = w.Write(wrec.Body.Bytes())
 		})
@@ -382,6 +383,7 @@ eP9n/rGEGGm0cGEbbeB=`),
 			var err error
 			_, err = io.ReadAll(r.Body)
 			require.NoError(t, err)
+
 			defer r.Body.Close()
 		}
 

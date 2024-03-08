@@ -19,7 +19,7 @@ import (
 func setupHTTP(t *testing.T) *httptest.Server {
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("/hello.txt", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/hello.txt", func(w http.ResponseWriter, _ *http.Request) {
 		lmod, _ := time.Parse(time.RFC3339, "2021-04-01T12:00:00Z")
 		w.Header().Set("Last-Modified", lmod.Format(http.TimeFormat))
 		w.Header().Set("Content-Type", "text/plain")
@@ -86,7 +86,7 @@ func TestHttpFS(t *testing.T) {
 }
 
 func setupExampleHTTPServer() *httptest.Server {
-	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		lmod, _ := time.Parse(time.RFC3339, "2021-04-01T12:00:00Z")
 		w.Header().Set("Last-Modified", lmod.Format(http.TimeFormat))
 		w.Header().Set("Content-Type", "text/plain")

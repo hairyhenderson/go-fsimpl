@@ -38,7 +38,7 @@ func fakeConsul(t *testing.T, handler http.Handler) *api.Config {
 	t.Cleanup(srv.Close)
 
 	tr := &http.Transport{
-		Proxy: func(req *http.Request) (*url.URL, error) {
+		Proxy: func(_ *http.Request) (*url.URL, error) {
 			return url.Parse(srv.URL)
 		},
 	}

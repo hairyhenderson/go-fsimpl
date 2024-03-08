@@ -45,7 +45,7 @@ func fakeVault(t *testing.T, handler http.Handler) *api.Client {
 	t.Cleanup(srv.Close)
 
 	tr := &http.Transport{
-		Proxy: func(req *http.Request) (*url.URL, error) {
+		Proxy: func(_ *http.Request) (*url.URL, error) {
 			return url.Parse(srv.URL)
 		},
 	}
@@ -57,6 +57,7 @@ func fakeVault(t *testing.T, handler http.Handler) *api.Client {
 	return c
 }
 
+//nolint:funlen
 func fakeVaultServer(t *testing.T) *api.Client {
 	files := map[string]struct {
 		Value string   `json:"value,omitempty"`
@@ -90,7 +91,9 @@ func fakeVaultServer(t *testing.T) *api.Client {
 				assert.Equal(t, v[0], r.Method)
 			}
 		}
+
 		body := map[string]interface{}{}
+
 		if r.Body != nil {
 			dec := json.NewDecoder(r.Body)
 			_ = dec.Decode(&body)

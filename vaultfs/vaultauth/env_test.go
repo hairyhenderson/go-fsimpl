@@ -26,6 +26,7 @@ func TestEnvAuthLogin(t *testing.T) {
 	assert.NotNil(t, m.(*compositeAuthMethod).chosen)
 }
 
+//nolint:funlen
 func fakeVaultServer(t *testing.T) *api.Client {
 	files := map[string]struct {
 		Value string   `json:"value,omitempty"`
@@ -59,7 +60,9 @@ func fakeVaultServer(t *testing.T) *api.Client {
 				assert.Equal(t, v[0], r.Method)
 			}
 		}
+
 		body := map[string]interface{}{}
+
 		if r.Body != nil {
 			dec := json.NewDecoder(r.Body)
 			_ = dec.Decode(&body)
