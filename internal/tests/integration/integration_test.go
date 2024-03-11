@@ -19,7 +19,9 @@ func freeport(t *testing.T) (port int, addr string) {
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	defer l.Close()
+
 	a := l.Addr().(*net.TCPAddr)
 	port = a.Port
 
