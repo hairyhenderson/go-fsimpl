@@ -37,7 +37,7 @@ from the file extension.
 This module is _in active development_, and the API is still subject to breaking
 changes.
 
-The filesystem pacakges should operate correctly, based on the tests, but there
+The filesystem packages should operate correctly, based on the tests, but there
 may be edge cases that are not covered. Please open an issue if you find one!
 
 Most of these filesystems are based on code from [gomplate](https://github.com/hairyhenderson/gomplate),
