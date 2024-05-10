@@ -1,4 +1,36 @@
 {
     "release-type": "go",
-    "changelog-type": "github"
+    "changelog-type": "github",
+    "changelog-sections": [
+        {
+            "type": "feat",
+            "section": "Features"
+        },
+        {
+            "type": "fix",
+            "section": "Bug Fixes"
+        },
+        {
+            "type": "docs",
+            "section": "Documentation"
+        },
+        {
+            "type": "deps",
+            "section": "Dependencies"
+        },
+        {
+            "type": "deps",
+            "section": "Dependencies"
+        },
+        {
+            "type": "chore",
+            "section": "Chores",
+            "hidden": true
+        },
+        {
+            "type": "ci",
+            "section": "CI",
+            "hidden": true
+        }
+    ]
 }
