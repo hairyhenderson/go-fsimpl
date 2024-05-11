@@ -3,6 +3,7 @@
 package integration
 
 import (
+	"context"
 	"io"
 	"strconv"
 	"testing"
@@ -89,10 +90,12 @@ func setupConsulFSTest(t *testing.T) consulTestConfig {
 
 	t.Logf("Fired up Consul: %v", consul)
 
-	err := waitForURL(t, "http://"+consulAddr+"/v1/status/leader")
+	ctx := context.Background()
+
+	err := waitForURL(ctx, t, "http://"+consulAddr+"/v1/status/leader")
 	require.NoError(t, err)
 
-	vaultAddr := startVault(t)
+	vaultAddr := startVault(ctx, t)
 
 	// create ACL policies & roles, for use in some tests
 	cfg := api.DefaultConfig()

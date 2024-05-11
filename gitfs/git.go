@@ -2,6 +2,7 @@ package gitfs
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io/fs"
 	"net/url"
@@ -220,7 +221,7 @@ func (f *gitFS) gitClone(ctx context.Context, repoURL url.URL, depth int) (billy
 
 	repo, err := git.CloneContext(ctx, storer, bfs, &opts)
 
-	if u.Scheme == "file" && err == transport.ErrRepositoryNotFound && !strings.HasSuffix(u.Path, ".git") {
+	if u.Scheme == "file" && errors.Is(err, transport.ErrRepositoryNotFound) && !strings.HasSuffix(u.Path, ".git") {
 		// maybe this has a `.git` subdirectory...
 		u = repoURL
 		u.Path = path.Join(u.Path, ".git")

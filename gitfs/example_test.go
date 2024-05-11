@@ -6,7 +6,7 @@ import (
 	"net/url"
 )
 
-// Using gitfs.New to create a filesystem based on a git repository on the
+// Using [gitfs.New] to create a filesystem based on a git repository on the
 // local filesystem.
 func Example() {
 	u, _ := url.Parse("file:///data/repo")

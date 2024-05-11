@@ -31,7 +31,7 @@ import (
 const vaultRootToken = "00000000-1111-2222-3333-444455556666"
 
 func setupVaultFSTest(ctx context.Context, t *testing.T) string {
-	addr := startVault(t)
+	addr := startVault(ctx, t)
 
 	t.Helper()
 
@@ -80,7 +80,7 @@ func tokenCreate(ctx context.Context, client *api.Client, policy string, uses in
 	return token.Auth.ClientToken, nil
 }
 
-func startVault(t *testing.T) string {
+func startVault(ctx context.Context, t *testing.T) string {
 	pidDir := tfs.NewDir(t, "gofsimpl-inttests-vaultpid")
 	t.Cleanup(pidDir.Remove)
 
@@ -114,7 +114,7 @@ func startVault(t *testing.T) string {
 
 	t.Logf("Fired up Vault: %v", vault)
 
-	err = waitForURL(t, "http://"+vaultAddr+"/v1/sys/health")
+	err = waitForURL(ctx, t, "http://"+vaultAddr+"/v1/sys/health")
 	require.NoError(t, err)
 
 	t.Cleanup(func() {
@@ -539,7 +539,6 @@ func TestVaultFS_DynamicAuth(t *testing.T) {
 	require.NoError(t, err)
 
 	for _, d := range testCommands {
-		d := d
 		t.Run(d.url, func(t *testing.T) {
 			fsys, err := vaultfs.New(tests.MustURL("http://" + addr + d.url))
 			assert.NoError(t, err)

@@ -23,15 +23,13 @@ func freeport(t *testing.T) (port int, addr string) {
 	defer l.Close()
 
 	a := l.Addr().(*net.TCPAddr)
-	port = a.Port
 
-	return port, a.String()
+	return a.Port, a.String()
 }
 
 // waitForURL - waits up to 20s for a given URL to respond with a 200
-func waitForURL(t *testing.T, url string) error {
+func waitForURL(ctx context.Context, t *testing.T, url string) error {
 	client := http.DefaultClient
-	ctx := context.Background()
 
 	retries := 100
 	for retries > 0 {
@@ -58,7 +56,7 @@ func waitForURL(t *testing.T, url string) error {
 
 		defer resp.Body.Close()
 
-		if resp.StatusCode == 200 {
+		if resp.StatusCode == http.StatusOK {
 			return nil
 		}
 	}
