@@ -23,19 +23,16 @@ jobs:
       - run: make test-race
   fscli-build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        platform: [ linux-amd64, linux-arm-v7, linux-arm64, linux-ppc64le, darwin-amd64, darwin-arm64, windows-amd64.exe ]
     container:
       image: ghcr.io/hairyhenderson/gomplate-ci-build:latest
     steps:
       - uses: actions/checkout@v4
       - name: Build fscli
         run: |
-          make bin/fscli_linux-amd64
-          make bin/fscli_linux-arm-v7
-          make bin/fscli_linux-arm64
-          make bin/fscli_linux-ppc64le
-          make bin/fscli_darwin-amd64
-          make bin/fscli_darwin-arm64
-          make bin/fscli_windows-amd64.exe
+          make bin/fscli_${{ matrix.platform }}
   windows-build:
     runs-on: windows-latest
     env:
