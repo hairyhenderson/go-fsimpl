@@ -2,6 +2,7 @@ package vaultauth
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"io/fs"
@@ -59,19 +60,19 @@ type GitHubToken struct {
 //nolint:gocyclo
 func (token *GitHubToken) validate() error {
 	if token == nil {
-		return fmt.Errorf("github auth method requires a token")
+		return errors.New("github auth method requires a token")
 	}
 
 	if token.FromFile == "" && token.FromEnv == "" && token.FromString == "" {
-		return fmt.Errorf("token for GitHub auth must be provided with a source file, environment variable, or plaintext string")
+		return errors.New("token for GitHub auth must be provided with a source file, environment variable, or plaintext string")
 	}
 
 	if token.FromFile != "" && (token.FromEnv != "" || token.FromString != "") {
-		return fmt.Errorf("only one source for the token should be specified")
+		return errors.New("only one source for the token should be specified")
 	}
 
 	if token.FromEnv != "" && (token.FromFile != "" || token.FromString != "") {
-		return fmt.Errorf("only one source for the token should be specified")
+		return errors.New("only one source for the token should be specified")
 	}
 
 	return nil

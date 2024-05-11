@@ -70,8 +70,7 @@ linters:
     - nolintlint
     - nosprintfhostport
     ## - paralleltest
-    # fmt.Errorf() with no args is abou5 200x slower than errors.New()
-    ##- perfsprint
+    - perfsprint
     - prealloc
     - predeclared
     - promlinter

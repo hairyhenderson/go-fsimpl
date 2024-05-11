@@ -2,6 +2,7 @@ package gitfs
 
 import (
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"io/fs"
 	"net/url"
@@ -184,7 +185,7 @@ func (a *tokenAuthenticator) Authenticate(u *url.URL) (AuthMethod, error) {
 	}
 
 	if token == "" {
-		return nil, fmt.Errorf("token may not be empty for token authentication")
+		return nil, errors.New("token may not be empty for token authentication")
 	}
 
 	return &githttp.TokenAuth{Token: token}, nil
@@ -241,7 +242,7 @@ func (a *publicKeyAuthenticator) Authenticate(u *url.URL) (AuthMethod, error) {
 	}
 
 	if len(k) == 0 {
-		return nil, fmt.Errorf("private key may not be empty for public key authentication")
+		return nil, errors.New("private key may not be empty for public key authentication")
 	}
 
 	return ssh.NewPublicKeys(username, k, a.keyPass)

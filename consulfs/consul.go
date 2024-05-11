@@ -34,7 +34,7 @@ type consulFS struct {
 // New creates a filesystem for the Consul KV endpoint rooted at u.
 func New(u *url.URL) (fs.FS, error) {
 	if u == nil {
-		return nil, fmt.Errorf("url must not be nil")
+		return nil, errors.New("url must not be nil")
 	}
 
 	if u.Path == "" {

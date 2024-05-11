@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
 	"testing"
 	"testing/fstest"
@@ -84,7 +85,7 @@ func BenchmarkSplitRepoPath(b *testing.B) {
 	for i, d := range data {
 		b.ResetTimer()
 
-		b.Run(fmt.Sprintf("%d", i), func(b *testing.B) {
+		b.Run(strconv.Itoa(i), func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
 				splitRepoPath(d)
 			}
