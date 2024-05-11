@@ -7,7 +7,7 @@ import (
 
 // Option specifies instrumentation configuration options.
 type Option interface {
-	apply(*config)
+	apply(c *config)
 }
 
 type config struct {

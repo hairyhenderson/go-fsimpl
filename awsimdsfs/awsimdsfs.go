@@ -293,6 +293,7 @@ func convertAWSError(err error) error {
 		return fmt.Errorf("%w: %s", err, opErr.OperationName)
 	}
 
+	//nolint:errorlint
 	err = fmt.Errorf("%T: %w", err, err)
 
 	return err

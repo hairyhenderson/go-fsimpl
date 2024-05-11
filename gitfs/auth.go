@@ -190,7 +190,7 @@ func (a *tokenAuthenticator) Authenticate(u *url.URL) (AuthMethod, error) {
 	return &githttp.TokenAuth{Token: token}, nil
 }
 
-// PublicKeyAuthenticator provides an an Authenticator that uses SSH public key
+// PublicKeyAuthenticator provides an Authenticator that uses SSH public key
 // authentication. Use only with SSH repositories.
 //
 // The privkey is a PEM-encoded private key. Set keyPass if privKey is a

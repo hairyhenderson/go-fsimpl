@@ -60,7 +60,6 @@ func TestSplitRepoPath(t *testing.T) {
 	}
 
 	for i, d := range data {
-		d := d
 		t.Run(fmt.Sprintf("%d:(%q)==(%q,%q)", i, d.in, d.repo, d.path), func(t *testing.T) {
 			t.Parallel()
 
@@ -84,8 +83,6 @@ func BenchmarkSplitRepoPath(b *testing.B) {
 
 	for i, d := range data {
 		b.ResetTimer()
-
-		d := d
 
 		b.Run(fmt.Sprintf("%d", i), func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
