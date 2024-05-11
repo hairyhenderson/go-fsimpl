@@ -41,7 +41,7 @@ type vaultFS struct {
 //   - [fsimpl.WithHeaderFS] (inject custom HTTP headers)
 func New(u *url.URL) (fs.FS, error) {
 	if u == nil {
-		return nil, fmt.Errorf("url must not be nil")
+		return nil, errors.New("url must not be nil")
 	}
 
 	if u.Path == "" {
@@ -440,7 +440,7 @@ func (f *vaultFile) Stat() (fs.FileInfo, error) {
 
 	if secret == nil || secret.Data == nil {
 		return nil, &fs.PathError{
-			Op: "stat", Path: f.name, Err: fmt.Errorf("malformed secret"),
+			Op: "stat", Path: f.name, Err: errors.New("malformed secret"),
 		}
 	}
 
@@ -486,7 +486,7 @@ func (f *vaultFile) list() ([]string, error) {
 
 	keys, ok := s.Data["keys"]
 	if !ok {
-		return nil, fmt.Errorf("keys missing from vault LIST response")
+		return nil, errors.New("keys missing from vault LIST response")
 	}
 
 	k, ok := keys.([]interface{})

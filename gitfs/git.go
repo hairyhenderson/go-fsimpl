@@ -186,7 +186,7 @@ func (f *gitFS) gitClone(ctx context.Context, repoURL url.URL, depth int) (billy
 	u := repoURL
 
 	if f.auth == nil {
-		return nil, nil, fmt.Errorf("clone: no auth method provided")
+		return nil, nil, errors.New("clone: no auth method provided")
 	}
 
 	authMethod, err := f.auth.Authenticate(&u)
@@ -273,7 +273,7 @@ func (f *gitFS) refFromRemoteHead(ctx context.Context, u *url.URL) (plumbing.Ref
 
 	headRef, ok := refs["HEAD"]
 	if !ok {
-		return "", fmt.Errorf("no HEAD ref found")
+		return "", errors.New("no HEAD ref found")
 	}
 
 	return headRef.Target(), nil

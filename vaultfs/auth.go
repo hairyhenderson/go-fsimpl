@@ -2,6 +2,7 @@ package vaultfs
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io/fs"
 	"os"
@@ -215,12 +216,12 @@ type appRoleAuthMethod struct {
 func (m *appRoleAuthMethod) Login(ctx context.Context, client *api.Client) error {
 	roleID := findValue(m.roleID, "VAULT_ROLE_ID", "", m.fsys)
 	if roleID == "" {
-		return fmt.Errorf("approle auth failure: no role_id provided")
+		return errors.New("approle auth failure: no role_id provided")
 	}
 
 	secretID := findValue(m.secretID, "VAULT_SECRET_ID", "", m.fsys)
 	if secretID == "" {
-		return fmt.Errorf("approle auth failure: no secret_id provided")
+		return errors.New("approle auth failure: no secret_id provided")
 	}
 
 	mount := findValue(m.mount, "VAULT_AUTH_APPROLE_MOUNT", "approle", m.fsys)
@@ -269,7 +270,7 @@ type gitHubAuthMethod struct {
 func (m *gitHubAuthMethod) Login(ctx context.Context, client *api.Client) error {
 	ghtoken := findValue(m.ghtoken, "VAULT_AUTH_GITHUB_TOKEN", "", m.fsys)
 	if ghtoken == "" {
-		return fmt.Errorf("github auth failure: no username provided")
+		return errors.New("github auth failure: no username provided")
 	}
 
 	mount := findValue(m.mount, "VAULT_AUTH_GITHUB_MOUNT", "github", m.fsys)
@@ -319,12 +320,12 @@ type userPassAuthMethod struct {
 func (m *userPassAuthMethod) Login(ctx context.Context, client *api.Client) error {
 	username := findValue(m.username, "VAULT_AUTH_USERNAME", "", m.fsys)
 	if username == "" {
-		return fmt.Errorf("userpass auth failure: no username provided")
+		return errors.New("userpass auth failure: no username provided")
 	}
 
 	password := findValue(m.password, "VAULT_AUTH_PASSWORD", "", m.fsys)
 	if password == "" {
-		return fmt.Errorf("userpass auth failure: no password provided")
+		return errors.New("userpass auth failure: no password provided")
 	}
 
 	mount := findValue(m.mount, "VAULT_AUTH_USERPASS_MOUNT", "userpass", m.fsys)

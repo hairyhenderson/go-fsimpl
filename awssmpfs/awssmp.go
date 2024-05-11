@@ -145,7 +145,7 @@ func (f *awssmpFS) getClient(ctx context.Context) (SSMClient, error) {
 		customResolver := aws.EndpointResolverWithOptionsFunc(func(_, _ string, _ ...interface{}) (aws.Endpoint, error) {
 			return aws.Endpoint{
 				PartitionID:   "aws",
-				URL:           fmt.Sprintf("http://%s", f.base.Host),
+				URL:           "http://" + f.base.Host,
 				SigningRegion: "us-east-1",
 			}, nil
 		})
