@@ -19,8 +19,8 @@
             "section": "Dependencies"
         },
         {
-            "type": "deps",
-            "section": "Dependencies"
+            "type": "build",
+            "section": "Build & Dependencies"
         },
         {
             "type": "chore",
