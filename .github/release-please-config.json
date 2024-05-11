@@ -1,6 +1,6 @@
 {
     "release-type": "go",
-    "changelog-type": "default",
+    "changelog-type": "github",
     "changelog-sections": [
         {
             "type": "feat",
