@@ -20,17 +20,18 @@
             "section": "Dependencies"
         },
         {
-            "type": "build",
-            "section": "Build & Dependencies"
+            "type": "chore",
+            "section": "Miscellaneous Chores",
+            "hidden": true
         },
         {
-            "type": "chore",
-            "section": "Chores",
+            "type": "build",
+            "section": "Build System",
             "hidden": true
         },
         {
             "type": "ci",
-            "section": "CI",
+            "section": "Continuous Integration",
             "hidden": true
         }
     ],
