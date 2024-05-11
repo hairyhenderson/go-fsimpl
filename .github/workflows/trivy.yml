@@ -1,0 +1,41 @@
+name: Trivy Scan
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  trivy:
+    permissions:
+      security-events: write
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Run Trivy vulnerability scanner (table output)
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: fs
+        format: table
+        exit-code: 1
+        ignore-unfixed: true
+        vuln-type: os,library
+        severity: CRITICAL,HIGH
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: fs
+        # The SARIF format ignores severity and uploads all vulnerabilities for
+        # later triage. The table-format step above is used to fail the build if
+        # there are any critical or high vulnerabilities.
+        # See https://github.com/aquasecurity/trivy-action/issues/95
+        format: sarif
+        output: trivy-results.sarif
+        ignore-unfixed: true
+        vuln-type: os,library
+    - name: Upload Trivy scan results to GitHub Security tab
+      if: always() && github.repository == 'hairyhenderson/go-fsimpl'
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: 'trivy-results.sarif'
