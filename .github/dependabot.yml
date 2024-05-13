@@ -3,16 +3,14 @@ updates:
 - package-ecosystem: gomod
   directory: "/"
   schedule:
-    interval: weekly
-    day: saturday
-    time: "02:00"
-    timezone: Canada/Eastern
+    interval: daily
   open-pull-requests-limit: 10
+  commit-message:
+    prefix: deps(go)
 - package-ecosystem: github-actions
   directory: "/"
   schedule:
-    interval: weekly
-    day: sunday
-    time: "22:00"
-    timezone: Canada/Eastern
+    interval: daily
   open-pull-requests-limit: 10
+  commit-message:
+    prefix: deps(actions)
