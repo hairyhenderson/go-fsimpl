@@ -38,7 +38,7 @@ func initTracing(ctx context.Context) (func(context.Context) error, error) {
 	otel.SetTextMapPropagator(autoprop.NewTextMapPropagator())
 
 	otel.SetErrorHandler(otelErrHandler(func(err error) {
-		slog.Error("OTel error", err)
+		slog.Error("OTel error", slog.Any("err", err))
 	}))
 
 	shutdown := func(ctx context.Context) error {
