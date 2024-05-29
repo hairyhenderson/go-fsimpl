@@ -7,7 +7,7 @@ require (
 	github.com/aws/aws-sdk-go v1.53.1
 	github.com/aws/aws-sdk-go-v2 v1.27.0
 	github.com/aws/aws-sdk-go-v2/config v1.27.13
-	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.16.1
+	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.16.3
 	github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.28.7
 	github.com/aws/aws-sdk-go-v2/service/ssm v1.50.1
 	github.com/aws/smithy-go v1.20.2
