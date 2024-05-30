@@ -297,8 +297,8 @@ github.com/hashicorp/vault/api v1.14.0 h1:Ah3CFLixD5jmjusOgm8grfN9M0d+Y8fVR2SW0K
 github.com/hashicorp/vault/api v1.14.0/go.mod h1:pV9YLxBGSz+cItFDd8Ii4G17waWOQ32zVjMWHe/cOqk=
 github.com/hashicorp/vault/api/auth/approle v0.6.0 h1:ELfFFQlTM/e97WJKu1HvNFa7lQ3tlTwwzrR1NJE1V7Y=
 github.com/hashicorp/vault/api/auth/approle v0.6.0/go.mod h1:CCoIl1xBC3lAWpd1HV+0ovk76Z8b8Mdepyk21h3pGk0=
-github.com/hashicorp/vault/api/auth/userpass v0.6.0 h1:wpiGIbS7CMdqqqs7GNQMO+AQW6DxecGBDTgxaBW5R9Q=
-github.com/hashicorp/vault/api/auth/userpass v0.6.0/go.mod h1:BYLic7wPxTqn35FX0nKU2oCdZYEDJ/UCFQY0zO4AImI=
+github.com/hashicorp/vault/api/auth/userpass v0.7.0 h1:7Fk0qtF2NYSJyQ6EOO+Kt93dEobI30AqBrrC5wE6e+8=
+github.com/hashicorp/vault/api/auth/userpass v0.7.0/go.mod h1:3tZ2KAAui23OKlo5PZ+sBycoJ4wdurY6oZdQWJ0UStg=
 github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 h1:BQSFePA1RWJOlocH6Fxy8MmwDt+yVQYULKfN0RoTN8A=
 github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99/go.mod h1:1lJo3i6rXxKeerYnT8Nvf0QmHCRC1n8sfWVwXF2Frvo=
 github.com/jmespath/go-jmespath v0.4.0 h1:BEgLn5cpjn8UN1mAw4NjwDrS35OdebyEtFe+9YPoQUg=
