@@ -5,8 +5,7 @@ linters-settings:
     min-complexity: 10
   gomoddirectives:
     replace-local: false
-    replace-allow-list:
-      - github.com/go-git/go-git/v5
+    replace-allow-list: []
   dupl:
     threshold: 100
   goconst:
