@@ -1,5 +1,38 @@
 # Changelog
 
+## [0.1.2](https://github.com/hairyhenderson/go-fsimpl/compare/v0.1.1...v0.1.2) (2024-06-08)
+
+
+### Bug Fixes
+
+* **aws*fs:** Use BaseEndpoint for overriding endpoints ([#686](https://github.com/hairyhenderson/go-fsimpl/issues/686)) ([14df5fa](https://github.com/hairyhenderson/go-fsimpl/commit/14df5fa5d9b55428374172d44331de9dd9ece5c6))
+* **lint:** fix bad log line ([06efcc3](https://github.com/hairyhenderson/go-fsimpl/commit/06efcc370fa54fa2b2b5cb70c10596a826ea54f6))
+
+
+### Dependencies
+
+* **actions:** bump golangci/golangci-lint-action from 5 to 6 ([c0a8763](https://github.com/hairyhenderson/go-fsimpl/commit/c0a8763b2b9253479498b0acddcb394f1fdc15d6))
+* **go:** bump github.com/aws/aws-sdk-go from 1.53.0 to 1.53.1 ([#632](https://github.com/hairyhenderson/go-fsimpl/issues/632)) ([cc51b1b](https://github.com/hairyhenderson/go-fsimpl/commit/cc51b1b8e5c7053fae68b66205338bd281fd1980))
+* **go:** bump github.com/aws/aws-sdk-go from 1.53.1 to 1.53.12 ([#662](https://github.com/hairyhenderson/go-fsimpl/issues/662)) ([cc633a0](https://github.com/hairyhenderson/go-fsimpl/commit/cc633a02c9bd1c73c5604e004dbf46656d203d7e))
+* **go:** bump github.com/aws/aws-sdk-go from 1.53.12 to 1.53.13 ([#667](https://github.com/hairyhenderson/go-fsimpl/issues/667)) ([bc1e93b](https://github.com/hairyhenderson/go-fsimpl/commit/bc1e93b1b625bcad0344f491ce03be778ec02b00))
+* **go:** bump github.com/aws/aws-sdk-go from 1.53.13 to 1.53.14 ([#669](https://github.com/hairyhenderson/go-fsimpl/issues/669)) ([ec39259](https://github.com/hairyhenderson/go-fsimpl/commit/ec39259e66b287173794146673189fa27578f182))
+* **go:** bump github.com/aws/aws-sdk-go from 1.53.14 to 1.53.19 ([#683](https://github.com/hairyhenderson/go-fsimpl/issues/683)) ([40d056f](https://github.com/hairyhenderson/go-fsimpl/commit/40d056f8cc4209723f88aa9fcabd208d25d39441))
+* **go:** bump github.com/aws/aws-sdk-go-v2 from 1.26.1 to 1.27.0 ([#642](https://github.com/hairyhenderson/go-fsimpl/issues/642)) ([3728111](https://github.com/hairyhenderson/go-fsimpl/commit/37281110368ee02e5d2dfa1a7e3427b07d6ea5db))
+* **go:** bump github.com/aws/aws-sdk-go-v2/config ([#657](https://github.com/hairyhenderson/go-fsimpl/issues/657)) ([d0ffa28](https://github.com/hairyhenderson/go-fsimpl/commit/d0ffa28e49425a1b6106ce6506c68b405700ce82))
+* **go:** bump github.com/aws/aws-sdk-go-v2/config ([#681](https://github.com/hairyhenderson/go-fsimpl/issues/681)) ([430104b](https://github.com/hairyhenderson/go-fsimpl/commit/430104bbc72ff548fbc0569b856ce5b1daa7e718))
+* **go:** bump github.com/aws/aws-sdk-go-v2/feature/ec2/imds ([#645](https://github.com/hairyhenderson/go-fsimpl/issues/645)) ([4d3f3c9](https://github.com/hairyhenderson/go-fsimpl/commit/4d3f3c91175f79c741c9234e671f9ab6f4c584e0))
+* **go:** bump github.com/aws/aws-sdk-go-v2/service/secretsmanager ([#658](https://github.com/hairyhenderson/go-fsimpl/issues/658)) ([d2297c8](https://github.com/hairyhenderson/go-fsimpl/commit/d2297c8181f1f24a007858505f8c4d8830e41ef7))
+* **go:** bump github.com/aws/aws-sdk-go-v2/service/secretsmanager ([#684](https://github.com/hairyhenderson/go-fsimpl/issues/684)) ([a1a1a82](https://github.com/hairyhenderson/go-fsimpl/commit/a1a1a821b19795ea3ddbbd0d6c1eff98d7d1361c))
+* **go:** bump github.com/aws/aws-sdk-go-v2/service/ssm ([#659](https://github.com/hairyhenderson/go-fsimpl/issues/659)) ([84fd478](https://github.com/hairyhenderson/go-fsimpl/commit/84fd478b0a428a158ed861a5c81fff10fa606846))
+* **go:** bump github.com/aws/aws-sdk-go-v2/service/ssm ([#685](https://github.com/hairyhenderson/go-fsimpl/issues/685)) ([16939ef](https://github.com/hairyhenderson/go-fsimpl/commit/16939ef24b41705043b0cd70c70c9436ec0e460e))
+* **go:** bump github.com/fsouza/fake-gcs-server from 1.49.0 to 1.49.1 ([#666](https://github.com/hairyhenderson/go-fsimpl/issues/666)) ([03490b7](https://github.com/hairyhenderson/go-fsimpl/commit/03490b75fc30ae7474fcba7c4ed64b956ff62aa6))
+* **go:** bump github.com/hashicorp/consul/api from 1.28.2 to 1.29.1 ([#663](https://github.com/hairyhenderson/go-fsimpl/issues/663)) ([9f180a7](https://github.com/hairyhenderson/go-fsimpl/commit/9f180a7c76d1b27888c24021cb7ce3e08c8f3afe))
+* **go:** bump github.com/hashicorp/vault/api from 1.13.0 to 1.14.0 ([#664](https://github.com/hairyhenderson/go-fsimpl/issues/664)) ([398b871](https://github.com/hairyhenderson/go-fsimpl/commit/398b8712ab6f0d3ae0316b64a589f94b677f046c))
+* **go:** bump github.com/hashicorp/vault/api/auth/approle ([#665](https://github.com/hairyhenderson/go-fsimpl/issues/665)) ([0fe9150](https://github.com/hairyhenderson/go-fsimpl/commit/0fe9150944c3659e8081e0dde3f8ea9a59261f1e))
+* **go:** bump github.com/hashicorp/vault/api/auth/userpass ([#668](https://github.com/hairyhenderson/go-fsimpl/issues/668)) ([c4652bf](https://github.com/hairyhenderson/go-fsimpl/commit/c4652bfe03f30ac8ba26884eafad7a35fd67e3bd))
+* **go:** bump go.opentelemetry.io/otel from 1.26.0 to 1.27.0 ([#653](https://github.com/hairyhenderson/go-fsimpl/issues/653)) ([eaf66d1](https://github.com/hairyhenderson/go-fsimpl/commit/eaf66d172c2a33042cfec5a73225f6ca53a93b35))
+* **go:** bump golang.org/x/crypto from 0.23.0 to 0.24.0 ([#676](https://github.com/hairyhenderson/go-fsimpl/issues/676)) ([b0fb67d](https://github.com/hairyhenderson/go-fsimpl/commit/b0fb67d60825106d8e520268a3327f1f4b97e2e1))
+
 ## [0.1.1](https://github.com/hairyhenderson/go-fsimpl/compare/v0.1.0...v0.1.1) (2024-05-11)
 
 
