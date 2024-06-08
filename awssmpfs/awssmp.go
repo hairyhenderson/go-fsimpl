@@ -140,25 +140,21 @@ func (f *awssmpFS) getClient(ctx context.Context) (SSMClient, error) {
 		opts = append(opts, config.WithHTTPClient(f.httpclient))
 	}
 
-	// setting a host in the URL is only intended for test purposes
-	if f.base.Host != "" {
-		customResolver := aws.EndpointResolverWithOptionsFunc(func(_, _ string, _ ...interface{}) (aws.Endpoint, error) {
-			return aws.Endpoint{
-				PartitionID:   "aws",
-				URL:           "http://" + f.base.Host,
-				SigningRegion: "us-east-1",
-			}, nil
-		})
-
-		opts = append(opts, config.WithEndpointResolverWithOptions(customResolver))
-	}
-
 	cfg, err := config.LoadDefaultConfig(ctx, opts...)
 	if err != nil {
 		return nil, err
 	}
 
-	f.ssmclient = ssm.NewFromConfig(cfg)
+	optFns := []func(*ssm.Options){}
+
+	// setting a host in the URL is only intended for test purposes
+	if f.base.Host != "" {
+		optFns = append(optFns, func(o *ssm.Options) {
+			o.BaseEndpoint = aws.String("http://" + f.base.Host)
+		})
+	}
+
+	f.ssmclient = ssm.NewFromConfig(cfg, optFns...)
 
 	return f.ssmclient, nil
 }

@@ -140,7 +140,16 @@ func (f *awssmFS) getClient(ctx context.Context) (SecretsManagerClient, error) {
 		return nil, err
 	}
 
-	f.smclient = secretsmanager.NewFromConfig(cfg)
+	optFns := []func(*secretsmanager.Options){}
+
+	// setting a host in the URL is only intended for test purposes
+	if f.base.Host != "" {
+		optFns = append(optFns, func(o *secretsmanager.Options) {
+			o.BaseEndpoint = aws.String("http://" + f.base.Host)
+		})
+	}
+
+	f.smclient = secretsmanager.NewFromConfig(cfg, optFns...)
 
 	return f.smclient, nil
 }
