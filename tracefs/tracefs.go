@@ -108,7 +108,7 @@ func (f *traceFS) Open(name string) (fs.File, error) {
 		return file, recordError(span, err)
 	}
 
-	return wrapFile(ctx, file, fsys, name, f.tracer)
+	return wrapFile(ctx, file, fsys, name, f.tracer), nil
 }
 
 func (f *traceFS) ReadDir(name string) ([]fs.DirEntry, error) {

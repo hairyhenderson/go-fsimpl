@@ -10,22 +10,22 @@ import (
 )
 
 // wrapFile wraps a fs.File with a tracedelegate
-func wrapFile(ctx context.Context, f fs.File, fsys fs.FS, name string, tracer trace.Tracer) (fs.File, error) {
+func wrapFile(ctx context.Context, f fs.File, fsys fs.FS, name string, tracer trace.Tracer) fs.File {
 	delegate := tracedelegate{ctx: ctx, fsys: fsys, tracer: tracer, name: name}
 
 	switch ft := f.(type) {
 	case fs.ReadDirFile:
-		return &traceDir{f: ft, d: delegate}, nil
+		return &traceDir{f: ft, d: delegate}
 	case io.ReaderAt:
 		if _, ok := ft.(io.Seeker); ok {
-			return &traceReaderAtSeekerFile{f: f, d: delegate}, nil
+			return &traceReaderAtSeekerFile{f: f, d: delegate}
 		}
 
-		return &traceReaderAtFile{f: f, d: delegate}, nil
+		return &traceReaderAtFile{f: f, d: delegate}
 	case io.Seeker:
-		return &traceSeekerFile{f: f, d: delegate}, nil
+		return &traceSeekerFile{f: f, d: delegate}
 	default:
-		return &traceFile{f: ft, d: delegate}, nil
+		return &traceFile{f: ft, d: delegate}
 	}
 }
 
