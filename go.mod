@@ -13,7 +13,6 @@ require (
 	github.com/aws/smithy-go v1.20.2
 	github.com/fsouza/fake-gcs-server v1.49.2
 	github.com/go-git/go-billy/v5 v5.5.0
-	github.com/go-git/go-git/v5 v5.11.0
 	github.com/hashicorp/consul/api v1.29.1
 	github.com/hashicorp/vault/api v1.14.0
 	github.com/hashicorp/vault/api/auth/approle v0.7.0
@@ -31,9 +30,9 @@ require (
 )
 
 // TODO: once https://github.com/go-git/go-git/pull/416 is merged, this can be
-// removed and we can use the upstream module. This commit on my fork is a
-// cherry-pick from the PR on top of v5.11.0
-replace github.com/go-git/go-git/v5 => github.com/hairyhenderson/go-git/v5 v5.0.0-20240112193603-9068a607f23a
+// reverted to the upstream module. This commit on my fork is a cherry-pick from
+// the PR on top of v5.12.0
+require github.com/hairyhenderson/go-git/v5 v5.12.1-0.20240530140403-1b868a7b8a3c
 
 require (
 	cloud.google.com/go v0.114.0 // indirect
@@ -120,9 +119,9 @@ require (
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/ryanuber/go-glob v1.0.0 // indirect
 	github.com/ryszard/goskiplist v0.0.0-20150312221310-2dfbae5fcf46 // indirect
-	github.com/sergi/go-diff v1.3.1 // indirect
+	github.com/sergi/go-diff v1.3.2-0.20230802210424-5b0b94c5c0d3 // indirect
 	github.com/shabbyrobe/gocovmerge v0.0.0-20190829150210-3e036491d500 // indirect
-	github.com/skeema/knownhosts v1.2.1 // indirect
+	github.com/skeema/knownhosts v1.2.2 // indirect
 	github.com/xanzy/ssh-agent v0.3.3 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.49.0 // indirect
