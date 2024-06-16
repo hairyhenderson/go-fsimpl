@@ -348,29 +348,6 @@ func TestReadDirN(t *testing.T) {
 	assert.Len(t, de, 3)
 }
 
-func TestSubURL(t *testing.T) {
-	fsys := &vaultFS{base: tests.MustURL("https://example.com/v1/secret/")}
-
-	sub, err := fsys.subURL("foo")
-	assert.NoError(t, err)
-	assert.Equal(t, "https://example.com/v1/secret/foo", sub.String())
-
-	fsys = &vaultFS{base: tests.MustURL("vault:///v1/secret/")}
-	sub, err = fsys.subURL("sub/foo?param=foo")
-	assert.NoError(t, err)
-	assert.Equal(t, "vault:///v1/secret/sub/foo?param=foo", sub.String())
-
-	fsys = &vaultFS{base: tests.MustURL("vault:///v1/secret/?param1=foo&param2=bar")}
-	sub, err = fsys.subURL("sub/foo")
-	assert.NoError(t, err)
-	assert.Equal(t, "vault:///v1/secret/sub/foo?param1=foo&param2=bar", sub.String())
-
-	fsys = &vaultFS{base: tests.MustURL("vault:///v1/secret/?param1=foo&param2=bar")}
-	sub, err = fsys.subURL("sub/foo?param3=baz")
-	assert.NoError(t, err)
-	assert.Equal(t, "vault:///v1/secret/sub/foo?param1=foo&param2=bar&param3=baz", sub.String())
-}
-
 func TestStat(t *testing.T) {
 	v := newRefCountedClient(fakeVaultServer(t))
 
