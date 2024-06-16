@@ -159,7 +159,7 @@ func (f vaultFS) Open(name string) (fs.File, error) {
 		return nil, &fs.PathError{Op: "open", Path: name, Err: fs.ErrInvalid}
 	}
 
-	u, err := f.subURL(name)
+	u, err := internal.SubURL(f.base, name)
 	if err != nil {
 		return nil, err
 	}
@@ -191,29 +191,6 @@ func (f vaultFS) ReadFile(name string) ([]byte, error) {
 	}
 
 	return b, nil
-}
-
-func (f *vaultFS) subURL(name string) (*url.URL, error) {
-	rel, err := url.Parse(name)
-	if err != nil {
-		return nil, err
-	}
-
-	u := f.base.ResolveReference(rel)
-
-	// also merge query params
-	if f.base.RawQuery != "" {
-		bq := f.base.Query()
-		rq := rel.Query()
-
-		for k := range rq {
-			bq.Set(k, rq.Get(k))
-		}
-
-		u.RawQuery = bq.Encode()
-	}
-
-	return u, nil
 }
 
 // newVaultFile opens a vault file/dir for reading - if this file is not closed

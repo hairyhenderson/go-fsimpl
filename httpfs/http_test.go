@@ -2,6 +2,7 @@ package httpfs
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/fs"
@@ -14,6 +15,7 @@ import (
 	"github.com/hairyhenderson/go-fsimpl"
 	"github.com/hairyhenderson/go-fsimpl/internal/tests"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func setupHTTP(t *testing.T) *httptest.Server {
@@ -33,6 +35,19 @@ func setupHTTP(t *testing.T) *httptest.Server {
 		}
 
 		_, _ = w.Write([]byte(`{"msg": "hi there"}`))
+	})
+
+	mux.HandleFunc("/params", func(w http.ResponseWriter, r *http.Request) {
+		// just returns params as JSON
+		w.Header().Set("Content-Type", "application/json")
+
+		t.Logf("url: %v", r.URL)
+		t.Logf("params: %v", r.URL.Query())
+
+		err := json.NewEncoder(w).Encode(r.URL.Query())
+		if err != nil {
+			t.Fatalf("error encoding: %v", err)
+		}
 	})
 
 	srv := httptest.NewServer(mux)
@@ -83,6 +98,21 @@ func TestHttpFS(t *testing.T) {
 
 	_, err = fs.Stat(fsys, "bogus")
 	assert.Error(t, err)
+
+	t.Run("base URL query params are preserved", func(t *testing.T) {
+		fsys, _ = New(tests.MustURL(srv.URL + "/?foo=bar&baz=qux"))
+		fsys = fsimpl.WithContextFS(ctx, fsys)
+
+		f, err := fsys.Open("params")
+		assert.NoError(t, err)
+
+		defer f.Close()
+
+		body, err := io.ReadAll(f)
+		require.NoError(t, err)
+
+		assert.JSONEq(t, `{"foo":["bar"],"baz":["qux"]}`, string(body))
+	})
 }
 
 func setupExampleHTTPServer() *httptest.Server {

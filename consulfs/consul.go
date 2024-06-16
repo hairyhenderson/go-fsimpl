@@ -182,7 +182,7 @@ func (f *consulFS) Open(name string) (fs.File, error) {
 		return nil, &fs.PathError{Op: "open", Path: name, Err: fs.ErrInvalid}
 	}
 
-	u, err := subURL(f.base, name)
+	u, err := internal.SubURL(f.base, name)
 	if err != nil {
 		return nil, err
 	}
@@ -209,7 +209,7 @@ func (f *consulFS) ReadFile(name string) ([]byte, error) {
 		}
 	}
 
-	u, err := subURL(f.base, name)
+	u, err := internal.SubURL(f.base, name)
 	if err != nil {
 		return nil, err
 	}
@@ -227,15 +227,6 @@ func (f *consulFS) ReadFile(name string) ([]byte, error) {
 	}
 
 	return kvPair.Value, nil
-}
-
-func subURL(base *url.URL, name string) (*url.URL, error) {
-	rel, err := url.Parse(name)
-	if err != nil {
-		return nil, err
-	}
-
-	return base.ResolveReference(rel), nil
 }
 
 type consulFile struct {
@@ -398,7 +389,7 @@ func (f *consulFile) childFile(childName string) *consulFile {
 		parent.Path += "/"
 	}
 
-	childURL, _ := subURL(&parent, childName)
+	childURL, _ := internal.SubURL(&parent, childName)
 
 	cf := &consulFile{
 		ctx:       f.ctx,

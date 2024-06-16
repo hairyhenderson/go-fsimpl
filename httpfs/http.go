@@ -104,7 +104,7 @@ func (f httpFS) Open(name string) (fs.File, error) {
 		}
 	}
 
-	u, err := f.subURL(name)
+	u, err := internal.SubURL(f.base, name)
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +136,7 @@ func (f httpFS) ReadFile(name string) ([]byte, error) {
 func (f httpFS) Sub(name string) (fs.FS, error) {
 	fsys := f
 
-	u, err := f.subURL(name)
+	u, err := internal.SubURL(f.base, name)
 	if err != nil {
 		return nil, err
 	}
@@ -144,15 +144,6 @@ func (f httpFS) Sub(name string) (fs.FS, error) {
 	fsys.base = u
 
 	return &fsys, nil
-}
-
-func (f *httpFS) subURL(name string) (*url.URL, error) {
-	rel, err := url.Parse(name)
-	if err != nil {
-		return nil, err
-	}
-
-	return f.base.ResolveReference(rel), nil
 }
 
 type httpFile struct {

@@ -365,18 +365,6 @@ func TestReadDirN(t *testing.T) {
 	assert.Len(t, de, 3)
 }
 
-func TestSubURL(t *testing.T) {
-	base := tests.MustURL("https://example.com/dir/")
-	sub, err := subURL(base, "sub")
-	assert.NoError(t, err)
-	assert.Equal(t, "https://example.com/dir/sub", sub.String())
-
-	base = tests.MustURL("consul:///dir/")
-	sub, err = subURL(base, "sub/foo?param=foo")
-	assert.NoError(t, err)
-	assert.Equal(t, "consul:///dir/sub/foo?param=foo", sub.String())
-}
-
 func TestStat(t *testing.T) {
 	config := fakeConsulServer(t)
 
