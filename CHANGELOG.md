@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.1.3](https://github.com/hairyhenderson/go-fsimpl/compare/v0.1.2...v0.1.3) (2024-06-16)
+
+
+### Bug Fixes
+
+* **httpfs/consulfs:** base URL query parameters weren't preserved ([#696](https://github.com/hairyhenderson/go-fsimpl/issues/696)) ([fa2a8fd](https://github.com/hairyhenderson/go-fsimpl/commit/fa2a8fdcec91c8f9c88ed7018a9bea1e187b1dd7))
+
+
+### Dependencies
+
+* **go:** bump github.com/aws/aws-sdk-go from 1.53.19 to 1.54.2 ([#693](https://github.com/hairyhenderson/go-fsimpl/issues/693)) ([7f8ce20](https://github.com/hairyhenderson/go-fsimpl/commit/7f8ce20bf4911469a753e2c2e0ebda2b8d852d24))
+* **go:** bump github.com/aws/aws-sdk-go-v2/service/secretsmanager ([#692](https://github.com/hairyhenderson/go-fsimpl/issues/692)) ([f5fbd76](https://github.com/hairyhenderson/go-fsimpl/commit/f5fbd7675f94354d7d63f29392015e82504d0b16))
+* **go:** bump github.com/Azure/azure-sdk-for-go/sdk/azidentity ([#690](https://github.com/hairyhenderson/go-fsimpl/issues/690)) ([8ed1ecf](https://github.com/hairyhenderson/go-fsimpl/commit/8ed1ecf294828e464bf57d28b17c4899335a6941))
+* **go:** bump github.com/fsouza/fake-gcs-server from 1.49.1 to 1.49.2 ([#688](https://github.com/hairyhenderson/go-fsimpl/issues/688)) ([946003d](https://github.com/hairyhenderson/go-fsimpl/commit/946003d5a36a39a377709a4af9129f22fbca45b1))
+
 ## [0.1.2](https://github.com/hairyhenderson/go-fsimpl/compare/v0.1.1...v0.1.2) (2024-06-08)
 
 
