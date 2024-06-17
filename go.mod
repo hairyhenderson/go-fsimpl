@@ -5,10 +5,10 @@ go 1.22.3
 require (
 	github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v1.3.2
 	github.com/aws/aws-sdk-go v1.54.2
-	github.com/aws/aws-sdk-go-v2 v1.27.2
+	github.com/aws/aws-sdk-go-v2 v1.28.0
 	github.com/aws/aws-sdk-go-v2/config v1.27.18
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.16.5
-	github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.30.0
+	github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.30.1
 	github.com/aws/aws-sdk-go-v2/service/ssm v1.50.6
 	github.com/aws/smithy-go v1.20.2
 	github.com/fsouza/fake-gcs-server v1.49.2
@@ -55,8 +55,8 @@ require (
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.6.1 // indirect
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.18 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.16.9 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.9 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.6.9 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.10 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.6.10 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/ini v1.8.0 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/v4a v1.3.3 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.11.2 // indirect
