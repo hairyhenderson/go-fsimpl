@@ -20,11 +20,18 @@ else
 LINT_PROCS ?= $(shell nproc)
 endif
 
-test:
-	CGO_ENABLED=0 go test -coverprofile=c.out ./...
+# test with race detector on supported platforms
+# windows/amd64 is supported in theory, but in practice it requires a C compiler
+race_platforms := 'linux/amd64' 'darwin/amd64' 'darwin/arm64'
+ifeq (,$(findstring '$(GOOS)/$(GOARCH)',$(race_platforms)))
+export CGO_ENABLED=0
+TEST_ARGS=
+else
+TEST_ARGS=-race
+endif
 
-test-race:
-	go test -race -coverprofile=c.out ./...
+test:
+	go test $(TEST_ARGS) -coverprofile=c.out ./...
 
 bin/fscli_%v7$(call extension,$(GOOS)): $(shell find . -type f -name "*.go")
 	GOOS=$(shell echo $* | cut -f1 -d-) \

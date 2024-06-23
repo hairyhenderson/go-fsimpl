@@ -12,15 +12,18 @@ permissions:
 jobs:
   linux-build:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        goarch: [ '386', 'amd64' ]
     container:
-      image: ghcr.io/hairyhenderson/gomplate-ci-build:latest
+      image: ghcr.io/hairyhenderson/gomplate-ci-build
     steps:
       - run: |
           git config --global user.email "bogus@example.com"
           git config --global user.name "Someone"
       - uses: actions/checkout@v4
-      - run: make test
-      - run: make test-race
+      - run: make test GOARCH=${{ matrix.goarch }}
   fscli-build:
     runs-on: ubuntu-latest
     strategy:
