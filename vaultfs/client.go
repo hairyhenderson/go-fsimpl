@@ -18,13 +18,13 @@ func newRefCountedClient(c *api.Client) *refCountedClient {
 // other files are still open.
 type refCountedClient struct {
 	*api.Client
-	refs uint64
+	refs atomic.Uint64
 }
 
 // var _ VaultClient = (*refCountedClient)(nil)
 
 func (c *refCountedClient) AddRef() {
-	atomic.AddUint64(&c.refs, 1)
+	c.refs.Add(1)
 }
 
 func (c *refCountedClient) RemoveRef() {
@@ -36,9 +36,9 @@ func (c *refCountedClient) RemoveRef() {
 	}
 
 	// decrements the ref count by overflowing (see atomic.AddUint64 doc)
-	atomic.AddUint64(&c.refs, ^uint64(0))
+	c.refs.Add(^uint64(0))
 }
 
 func (c *refCountedClient) Refs() uint64 {
-	return atomic.LoadUint64(&c.refs)
+	return c.refs.Load()
 }
