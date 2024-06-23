@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.1.4](https://github.com/hairyhenderson/go-fsimpl/compare/v0.1.3...v0.1.4) (2024-06-23)
+
+
+### Bug Fixes
+
+* **vaultfs:** Fix 32-bit panic ([#720](https://github.com/hairyhenderson/go-fsimpl/issues/720)) ([f08ee83](https://github.com/hairyhenderson/go-fsimpl/commit/f08ee83718d16de5ebd3d5c9ec8d76229062b4b7))
+
+
+### Dependencies
+
+* **go:** bump github.com/aws/aws-sdk-go from 1.54.2 to 1.54.4 ([#709](https://github.com/hairyhenderson/go-fsimpl/issues/709)) ([c4bbbfb](https://github.com/hairyhenderson/go-fsimpl/commit/c4bbbfb18ebc7298cd98aba086e8cd794f3e4e9c))
+* **go:** bump github.com/aws/aws-sdk-go from 1.54.4 to 1.54.5 ([#714](https://github.com/hairyhenderson/go-fsimpl/issues/714)) ([ed15be8](https://github.com/hairyhenderson/go-fsimpl/commit/ed15be8302311deb590a3b844a66a54eecdcf1e5))
+* **go:** bump github.com/aws/aws-sdk-go from 1.54.5 to 1.54.6 ([#717](https://github.com/hairyhenderson/go-fsimpl/issues/717)) ([9740435](https://github.com/hairyhenderson/go-fsimpl/commit/97404351cdd30d2cbf9fcce87d36347e262c8e54))
+* **go:** bump github.com/aws/aws-sdk-go-v2 from 1.29.0 to 1.30.0 ([#713](https://github.com/hairyhenderson/go-fsimpl/issues/713)) ([eff29a1](https://github.com/hairyhenderson/go-fsimpl/commit/eff29a11212c595c444ba3442ffd342d780ad0b1))
+* **go:** bump github.com/aws/aws-sdk-go-v2/config ([#705](https://github.com/hairyhenderson/go-fsimpl/issues/705)) ([d955624](https://github.com/hairyhenderson/go-fsimpl/commit/d955624db4eef8bf3d6216477fb862124147a286))
+* **go:** bump github.com/aws/aws-sdk-go-v2/config ([#715](https://github.com/hairyhenderson/go-fsimpl/issues/715)) ([ee77200](https://github.com/hairyhenderson/go-fsimpl/commit/ee7720018e217426a75e80bace2b8e3978d7c42d))
+* **go:** bump github.com/aws/aws-sdk-go-v2/service/secretsmanager ([#708](https://github.com/hairyhenderson/go-fsimpl/issues/708)) ([b3961b0](https://github.com/hairyhenderson/go-fsimpl/commit/b3961b010b170e6376dfb145916364cfffa256fd))
+* **go:** bump github.com/aws/aws-sdk-go-v2/service/secretsmanager ([#712](https://github.com/hairyhenderson/go-fsimpl/issues/712)) ([1a58b9c](https://github.com/hairyhenderson/go-fsimpl/commit/1a58b9cb40ce185c92486ca24b117d0d8b07f77d))
+* **go:** bump github.com/aws/aws-sdk-go-v2/service/ssm ([#706](https://github.com/hairyhenderson/go-fsimpl/issues/706)) ([35c282b](https://github.com/hairyhenderson/go-fsimpl/commit/35c282be6f94be0a3b976e6d6078d394916fd771))
+* **go:** bump github.com/aws/aws-sdk-go-v2/service/ssm ([#711](https://github.com/hairyhenderson/go-fsimpl/issues/711)) ([592e45b](https://github.com/hairyhenderson/go-fsimpl/commit/592e45b72f7f0059bbac7c9f0f3d222cda8b0797))
+
 ## [0.1.3](https://github.com/hairyhenderson/go-fsimpl/compare/v0.1.2...v0.1.3) (2024-06-16)
 
 
