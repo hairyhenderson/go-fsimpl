@@ -39,31 +39,37 @@ func setupConsulFSTest(t *testing.T) consulTestConfig {
 	serverPort, _ := freeport(t)
 	serfLanPort, _ := freeport(t)
 
+	t.Logf("Consul ports: http=%d, server=%d, serf_lan=%d", httpPort, serverPort, serfLanPort)
+
+	if httpPort == 0 || serverPort == 0 || serfLanPort == 0 ||
+		httpPort == serverPort || httpPort == serfLanPort || serverPort == serfLanPort {
+		t.Fatal("failed to find unique free ports")
+	}
+
+	consulConfig := `{
+	"log_level": "err",
+	"primary_datacenter": "dc1",
+	"acl": {
+		"enabled": true,
+		"tokens": {
+			"initial_management": "` + consulRootToken + `"
+		},
+		"default_policy": "deny",
+		"enable_token_persistence": false
+	},
+	"ports": {
+		"http": ` + strconv.Itoa(httpPort) + `,
+		"server": ` + strconv.Itoa(serverPort) + `,
+		"serf_lan": ` + strconv.Itoa(serfLanPort) + `,
+		"serf_wan": -1,
+		"dns": -1,
+		"grpc": -1
+	},
+	"connect": { "enabled": false }
+}`
+
 	tmpDir := gotestfs.NewDir(t, "gofsimpl-inttests",
-		gotestfs.WithFile(
-			"consul.json",
-			`{
-				"log_level": "err",
-				"primary_datacenter": "dc1",
-				"acl": {
-					"enabled": true,
-					"tokens": {
-						"initial_management": "`+consulRootToken+`"
-					},
-					"default_policy": "deny",
-					"enable_token_persistence": false
-				},
-				"ports": {
-					"http": `+strconv.Itoa(httpPort)+`,
-					"server": `+strconv.Itoa(serverPort)+`,
-					"serf_lan": `+strconv.Itoa(serfLanPort)+`,
-					"serf_wan": -1,
-					"dns": -1,
-					"grpc": -1
-				},
-				"connect": { "enabled": false }
-			}`,
-		),
+		gotestfs.WithFile("consul.json", consulConfig),
 		gotestfs.WithFile("vault.json", `{
 		"pid_file": "`+pidDir.Join("vault.pid")+`"
 		}`),
@@ -84,6 +90,8 @@ func setupConsulFSTest(t *testing.T) consulTestConfig {
 		_ = consulResult.Cmd.Wait()
 
 		t.Logf("consul logs:\n%s\n", consulResult.Combined())
+
+		t.Logf("consul config:\n%s\n", consulConfig)
 
 		consulResult.Assert(t, icmd.Expected{ExitCode: 0})
 	})
