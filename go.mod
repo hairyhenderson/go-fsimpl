@@ -4,7 +4,7 @@ go 1.22.4
 
 require (
 	github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v1.3.2
-	github.com/aws/aws-sdk-go v1.54.8
+	github.com/aws/aws-sdk-go v1.54.9
 	github.com/aws/aws-sdk-go-v2 v1.30.0
 	github.com/aws/aws-sdk-go-v2/config v1.27.21
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.16.8
