@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.1.5](https://github.com/hairyhenderson/go-fsimpl/compare/v0.1.4...v0.1.5) (2024-06-27)
+
+
+### Dependencies
+
+* **go:** bump github.com/aws/aws-sdk-go from 1.54.6 to 1.54.8 ([#722](https://github.com/hairyhenderson/go-fsimpl/issues/722)) ([b9026e9](https://github.com/hairyhenderson/go-fsimpl/commit/b9026e907fbbedb731e602b347eda780734059fd))
+* **go:** bump github.com/aws/aws-sdk-go from 1.54.8 to 1.54.9 ([#727](https://github.com/hairyhenderson/go-fsimpl/issues/727)) ([bb8847a](https://github.com/hairyhenderson/go-fsimpl/commit/bb8847a42acb4a63735d239aa23ac7d885b5245b))
+* **go:** bump github.com/aws/aws-sdk-go-v2/config ([#725](https://github.com/hairyhenderson/go-fsimpl/issues/725)) ([a9ba87b](https://github.com/hairyhenderson/go-fsimpl/commit/a9ba87b20fcc9236ce6607c4905fc64237db354d))
+* **go:** bump github.com/aws/aws-sdk-go-v2/service/secretsmanager ([#724](https://github.com/hairyhenderson/go-fsimpl/issues/724)) ([9f3bf94](https://github.com/hairyhenderson/go-fsimpl/commit/9f3bf94f64ba6f40558029e9353b7b377847e109))
+* **go:** bump github.com/aws/aws-sdk-go-v2/service/ssm ([#726](https://github.com/hairyhenderson/go-fsimpl/issues/726)) ([af6fe5c](https://github.com/hairyhenderson/go-fsimpl/commit/af6fe5cfe76eef66b895d58e11d983287f3a3a3b))
+* **go:** bump github.com/hashicorp/go-retryablehttp ([#721](https://github.com/hairyhenderson/go-fsimpl/issues/721)) ([2d12161](https://github.com/hairyhenderson/go-fsimpl/commit/2d12161b7c00ffec2316af078b39905d39efca33))
+
 ## [0.1.4](https://github.com/hairyhenderson/go-fsimpl/compare/v0.1.3...v0.1.4) (2024-06-23)
 
 
