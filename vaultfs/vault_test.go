@@ -355,3 +355,61 @@ func TestFileAuthCaching(t *testing.T) {
 	require.NoError(t, err)
 	assert.Empty(t, v.Token())
 }
+
+func TestFindMountInfo(t *testing.T) {
+	testdata := []struct {
+		expected    *mountInfo
+		mountOpts   interface{}
+		mountName   string
+		rawFilePath string
+	}{
+		{
+			// no match
+			rawFilePath: "/v1/secret/a/b/c", mountName: "potato/",
+			mountOpts: map[string]interface{}{
+				"type":    "kv",
+				"options": map[string]interface{}{"version": "1"},
+			}, expected: nil,
+		},
+		{
+			rawFilePath: "/v1/secret/a/b/c", mountName: "secret/",
+			mountOpts: map[string]interface{}{
+				"type": "kv", "options": map[string]interface{}{"version": "1"},
+			},
+			expected: &mountInfo{
+				secretPath: "/a/b/c",
+				name:       "secret/",
+				MountOutput: &api.MountOutput{
+					Type:    "kv",
+					Options: map[string]string{"version": "1"},
+				},
+			},
+		},
+		{
+			// just the mount, e.g. for list
+			rawFilePath: "/v1/kv2", mountName: "kv2/",
+			mountOpts: map[string]interface{}{
+				"type": "kv", "options": map[string]interface{}{"version": "2"},
+			},
+			expected: &mountInfo{
+				secretPath: "",
+				name:       "kv2/",
+				MountOutput: &api.MountOutput{
+					Type:    "kv",
+					Options: map[string]string{"version": "2"},
+				},
+			},
+		},
+	}
+
+	for _, d := range testdata {
+		rawMounts := map[string]interface{}{
+			"bogus/":    map[string]interface{}{},
+			d.mountName: d.mountOpts,
+		}
+
+		actual, err := findMountInfo(d.rawFilePath, rawMounts)
+		require.NoError(t, err)
+		assert.EqualValues(t, d.expected, actual)
+	}
+}

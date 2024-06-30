@@ -46,7 +46,7 @@ func (c *autoFS) New(u *url.URL) (fs.FS, error) {
 }
 
 func initMux() fsimpl.FSMux {
-	return sync.OnceValue[fsimpl.FSMux](func() fsimpl.FSMux {
+	return sync.OnceValue(func() fsimpl.FSMux {
 		mux := fsimpl.NewMux()
 		mux.Add(awsimdsfs.FS)
 		mux.Add(awssmfs.FS)

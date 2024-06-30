@@ -234,40 +234,17 @@ type mountInfo struct {
 
 var _ fs.ReadDirFile = (*vaultFile)(nil)
 
-func (f *vaultFile) newRequest(method string) (*api.Request, error) {
-	q := f.u.Query()
-	if len(q) > 0 && method == http.MethodGet {
-		method = http.MethodPost
-	}
-
-	req := f.client.NewRequest(method, f.u.Path)
-	if method == http.MethodGet {
-		req.Params = q
-	} else if len(q) > 0 {
-		data := map[string]interface{}{}
-
-		for k, vs := range q {
-			for _, v := range vs {
-				data[k] = v
-			}
-		}
-
-		err := req.SetJSONBody(data)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return req, nil
-}
-
-func (f *vaultFile) request(method string) (kv *api.KVSecret, secret *api.Secret, err error) {
+func (f *vaultFile) request(method string) (*api.KVSecret, *api.Secret, error) {
 	mountInfo, err := f.getMountInfo(f.ctx)
 	if err != nil {
 		return nil, nil, fmt.Errorf("get mount info: %w", err)
 	}
 
-	if mountInfo.Type == "kv" && mountInfo.Options["version"] == "2" {
+	// it's a KVv2 Get operation with the right type, version, and especially if
+	// the secret path is set - otherwise it might need to be a list operation
+	if mountInfo.secretPath != "" && mountInfo.Type == "kv" && mountInfo.Options["version"] == "2" {
+		var kv *api.KVSecret
+
 		kv, err = f.kv2request(f.ctx, mountInfo.name, mountInfo.secretPath)
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to get KV v2 secret: %w", err)
@@ -276,25 +253,9 @@ func (f *vaultFile) request(method string) (kv *api.KVSecret, secret *api.Secret
 		return kv, nil, nil
 	}
 
-	req, err := f.newRequest(method)
+	secret, err := f.rawRequest(method)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to create vault request: %w", err)
-	}
-
-	//nolint:staticcheck
-	resp, err := f.client.RawRequestWithContext(f.ctx, req)
-	if err != nil {
-		return nil, nil, fmt.Errorf("http %s %s failed with: %w", method, f.u.Path,
-			vaultFSError(err))
-	}
-
-	if resp.StatusCode == 0 || resp.StatusCode >= 400 {
-		return nil, nil, fmt.Errorf("http %s %s failed with status %d", method, f.u, resp.StatusCode)
-	}
-
-	secret, err = api.ParseSecret(resp.Body)
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to parse vault secret: %w", err)
+		return nil, nil, err
 	}
 
 	return nil, secret, nil
@@ -312,6 +273,64 @@ func (f *vaultFile) kv2request(ctx context.Context, mount, secret string) (kv *a
 	}
 
 	return kv2client.GetVersion(ctx, secret, version)
+}
+
+// rawRequest makes a raw request to Vault by constructing a new request from
+// the method and URL, and returns the parsed secret.
+//
+// This should probably be replaced with a call to the logical client (either
+// Read, Write, or List) in the future, especially as the RawRequestWithContext
+// method is deprecated.
+func (f *vaultFile) rawRequest(method string) (*api.Secret, error) {
+	req, err := f.newRequest(method)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create vault request: %w", err)
+	}
+
+	//nolint:staticcheck
+	resp, err := f.client.RawRequestWithContext(f.ctx, req)
+	if err != nil {
+		return nil, fmt.Errorf("http %s %s failed with: %w", method, f.u.Path,
+			vaultFSError(err))
+	}
+
+	if resp.StatusCode == 0 || resp.StatusCode >= 400 {
+		return nil, fmt.Errorf("http %s %s failed with status %d", method, f.u, resp.StatusCode)
+	}
+
+	secret, err := api.ParseSecret(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse vault secret: %w", err)
+	}
+
+	return secret, nil
+}
+
+func (f *vaultFile) newRequest(method string) (*api.Request, error) {
+	values := f.u.Query()
+	if len(values) > 0 && method == http.MethodGet {
+		method = http.MethodPost
+	}
+
+	req := f.client.NewRequest(method, f.u.Path)
+	if method == http.MethodGet {
+		req.Params = values
+	} else if len(values) > 0 {
+		data := map[string]interface{}{}
+
+		for k, vs := range values {
+			for _, v := range vs {
+				data[k] = v
+			}
+		}
+
+		err := req.SetJSONBody(data)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return req, nil
 }
 
 // Close the file. Will error on second call. Decrements the ref count on first
@@ -560,8 +579,6 @@ func vaultFSError(err error) error {
 // getMountInfo calls the undocumented sys/internal/ui/mounts endpoint to set
 // the file's mount metadata. This is used in preference to the sys/mounts
 // API because this one works read-only roles (!). The result is cached.
-//
-//nolint:gocyclo
 func (f *vaultFile) getMountInfo(ctx context.Context) (*mountInfo, error) {
 	if f.mountInfo != nil {
 		return f.mountInfo, nil
@@ -591,11 +608,28 @@ func (f *vaultFile) getMountInfo(ctx context.Context) (*mountInfo, error) {
 		return nil, fmt.Errorf("unexpected mount info format: %#v", s.Data)
 	}
 
-	for k, v := range rawMounts {
-		if strings.HasPrefix(f.u.Path, "/v1/"+k) {
-			v, ok := v.(map[string]interface{})
+	mi, err := findMountInfo(f.u.Path, rawMounts)
+	if err != nil {
+		return nil, err
+	}
+
+	if mi == nil {
+		return nil, fmt.Errorf("mount not found for %q", f.u.Path)
+	}
+
+	f.mountInfo = mi
+
+	return f.mountInfo, nil
+}
+
+func findMountInfo(rawFilePath string, rawMounts map[string]interface{}) (*mountInfo, error) {
+	for mountName, mountOpts := range rawMounts {
+		mountPrefix := path.Join("/v1", mountName)
+
+		if strings.HasPrefix(rawFilePath, mountPrefix) {
+			v, ok := mountOpts.(map[string]interface{})
 			if !ok {
-				return nil, fmt.Errorf("unexpected mount info format for %q: %#v", k, v)
+				return nil, fmt.Errorf("unexpected mount info format for %q: %#v", mountName, v)
 			}
 
 			mount := &api.MountOutput{Type: v["type"].(string)}
@@ -608,21 +642,15 @@ func (f *vaultFile) getMountInfo(ctx context.Context) (*mountInfo, error) {
 				}
 			}
 
-			f.mountInfo = &mountInfo{
-				name:        k,
-				secretPath:  strings.TrimPrefix(f.u.Path, "/v1/"+k),
-				MountOutput: mount,
-			}
+			// build secretPath - it's the part after the mount name, including the
+			// / prefix
+			spath := strings.TrimPrefix(rawFilePath, mountPrefix)
 
-			break
+			return &mountInfo{name: mountName, secretPath: spath, MountOutput: mount}, nil
 		}
 	}
 
-	if f.mountInfo == nil {
-		return nil, fmt.Errorf("mount not found for %q", f.u.Path)
-	}
-
-	return f.mountInfo, nil
+	return nil, nil
 }
 
 func createdTimeFromData(kvsec *api.KVSecret) time.Time {
