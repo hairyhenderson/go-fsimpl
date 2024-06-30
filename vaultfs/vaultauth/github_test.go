@@ -4,38 +4,19 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
-	"net/http/httptest"
-	"net/url"
 	"testing"
 
-	"github.com/hashicorp/vault/api"
+	"github.com/hairyhenderson/go-fsimpl/internal/tests/fakevault"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
-
-func fakeVault(t *testing.T, handler http.Handler) *api.Client {
-	srv := httptest.NewServer(handler)
-	t.Cleanup(srv.Close)
-
-	tr := &http.Transport{
-		Proxy: func(_ *http.Request) (*url.URL, error) {
-			return url.Parse(srv.URL)
-		},
-	}
-	httpClient := &http.Client{Transport: tr}
-	config := &api.Config{Address: srv.URL, HttpClient: httpClient}
-
-	c, _ := api.NewClient(config)
-
-	return c
-}
 
 func TestGitHubAuthMethod(t *testing.T) {
 	mount := "github"
 	token := "sometoken"
 	ghtoken := "abcd1234"
 
-	client := fakeVault(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	client := fakevault.FakeVault(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, "/v1/auth/"+mount+"/login", r.URL.Path)
 
 		out := map[string]interface{}{

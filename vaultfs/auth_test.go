@@ -10,12 +10,13 @@ import (
 	"testing"
 	"testing/fstest"
 
+	"github.com/hairyhenderson/go-fsimpl/internal/tests/fakevault"
 	"github.com/hashicorp/vault/api"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestEnvAuthLogin(t *testing.T) {
-	v := fakeVaultServer(t)
+	v := fakevault.Server(t)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -85,7 +86,7 @@ func TestAppRoleAuthMethod(t *testing.T) {
 	mount := "approle"
 	token := "approletoken"
 
-	client := fakeVault(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	client := fakevault.FakeVault(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, "/v1/auth/"+mount+"/login", r.URL.Path)
 
 		out := map[string]interface{}{
@@ -157,7 +158,7 @@ func TestUserPassAuthMethod(t *testing.T) {
 		_ = enc.Encode(out)
 	})
 
-	client := fakeVault(t, mux)
+	client := fakevault.FakeVault(t, mux)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -194,7 +195,7 @@ func TestGitHubAuthMethod(t *testing.T) {
 	token := "sometoken"
 	ghtoken := "abcd1234"
 
-	client := fakeVault(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	client := fakevault.FakeVault(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, "/v1/auth/"+mount+"/login", r.URL.Path)
 
 		out := map[string]interface{}{

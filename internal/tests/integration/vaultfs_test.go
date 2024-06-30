@@ -53,6 +53,15 @@ func setupVaultFSTest(ctx context.Context, t *testing.T) string {
 		}`)
 	require.NoError(t, err)
 
+	err = client.Sys().PutPolicyWithContext(ctx, "kv2pol",
+		`path "kv2/*" {
+			capabilities = ["read"]
+		}
+		path "a/b/c/*" {
+			capabilities = ["read", "list"]
+		}`)
+	require.NoError(t, err)
+
 	return addr
 }
 
@@ -587,6 +596,7 @@ func TestVaultFS_List(t *testing.T) {
 	assert.Equal(t, "foo", de[1].Name())
 }
 
+//nolint:funlen
 func TestVaultFS_KVv2(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -647,4 +657,51 @@ func TestVaultFS_KVv2(t *testing.T) {
 
 	// v1 should have an earlier mod time than v2
 	assert.NotEqual(t, v2Time, fi.ModTime())
+
+	t.Run("mount with slashes", func(t *testing.T) {
+		mount := "a/b/c"
+		err = client.Sys().MountWithContext(ctx, mount, &api.MountInput{
+			Type:    "kv",
+			Options: map[string]string{"version": "2"},
+		})
+		require.NoError(t, err)
+
+		s, err = client.KVv2(mount).Put(ctx, "d/e/f", map[string]interface{}{"e": "f"}, api.WithCheckAndSet(0))
+		require.NoError(t, err)
+
+		tok, err := tokenCreate(ctx, client, "kv2pol", 5)
+		require.NoError(t, err)
+
+		readClient, err := api.NewClient(&api.Config{Address: "http://" + addr})
+		require.NoError(t, err)
+
+		readClient.SetToken(tok)
+
+		fsys, err := vaultfs.New(tests.MustURL("http://" + addr))
+		require.NoError(t, err)
+
+		fsys = vaultauth.WithAuthMethod(vaultauth.NewTokenAuth(tok), fsys)
+		fsys = fsimpl.WithContextFS(ctx, fsys)
+
+		t.Run("can read", func(t *testing.T) {
+			f, err := fsys.Open(mount + "/d/e/f")
+			require.NoError(t, err)
+
+			b, err = io.ReadAll(f)
+			require.NoError(t, err)
+			assert.Equal(t, `{"e":"f"}`, string(b))
+		})
+
+		t.Run("can list", func(t *testing.T) {
+			des, err := fs.ReadDir(fsys, mount+"/d")
+			require.NoError(t, err)
+			assert.Len(t, des, 1)
+			assert.Equal(t, "e", des[0].Name())
+
+			des, err = fs.ReadDir(fsys, mount+"/d/e")
+			require.NoError(t, err)
+			assert.Len(t, des, 1)
+			assert.Equal(t, "f", des[0].Name())
+		})
+	})
 }
