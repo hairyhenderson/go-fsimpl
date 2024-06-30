@@ -7,7 +7,6 @@ import (
 	"io"
 	"io/fs"
 	"net/http"
-	"net/http/httptest"
 	"net/url"
 	"os"
 	"runtime"
@@ -17,6 +16,7 @@ import (
 	"github.com/hairyhenderson/go-fsimpl"
 	"github.com/hairyhenderson/go-fsimpl/internal"
 	"github.com/hairyhenderson/go-fsimpl/internal/tests"
+	"github.com/hairyhenderson/go-fsimpl/internal/tests/fakevault"
 	"github.com/hairyhenderson/go-fsimpl/vaultfs/vaultauth"
 	"github.com/hashicorp/vault/api"
 	"github.com/stretchr/testify/assert"
@@ -38,88 +38,6 @@ func Example() {
 	_ = json.Unmarshal(b, &s)
 
 	fmt.Printf("the secret is %s\n", s.Value)
-}
-
-func fakeVault(t *testing.T, handler http.Handler) *api.Client {
-	srv := httptest.NewServer(handler)
-	t.Cleanup(srv.Close)
-
-	tr := &http.Transport{
-		Proxy: func(_ *http.Request) (*url.URL, error) {
-			return url.Parse(srv.URL)
-		},
-	}
-	httpClient := &http.Client{Transport: tr}
-	config := &api.Config{Address: srv.URL, HttpClient: httpClient}
-
-	c, _ := api.NewClient(config)
-
-	return c
-}
-
-//nolint:funlen
-func fakeVaultServer(t *testing.T) *api.Client {
-	files := map[string]struct {
-		Value string   `json:"value,omitempty"`
-		Param string   `json:"param,omitempty"`
-		Keys  []string `json:"keys,omitempty"`
-	}{
-		"/v1/secret/":            {Keys: []string{"foo", "bar", "foo/"}},
-		"/v1/secret/foo":         {Value: "foo"},
-		"/v1/secret/bar":         {Value: "foo"},
-		"/v1/secret/foo/":        {Keys: []string{"foo", "bar", "bazDir/"}},
-		"/v1/secret/foo/foo":     {Value: "foo"},
-		"/v1/secret/foo/bar":     {Value: "foo"},
-		"/v1/secret/foo/bazDir/": {Keys: []string{"foo", "bar", "bazDir/"}},
-	}
-
-	return fakeVault(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == "LIST" {
-			r.URL.Path += "/"
-		}
-
-		data, ok := files[r.URL.Path]
-		if !ok {
-			w.WriteHeader(http.StatusNotFound)
-
-			return
-		}
-
-		q := r.URL.Query()
-		for k, v := range q {
-			if k == "method" {
-				assert.Equal(t, v[0], r.Method)
-			}
-		}
-
-		body := map[string]interface{}{}
-
-		if r.Body != nil {
-			dec := json.NewDecoder(r.Body)
-			_ = dec.Decode(&body)
-
-			defer r.Body.Close()
-
-			if p, ok := body["param"]; ok {
-				data.Param = p.(string)
-			}
-		}
-
-		switch r.Method {
-		case http.MethodGet:
-			assert.Empty(t, data.Param, r.URL)
-			assert.NotEmpty(t, data.Value, r.URL)
-		case http.MethodPost:
-			assert.NotEmpty(t, data.Param, r.URL)
-		case "LIST":
-			assert.NotEmpty(t, data.Keys, r.URL)
-		}
-
-		t.Logf("encoding %#v", data)
-
-		enc := json.NewEncoder(w)
-		_ = enc.Encode(map[string]interface{}{"data": data})
-	}))
 }
 
 func TestVaultConfig(t *testing.T) {
@@ -175,7 +93,7 @@ func TestWithContext(t *testing.T) {
 }
 
 func TestWithHeader(t *testing.T) {
-	fsys := &vaultFS{client: newRefCountedClient(fakeVaultServer(t))}
+	fsys := &vaultFS{client: newRefCountedClient(fakevault.Server(t))}
 
 	fsys = fsys.WithHeader(http.Header{
 		"foo": []string{"bar"},
@@ -183,7 +101,7 @@ func TestWithHeader(t *testing.T) {
 
 	assert.Equal(t, "bar", fsys.client.Headers().Get("foo"))
 
-	fsys = &vaultFS{client: newRefCountedClient(fakeVaultServer(t))}
+	fsys = &vaultFS{client: newRefCountedClient(fakevault.Server(t))}
 	fsys.client.AddHeader("foo", "bar")
 
 	fsys = fsys.WithHeader(http.Header{
@@ -217,7 +135,7 @@ func jsonMap(b []byte) map[string]string {
 
 func TestReadFile(t *testing.T) {
 	expected := "{\"value\":\"foo\"}"
-	v := newRefCountedClient(fakeVaultServer(t))
+	v := newRefCountedClient(fakevault.Server(t))
 
 	fsys := fs.FS(newWithVaultClient(tests.MustURL("vault:///secret/"), v))
 	fsys = WithAuthMethod(TokenAuthMethod("blargh"), fsys)
@@ -245,7 +163,7 @@ func TestReadFile(t *testing.T) {
 }
 
 func TestReadDirFS(t *testing.T) {
-	v := newRefCountedClient(fakeVaultServer(t))
+	v := newRefCountedClient(fakevault.Server(t))
 
 	fsys := fs.FS(newWithVaultClient(tests.MustURL("vault:///secret/foo/"), v))
 	fsys = WithAuthMethod(TokenAuthMethod("blargh"), fsys)
@@ -276,7 +194,7 @@ func TestReadDirFS(t *testing.T) {
 
 //nolint:funlen
 func TestReadDirN(t *testing.T) {
-	v := newRefCountedClient(fakeVaultServer(t))
+	v := newRefCountedClient(fakevault.Server(t))
 
 	fsys := fs.FS(newWithVaultClient(tests.MustURL("vault:///secret/"), v))
 	fsys = WithAuthMethod(TokenAuthMethod("blargh"), fsys)
@@ -349,7 +267,7 @@ func TestReadDirN(t *testing.T) {
 }
 
 func TestStat(t *testing.T) {
-	v := newRefCountedClient(fakeVaultServer(t))
+	v := newRefCountedClient(fakevault.Server(t))
 
 	fsys := WithAuthMethod(
 		TokenAuthMethod("blargh"),
@@ -397,7 +315,7 @@ func (m *spyAuthMethod) Logout(_ context.Context, client *api.Client) {
 }
 
 func TestFileAuthCaching(t *testing.T) {
-	v := newRefCountedClient(fakeVaultServer(t))
+	v := newRefCountedClient(fakevault.Server(t))
 
 	am := &spyAuthMethod{t: t}
 	fsys := vaultauth.WithAuthMethod(am, newWithVaultClient(tests.MustURL("vault:///secret/"), v))
@@ -436,28 +354,4 @@ func TestFileAuthCaching(t *testing.T) {
 	err = f2.Close()
 	require.NoError(t, err)
 	assert.Empty(t, v.Token())
-}
-
-func TestCreatedTimeFromData(t *testing.T) {
-	// missing metadata, KV v1 style
-	created := createdTimeFromData(map[string]interface{}{"value": "ahoy"})
-	assert.Equal(t, time.Time{}, created)
-
-	created = createdTimeFromData(map[string]interface{}{"metadata": nil})
-	assert.Equal(t, time.Time{}, created)
-
-	created = createdTimeFromData(map[string]interface{}{
-		"metadata": map[string]interface{}{"created_time": 42},
-	})
-	assert.Equal(t, time.Time{}, created)
-
-	created = createdTimeFromData(map[string]interface{}{
-		"metadata": map[string]interface{}{"created_time": "not a time"},
-	})
-	assert.Equal(t, time.Time{}, created)
-
-	created = createdTimeFromData(map[string]interface{}{
-		"metadata": map[string]interface{}{"created_time": "2022-09-12T00:22:20.370537Z"},
-	})
-	assert.Equal(t, time.Date(2022, 9, 12, 0, 22, 20, 370537000, time.UTC), created)
 }
