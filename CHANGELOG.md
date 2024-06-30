@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.1.6](https://github.com/hairyhenderson/go-fsimpl/compare/v0.1.5...v0.1.6) (2024-06-30)
+
+
+### Bug Fixes
+
+* **vaultfs:** bug when Stat builds mount info from [#738](https://github.com/hairyhenderson/go-fsimpl/issues/738) ([#739](https://github.com/hairyhenderson/go-fsimpl/issues/739)) ([83a8196](https://github.com/hairyhenderson/go-fsimpl/commit/83a81967196bf4740afcaf6c4ba504e7044aae77))
+* **vaultfs:** Support KVv2 mounts that contain slashes ([#738](https://github.com/hairyhenderson/go-fsimpl/issues/738)) ([87b1367](https://github.com/hairyhenderson/go-fsimpl/commit/87b13670102570c2ce205b32e81cff360af7da5e))
+
+
+### Dependencies
+
+* **go:** bump github.com/aws/aws-sdk-go from 1.54.10 to 1.54.11 ([#737](https://github.com/hairyhenderson/go-fsimpl/issues/737)) ([6fb5d96](https://github.com/hairyhenderson/go-fsimpl/commit/6fb5d96253fb32972ef1e6dd68f69a1a899c5096))
+* **go:** bump github.com/aws/aws-sdk-go from 1.54.9 to 1.54.10 ([#728](https://github.com/hairyhenderson/go-fsimpl/issues/728)) ([fb09b87](https://github.com/hairyhenderson/go-fsimpl/commit/fb09b87452605bbd704d15aa92b532284634e6e1))
+* **go:** bump github.com/aws/aws-sdk-go-v2/config ([#731](https://github.com/hairyhenderson/go-fsimpl/issues/731)) ([2736f66](https://github.com/hairyhenderson/go-fsimpl/commit/2736f66e210c02ed87da0654728270e8d312398b))
+* **go:** bump github.com/aws/aws-sdk-go-v2/service/secretsmanager ([#733](https://github.com/hairyhenderson/go-fsimpl/issues/733)) ([8ff67d6](https://github.com/hairyhenderson/go-fsimpl/commit/8ff67d6c0d40defc699bf6620eb1709ce81f725a))
+* **go:** bump github.com/aws/aws-sdk-go-v2/service/ssm ([#734](https://github.com/hairyhenderson/go-fsimpl/issues/734)) ([5b14ba7](https://github.com/hairyhenderson/go-fsimpl/commit/5b14ba72ff9a55bd675f525591b302b6345c31bf))
+
 ## [0.1.5](https://github.com/hairyhenderson/go-fsimpl/compare/v0.1.4...v0.1.5) (2024-06-27)
 
 
