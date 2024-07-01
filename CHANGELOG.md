@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.7](https://github.com/hairyhenderson/go-fsimpl/compare/v0.1.6...v0.1.7) (2024-07-01)
+
+
+### Dependencies
+
+* **go:** bump github.com/aws/aws-sdk-go from 1.54.11 to 1.54.12 ([#740](https://github.com/hairyhenderson/go-fsimpl/issues/740)) ([2c54658](https://github.com/hairyhenderson/go-fsimpl/commit/2c54658259e377f2bfc2dc6366b111fd586b99df))
+
 ## [0.1.6](https://github.com/hairyhenderson/go-fsimpl/compare/v0.1.5...v0.1.6) (2024-06-30)
 
 
