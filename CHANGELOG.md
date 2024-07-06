@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.1.7](https://github.com/hairyhenderson/go-fsimpl/compare/v0.1.6...v0.1.7) (2024-07-06)
+
+
+### Dependencies
+
+* **go:** bump github.com/aws/aws-sdk-go from 1.54.11 to 1.54.12 ([#740](https://github.com/hairyhenderson/go-fsimpl/issues/740)) ([2c54658](https://github.com/hairyhenderson/go-fsimpl/commit/2c54658259e377f2bfc2dc6366b111fd586b99df))
+* **go:** bump github.com/aws/aws-sdk-go from 1.54.12 to 1.54.13 ([#742](https://github.com/hairyhenderson/go-fsimpl/issues/742)) ([67a928e](https://github.com/hairyhenderson/go-fsimpl/commit/67a928eb3aa1c5a5fddfb4848b81420690a158d3))
+* **go:** bump github.com/aws/aws-sdk-go from 1.54.13 to 1.54.14 ([#746](https://github.com/hairyhenderson/go-fsimpl/issues/746)) ([12177dc](https://github.com/hairyhenderson/go-fsimpl/commit/12177dc82ea9704ab9b5aa5711f607ccceb8ddb5))
+* **go:** bump github.com/aws/aws-sdk-go from 1.54.14 to 1.54.15 ([#750](https://github.com/hairyhenderson/go-fsimpl/issues/750)) ([c205dad](https://github.com/hairyhenderson/go-fsimpl/commit/c205dadaf0b3de01b96817e49716b2a8144b84de))
+* **go:** bump github.com/aws/aws-sdk-go-v2/config ([#745](https://github.com/hairyhenderson/go-fsimpl/issues/745)) ([1bee419](https://github.com/hairyhenderson/go-fsimpl/commit/1bee4190b029ed33f68913c90cf0d3956e9947b9))
+* **go:** bump go.opentelemetry.io/contrib/propagators/autoprop ([#749](https://github.com/hairyhenderson/go-fsimpl/issues/749)) ([1251333](https://github.com/hairyhenderson/go-fsimpl/commit/1251333de409499a695f40c7ef2b7f030944f0cd))
+* **go:** bump go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc ([#747](https://github.com/hairyhenderson/go-fsimpl/issues/747)) ([b4df294](https://github.com/hairyhenderson/go-fsimpl/commit/b4df29479c99459597966f6db5a199d019677d84))
+* **go:** bump golang.org/x/crypto from 0.24.0 to 0.25.0 ([#751](https://github.com/hairyhenderson/go-fsimpl/issues/751)) ([4f34f25](https://github.com/hairyhenderson/go-fsimpl/commit/4f34f258314dbfee190098021828feb8b02a7dcd))
+
 ## [0.1.6](https://github.com/hairyhenderson/go-fsimpl/compare/v0.1.5...v0.1.6) (2024-06-30)
 
 
