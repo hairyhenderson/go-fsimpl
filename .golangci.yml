@@ -33,7 +33,6 @@ linters:
     - errcheck
     - errorlint
     - exhaustive
-    - exportloopref
     - fatcontext
     - funlen
     - gci

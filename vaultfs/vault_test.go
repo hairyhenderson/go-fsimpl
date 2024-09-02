@@ -84,7 +84,7 @@ func TestNew(t *testing.T) {
 }
 
 func TestWithContext(t *testing.T) {
-	ctx := context.WithValue(context.Background(), struct{}{}, "foo")
+	ctx := context.WithValue(context.Background(), struct{ string }{}, "foo")
 
 	fsys := &vaultFS{ctx: context.Background()}
 	fsys = fsys.WithContext(ctx).(*vaultFS)
