@@ -159,7 +159,9 @@ func TestNew(t *testing.T) {
 }
 
 func TestWithContext(t *testing.T) {
-	ctx := context.WithValue(context.Background(), struct{}{}, "foo")
+	type key struct{}
+
+	ctx := context.WithValue(context.Background(), key{}, "foo")
 
 	fsys := &consulFS{ctx: context.Background()}
 	fsys = fsys.WithContext(ctx).(*consulFS)
