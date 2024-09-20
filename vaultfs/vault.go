@@ -486,7 +486,7 @@ func (f *vaultFile) list() ([]string, error) {
 
 	dirkeys := make([]string, len(k))
 
-	for i := range len(k) {
+	for i := range k {
 		if s, ok := k[i].(string); ok {
 			dirkeys[i] = s
 		}
