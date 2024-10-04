@@ -14,9 +14,9 @@ require (
 	github.com/fsouza/fake-gcs-server v1.49.2
 	github.com/go-git/go-billy/v5 v5.5.0
 	github.com/hashicorp/consul/api v1.29.4
-	github.com/hashicorp/vault/api v1.14.0
+	github.com/hashicorp/vault/api v1.15.0
 	github.com/hashicorp/vault/api/auth/approle v0.7.0
-	github.com/hashicorp/vault/api/auth/userpass v0.7.0
+	github.com/hashicorp/vault/api/auth/userpass v0.8.0
 	github.com/johannesboyne/gofakes3 v0.0.0-20230914150226-f005f5cc03aa
 	github.com/stretchr/testify v1.9.0
 	go.opentelemetry.io/contrib/propagators/autoprop v0.53.0
@@ -67,7 +67,6 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sso v1.23.2 // indirect
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.27.2 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sts v1.31.2 // indirect
-	github.com/cenkalti/backoff/v3 v3.2.2 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/cloudflare/circl v1.3.7 // indirect
 	github.com/cyphar/filepath-securejoin v0.2.4 // indirect
