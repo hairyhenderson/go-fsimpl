@@ -5,12 +5,12 @@ go 1.22.4
 require (
 	github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v1.4.1
 	github.com/aws/aws-sdk-go v1.55.5
-	github.com/aws/aws-sdk-go-v2 v1.31.0
+	github.com/aws/aws-sdk-go-v2 v1.32.1
 	github.com/aws/aws-sdk-go-v2/config v1.27.40
-	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.16.14
+	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.16.16
 	github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.33.4
 	github.com/aws/aws-sdk-go-v2/service/ssm v1.54.4
-	github.com/aws/smithy-go v1.21.0
+	github.com/aws/smithy-go v1.22.0
 	github.com/fsouza/fake-gcs-server v1.50.0
 	github.com/go-git/go-billy/v5 v5.5.0
 	github.com/hashicorp/consul/api v1.29.4
