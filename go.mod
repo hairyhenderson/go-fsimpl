@@ -13,7 +13,7 @@ require (
 	github.com/aws/smithy-go v1.22.0
 	github.com/fsouza/fake-gcs-server v1.50.0
 	github.com/go-git/go-billy/v5 v5.6.0
-	github.com/hashicorp/consul/api v1.29.4
+	github.com/hashicorp/consul/api v1.30.0
 	github.com/hashicorp/vault/api v1.15.0
 	github.com/hashicorp/vault/api/auth/approle v0.8.0
 	github.com/hashicorp/vault/api/auth/userpass v0.8.0
