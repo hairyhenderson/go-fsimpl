@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"path"
@@ -63,7 +64,8 @@ func New(u *url.URL) (fs.FS, error) {
 		return nil, fmt.Errorf("vault client creation failed: %w", err)
 	}
 
-	fsys := newWithVaultClient(u, newRefCountedClient(c))
+	fsys := newWithVaultClient(u, nil)
+	fsys = WithClient(c, fsys).(*vaultFS)
 	fsys.auth = vaultauth.NewTokenAuth("")
 
 	return fsys, nil
@@ -115,6 +117,8 @@ var (
 	_ fs.ReadFileFS          = (*vaultFS)(nil)
 	_ internal.WithContexter = (*vaultFS)(nil)
 	_ internal.WithHeaderer  = (*vaultFS)(nil)
+	_ withClienter           = (*vaultFS)(nil)
+	_ withConfiger           = (*vaultFS)(nil)
 )
 
 func (f vaultFS) URL() string {
@@ -146,6 +150,45 @@ func (f *vaultFS) WithHeader(headers http.Header) fs.FS {
 	}
 
 	return &fsys
+}
+
+func (f *vaultFS) WithClient(client *api.Client) fs.FS {
+	if client == nil {
+		return f
+	}
+
+	fsys := *f
+	fsys.client = newRefCountedClient(client)
+
+	return &fsys
+}
+
+func (f *vaultFS) WithConfig(config *api.Config) fs.FS {
+	if config == nil {
+		return f
+	}
+
+	// handle compound URL scheme not supported by the client, but only if the
+	// URL has a host part set - otherwise use the scheme from $VAULT_ADDR, as
+	// set by api.DefaultConfig() above
+	if f.base.Host != "" {
+		scheme := strings.TrimPrefix(f.base.Scheme, "vault+")
+		if scheme == "vault" {
+			scheme = "https"
+		}
+
+		config.Address = scheme + "://" + f.base.Host
+	}
+
+	client, err := api.NewClient(config)
+	if err != nil {
+		slog.ErrorContext(f.ctx, "vaultfs: failed to create vault client with user-supplied configuration",
+			slog.Any("error", err))
+
+		return nil
+	}
+
+	return f.WithClient(client)
 }
 
 func (f vaultFS) WithAuthMethod(auth api.AuthMethod) fs.FS {
