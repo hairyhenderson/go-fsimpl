@@ -415,3 +415,73 @@ func TestFindMountInfo(t *testing.T) {
 		assert.EqualValues(t, d.expected, actual)
 	}
 }
+
+func TestWithConfig(t *testing.T) {
+	cl := fakevault.Server(t)
+
+	t.Run("config provided", func(t *testing.T) {
+		config := cl.CloneConfig()
+		fsys := WithAuthMethod(
+			TokenAuthMethod("blargh"),
+			// fsys without vault client - will panic unless a client is injected
+			newWithVaultClient(tests.MustURL("vault:///secret/"), nil),
+		)
+		fsys = WithConfig(config, fsys).(*vaultFS)
+
+		f, err := fsys.Open("foo")
+		require.NoError(t, err)
+
+		fi, err := f.Stat()
+		require.NoError(t, err)
+		assert.Equal(t, "application/json", fsimpl.ContentType(fi))
+	})
+
+	t.Run("bad config errors with nil fs", func(t *testing.T) {
+		config := cl.CloneConfig()
+		config.Address = "bad url://"
+
+		vaultFs := newWithVaultClient(tests.MustURL("vault:///secret/"), nil)
+		assert.Nil(t, WithConfig(config, vaultFs))
+	})
+
+	t.Run("nil config ignored", func(t *testing.T) {
+		vaultFs := newWithVaultClient(tests.MustURL("vault:///secret/"), nil)
+		fsys := WithConfig(nil, vaultFs)
+		assert.Same(t, vaultFs, fsys)
+	})
+
+	t.Run("URL with host overrides what's in the config", func(t *testing.T) {
+		config := api.DefaultConfig()
+		testdata := []struct {
+			url, addr string
+		}{
+			{"vault+https://example.com/secret/", "https://example.com"},
+			{"vault://example.com/secret/foo", "https://example.com"},
+			{"vault+http://example.com/secret/", "http://example.com"},
+		}
+
+		for _, d := range testdata {
+			vaultFs := newWithVaultClient(tests.MustURL(d.url), nil)
+			vaultFs = WithConfig(config, vaultFs).(*vaultFS)
+			assert.Equal(t, d.addr, vaultFs.client.CloneConfig().Address)
+		}
+	})
+}
+
+func TestWithClient(t *testing.T) {
+	cl := fakevault.Server(t)
+
+	fsys := WithAuthMethod(
+		TokenAuthMethod("blargh"),
+		// fsys without vault client - will panic unless a client is injected
+		newWithVaultClient(tests.MustURL("vault:///secret/"), nil),
+	)
+	fsys = WithClient(cl, fsys).(*vaultFS)
+
+	f, err := fsys.Open("foo")
+	require.NoError(t, err)
+
+	fi, err := f.Stat()
+	require.NoError(t, err)
+	assert.Equal(t, "application/json", fsimpl.ContentType(fi))
+}
