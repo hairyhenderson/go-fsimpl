@@ -3,7 +3,7 @@ module github.com/hairyhenderson/go-fsimpl
 go 1.22.4
 
 require (
-	github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v1.4.1
+	github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v1.5.0
 	github.com/aws/aws-sdk-go v1.55.5
 	github.com/aws/aws-sdk-go-v2 v1.32.4
 	github.com/aws/aws-sdk-go-v2/config v1.28.4
@@ -45,8 +45,8 @@ require (
 	cloud.google.com/go/pubsub v1.44.0 // indirect
 	cloud.google.com/go/storage v1.44.0 // indirect
 	dario.cat/mergo v1.0.0 // indirect
-	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.14.0 // indirect
-	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.7.0 // indirect
+	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.16.0 // indirect
+	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.8.0 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/internal v1.10.0 // indirect
 	github.com/Azure/go-autorest v14.2.0+incompatible // indirect
 	github.com/Azure/go-autorest/autorest/to v0.4.0 // indirect
