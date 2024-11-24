@@ -358,14 +358,32 @@ filesystem.
   - `region`: The AWS region for requests. Defaults to the value from the
     `AWS_REGION` or `AWS_DEFAULT_REGION` environment variables, or the EC2
     region if used in AWS EC2.
-  - `endpoint`: The endpoint (`hostname`, `hostname:port`, or fully qualified
-    URI). Useful for using a different S3-compatible object storage server. You
-    can also set the `AWS_S3_ENDPOINT` environment variable.
-  - `s3ForcePathStyle`: A value of `true` forces use of the deprecated
-    "path-style" access. This is necessary for some S3-compatible object storage
-    servers.
-  - `disableSSL`: A value of `true` disables SSL when sending requests. Use only
-    for test scenarios!
+  - `profile`: The shared config profile name to load from the shared
+    AWS configuration files. Defaults to the value from the `AWS_PROFILE` or
+    `AWS_DEFAULT_PROFILE` environment variables, or "default" if none are set.
+  - `accelerate`: A value of `true` uses the [S3 Transfer Accleration](https://aws.amazon.com/s3/transfer-acceleration/) endpoints.
+  - `disable_https`: A value of `true` disables the use of HTTPS when sending
+    requests. Use only for test scenarios!
+  - `use_path_style`: Allows you to enable the client to use path-style
+    addressing, i.e., `https://s3.amazonaws.com/BUCKET/KEY`. By default, the S3
+    client will use virtual hosted bucket addressing when possible
+    (`https://BUCKET.s3.amazonaws.com/KEY`). This is necessary for some S3
+    compatible object storage servers.
+  - `anonymous`: _Experimental: May be renamed in future releases._ A value of
+    `true` configures the client to not sign the request with AWS credentials.
+    This is necessary for accessing public S3 buckets.
+  - `dualstack`: A value of `true` configures the use of dualstack endpoint for
+    a bucket. See the [AWS documentation](https://docs.aws.amazon.com/AmazonS3/latest/API/dual-stack-endpoints.html) 
+    for more information.
+  - `endpoint`: The endpoint (fully qualified URI). Useful for using a different
+    S3-compatible object storage server. You can also set the `AWS_S3_ENDPOINT`
+    environment variable.
+  - `fips`: A value of `true` configures the use of the FIPS endpoint for a
+    bucket. See the [AWS documentation](https://aws.amazon.com/compliance/fips/)
+    for more information.
+  - `rate_limiter_capacity`: An integer value configures the capacity of a token
+    bucket used in client-side rate limits. If no value is set, client-side rate
+    limiting is disabled. See the [AWS documentation](https://aws.github.io/aws-sdk-go-v2/docs/configuring-sdk/retries-timeouts/#client-side-rate-limiting).
 
 #### Examples
 

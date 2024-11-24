@@ -15,9 +15,6 @@ import (
 
 	azblobblob "github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/blob"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/container"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/hairyhenderson/go-fsimpl"
 	"github.com/hairyhenderson/go-fsimpl/internal"
 	"github.com/hairyhenderson/go-fsimpl/internal/env"
@@ -144,7 +141,7 @@ func (f *blobFS) Open(name string) (fs.File, error) {
 	if f.bucket == nil {
 		bucket, err := f.openBucket()
 		if err != nil {
-			return nil, fmt.Errorf("open bucket: %w", err)
+			return nil, fmt.Errorf("open: %w", err)
 		}
 
 		f.bucket = bucket
@@ -185,7 +182,7 @@ func (f *blobFS) ReadFile(name string) ([]byte, error) {
 	if f.bucket == nil {
 		bucket, err := f.openBucket()
 		if err != nil {
-			return nil, fmt.Errorf("open bucket: %w", err)
+			return nil, fmt.Errorf("readFile: %w", err)
 		}
 
 		f.bucket = bucket
@@ -198,10 +195,8 @@ func (f *blobFS) ReadFile(name string) ([]byte, error) {
 func (f *blobFS) newOpener(ctx context.Context, scheme string) (opener blob.BucketURLOpener, err error) {
 	switch scheme {
 	case s3blob.Scheme:
-		sess := f.initS3Session()
-
 		// see https://gocloud.dev/concepts/urls/#muxes
-		return &s3blob.URLOpener{ConfigProvider: sess}, nil
+		return &s3v2URLOpener{}, nil
 	case gcsblob.Scheme:
 		if env.GetenvFS(f.envfs, "GOOGLE_ANON") == "true" {
 			return &gcsblob.URLOpener{
@@ -230,21 +225,22 @@ func (f *blobFS) newOpener(ctx context.Context, scheme string) (opener blob.Buck
 }
 
 // initS3Session -
-func (f *blobFS) initS3Session() *session.Session {
-	config := aws.NewConfig()
-	config = config.WithHTTPClient(f.hclient)
+// Deprecated: this is for v1, but kept here for posterity
+// func (f *blobFS) initS3Sessionv1() *session.Session {
+// 	config := aws.NewConfig()
+// 	config = config.WithHTTPClient(f.hclient)
 
-	if env.GetenvFS(f.envfs, "AWS_ANON") == "true" {
-		config = config.WithCredentials(credentials.AnonymousCredentials)
-	}
+// 	if env.GetenvFS(f.envfs, "AWS_ANON") == "true" {
+// 		config = config.WithCredentials(credentials.AnonymousCredentials)
+// 	}
 
-	config = config.WithCredentialsChainVerboseErrors(true)
+// 	config = config.WithCredentialsChainVerboseErrors(true)
 
-	return session.Must(session.NewSessionWithOptions(session.Options{
-		Config:            *config,
-		SharedConfigState: session.SharedConfigEnable,
-	}))
-}
+// 	return session.Must(session.NewSessionWithOptions(session.Options{
+// 		Config:            *config,
+// 		SharedConfigState: session.SharedConfigEnable,
+// 	}))
+// }
 
 // copy/sanitize the URL for the Go CDK - it doesn't like params it can't parse
 func (f *blobFS) cleanCdkURL(u url.URL) url.URL {
@@ -282,35 +278,6 @@ func (f *blobFS) cleanGSURL(u url.URL) url.URL {
 		case "access_id", "private_key_path":
 		default:
 			q.Del(param)
-		}
-	}
-
-	u.RawQuery = q.Encode()
-
-	return u
-}
-
-func (f *blobFS) cleanS3URL(u url.URL) url.URL {
-	q := u.Query()
-	for param := range q {
-		switch param {
-		case "region", "endpoint", "disableSSL", "s3ForcePathStyle":
-		default:
-			q.Del(param)
-		}
-	}
-
-	if q.Get("endpoint") == "" {
-		endpoint := env.GetenvFS(f.envfs, "AWS_S3_ENDPOINT")
-		if endpoint != "" {
-			q.Set("endpoint", endpoint)
-		}
-	}
-
-	if q.Get("region") == "" {
-		region := env.GetenvFS(f.envfs, "AWS_REGION", env.GetenvFS(f.envfs, "AWS_DEFAULT_REGION"))
-		if region != "" {
-			q.Set("region", region)
 		}
 	}
 

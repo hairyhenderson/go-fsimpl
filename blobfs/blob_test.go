@@ -17,6 +17,7 @@ import (
 	"github.com/johannesboyne/gofakes3"
 	"github.com/johannesboyne/gofakes3/backend/s3mem"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func setupTestS3Bucket(t *testing.T) *url.URL {
@@ -206,35 +207,35 @@ func TestBlobFS_ReadDir(t *testing.T) {
 	t.Setenv("AWS_ANON", "true")
 
 	fsys, err := New(tests.MustURL("s3://mybucket/?region=us-east-1&disableSSL=true&s3ForcePathStyle=true&endpoint=" + srvURL.Host))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	de, err := fs.ReadDir(fsys, "dir1")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Len(t, de, 2)
 
 	de, err = fs.ReadDir(fsys, ".")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Len(t, de, 5)
 
 	fi, err := de[0].Info()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "dir1", fi.Name())
 
 	f, err := fsys.Open("dir1")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.IsType(t, &blobFile{}, f)
 
 	fi, err = f.Stat()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "dir1", fi.Name())
 
 	f, err = fsys.Open("file1")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	defer f.Close()
 
 	fi, err = f.Stat()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, fs.FileMode(0o444), fi.Mode())
 }
 
@@ -247,8 +248,20 @@ func TestBlobFS_CleanCdkURL(t *testing.T) {
 		{"s3://foo/bar/baz", "s3://foo/bar/baz"},
 		{"s3://foo/bar/baz?type=hello/world", "s3://foo/bar/baz"},
 		{"s3://foo/bar/baz?region=us-east-1", "s3://foo/bar/baz?region=us-east-1"},
-		{"s3://foo/bar/baz?disableSSL=true&type=text/csv", "s3://foo/bar/baz?disableSSL=true"},
-		{"s3://foo/bar/baz?type=text/csv&s3ForcePathStyle=true&endpoint=1.2.3.4", "s3://foo/bar/baz?endpoint=1.2.3.4&s3ForcePathStyle=true"},
+		{"s3://foo/bar/baz?disableSSL=true&type=text/csv", "s3://foo/bar/baz?disable_https=true"},
+		{
+			"s3://foo/bar/baz?type=text/csv&s3ForcePathStyle=true&endpoint=1.2.3.4",
+			"s3://foo/bar/baz?endpoint=https%3A%2F%2F1.2.3.4&use_path_style=true",
+		},
+		{"s3://foo/bar/baz?disable_https=true&type=text/csv", "s3://foo/bar/baz?disable_https=true"},
+		{
+			"s3://foo/bar/baz?type=text/csv&use_path_style=true&endpoint=1.2.3.4",
+			"s3://foo/bar/baz?endpoint=https%3A%2F%2F1.2.3.4&use_path_style=true",
+		},
+		{
+			"s3://foo/bar/baz?disable_https=true&type=text/csv&use_path_style=true&endpoint=1.2.3.4:1234",
+			"s3://foo/bar/baz?disable_https=true&endpoint=http%3A%2F%2F1.2.3.4%3A1234&use_path_style=true",
+		},
 		{"gs://foo/bar/baz", "gs://foo/bar/baz"},
 		{"gs://foo/bar/baz?type=foo/bar", "gs://foo/bar/baz"},
 		{"gs://foo/bar/baz?access_id=123", "gs://foo/bar/baz?access_id=123"},

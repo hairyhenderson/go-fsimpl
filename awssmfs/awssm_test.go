@@ -6,8 +6,8 @@ import (
 	"testing"
 	"testing/fstest"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	smtypes "github.com/aws/aws-sdk-go-v2/service/secretsmanager/types"
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/hairyhenderson/go-fsimpl/internal/tests"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
