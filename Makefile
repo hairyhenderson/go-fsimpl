@@ -33,6 +33,9 @@ endif
 test:
 	go test $(TEST_ARGS) -coverprofile=c.out ./...
 
+bench.txt:
+	go test -benchmem -run=xxx -bench . ./... | tee $@
+
 bin/fscli_%v7$(call extension,$(GOOS)): $(shell find . -type f -name "*.go")
 	GOOS=$(shell echo $* | cut -f1 -d-) \
 	GOARCH=$(shell echo $* | cut -f2 -d- ) \
