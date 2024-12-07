@@ -57,6 +57,9 @@ bin/fscli_%$(TARGETVARIANT)$(call extension,$(GOOS)): $(shell find . -type f -na
 	CGO_ENABLED=0 \
 		go build $(BUILD_ARGS) -o $@ ./examples/fscli
 
+bin/fscli: bin/fscli_$(GOOS)-$(GOARCH)
+	cp $< $@
+
 lint:
 	@golangci-lint run --verbose --max-same-issues=0 --max-issues-per-linter=0
 
