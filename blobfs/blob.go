@@ -16,6 +16,7 @@ import (
 	azblobblob "github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/blob"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/container"
 	"github.com/hairyhenderson/go-fsimpl"
+	"github.com/hairyhenderson/go-fsimpl/awsimdsfs"
 	"github.com/hairyhenderson/go-fsimpl/internal"
 	"github.com/hairyhenderson/go-fsimpl/internal/env"
 	"gocloud.dev/blob"
@@ -32,6 +33,7 @@ type blobFS struct {
 	hclient *http.Client
 	bucket  *blob.Bucket
 	envfs   fs.FS
+	imdsfs  fs.FS
 	root    string
 }
 
@@ -54,12 +56,20 @@ func New(u *url.URL) (fs.FS, error) {
 
 	root := strings.TrimPrefix(u.Path, "/")
 
+	iu, _ := url.Parse("aws+imds:")
+
+	imdsfs, err := awsimdsfs.New(iu)
+	if err != nil {
+		return nil, fmt.Errorf("couldn't create IMDS filesystem: %w", err)
+	}
+
 	return &blobFS{
 		ctx:     context.Background(),
 		base:    u,
 		hclient: http.DefaultClient,
 		root:    root,
 		envfs:   os.DirFS("/"),
+		imdsfs:  imdsfs,
 	}, nil
 }
 
@@ -74,6 +84,7 @@ var (
 	_ fs.SubFS                  = (*blobFS)(nil)
 	_ internal.WithContexter    = (*blobFS)(nil)
 	_ internal.WithHTTPClienter = (*blobFS)(nil)
+	_ internal.WithIMDSFSer     = (*blobFS)(nil)
 )
 
 func (f blobFS) URL() string {
@@ -98,6 +109,17 @@ func (f *blobFS) WithHTTPClient(client *http.Client) fs.FS {
 
 	fsys := *f
 	fsys.hclient = client
+
+	return &fsys
+}
+
+func (f *blobFS) WithIMDSFS(imdsfs fs.FS) fs.FS {
+	if imdsfs == nil {
+		return f
+	}
+
+	fsys := *f
+	fsys.imdsfs = imdsfs
 
 	return &fsys
 }
@@ -196,7 +218,7 @@ func (f *blobFS) newOpener(ctx context.Context, scheme string) (opener blob.Buck
 	switch scheme {
 	case s3blob.Scheme:
 		// see https://gocloud.dev/concepts/urls/#muxes
-		return &s3v2URLOpener{}, nil
+		return &s3v2URLOpener{imdsfs: f.imdsfs}, nil
 	case gcsblob.Scheme:
 		if env.GetenvFS(f.envfs, "GOOGLE_ANON") == "true" {
 			return &gcsblob.URLOpener{
@@ -223,24 +245,6 @@ func (f *blobFS) newOpener(ctx context.Context, scheme string) (opener blob.Buck
 		return nil, fmt.Errorf("unsupported scheme: %s", scheme)
 	}
 }
-
-// initS3Session -
-// Deprecated: this is for v1, but kept here for posterity
-// func (f *blobFS) initS3Sessionv1() *session.Session {
-// 	config := aws.NewConfig()
-// 	config = config.WithHTTPClient(f.hclient)
-
-// 	if env.GetenvFS(f.envfs, "AWS_ANON") == "true" {
-// 		config = config.WithCredentials(credentials.AnonymousCredentials)
-// 	}
-
-// 	config = config.WithCredentialsChainVerboseErrors(true)
-
-// 	return session.Must(session.NewSessionWithOptions(session.Options{
-// 		Config:            *config,
-// 		SharedConfigState: session.SharedConfigEnable,
-// 	}))
-// }
 
 // copy/sanitize the URL for the Go CDK - it doesn't like params it can't parse
 func (f *blobFS) cleanCdkURL(u url.URL) url.URL {

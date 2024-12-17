@@ -3,6 +3,7 @@ package blobfs
 import (
 	"context"
 	"fmt"
+	"io/fs"
 	"net/url"
 	"strconv"
 	"strings"
@@ -24,6 +25,7 @@ import (
 var _ blob.BucketURLOpener = (*s3v2URLOpener)(nil)
 
 type s3v2URLOpener struct {
+	imdsfs fs.FS
 	// Options specifies the options to pass to OpenBucket.
 	Options s3blob.Options
 }
@@ -118,6 +120,16 @@ func (o *s3v2URLOpener) OpenBucketURL(ctx context.Context, u *url.URL) (*blob.Bu
 	cfg, err := V2ConfigFromURLParams(ctx, q)
 	if err != nil {
 		return nil, fmt.Errorf("open bucket %v: %w", u, err)
+	}
+
+	if cfg.Region == "" && o.imdsfs != nil {
+		// if we have an IMDS filesystem, use it to get the region
+		region, err := fs.ReadFile(o.imdsfs, "meta-data/placement/region")
+		if err != nil {
+			return nil, fmt.Errorf("couldn't get region from IMDS: %w", err)
+		}
+
+		cfg.Region = string(region)
 	}
 
 	clientV2 := s3v2.NewFromConfig(cfg, opts...)

@@ -95,3 +95,10 @@ type WithHTTPClienter interface {
 type WithHeaderer interface {
 	WithHeader(headers http.Header) fs.FS
 }
+
+// WithIMDSFSer overrides the IMDS filesystem used by fs, if the filesystem
+// supports it (i.e. has a WithIMDSFS method). This can be used for overriding
+// the IMDS filesystem used by the fs to discover the region.
+type WithIMDSFSer interface {
+	WithIMDSFS(imdsfs fs.FS) fs.FS
+}

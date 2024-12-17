@@ -18,6 +18,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	"github.com/aws/aws-sdk-go-v2/service/ssm/types"
 	"github.com/hairyhenderson/go-fsimpl"
+	"github.com/hairyhenderson/go-fsimpl/awsimdsfs"
 	"github.com/hairyhenderson/go-fsimpl/internal"
 )
 
@@ -51,6 +52,7 @@ type awssmpFS struct {
 	base       *url.URL
 	httpclient *http.Client
 	ssmclient  SSMClient
+	imdsfs     fs.FS
 	root       string
 }
 
@@ -71,10 +73,18 @@ func New(u *url.URL) (fs.FS, error) {
 		u.Path = "/"
 	}
 
+	iu, _ := url.Parse("aws+imds:")
+
+	imdsfs, err := awsimdsfs.New(iu)
+	if err != nil {
+		return nil, fmt.Errorf("couldn't create IMDS filesystem: %w", err)
+	}
+
 	return &awssmpFS{
-		ctx:  context.Background(),
-		base: u,
-		root: u.Path,
+		ctx:    context.Background(),
+		base:   u,
+		root:   u.Path,
+		imdsfs: imdsfs,
 	}, nil
 }
 
@@ -91,6 +101,7 @@ var (
 	_ internal.WithContexter    = (*awssmpFS)(nil)
 	_ internal.WithHTTPClienter = (*awssmpFS)(nil)
 	_ withClienter              = (*awssmpFS)(nil)
+	_ internal.WithIMDSFSer     = (*awssmpFS)(nil)
 )
 
 func (f awssmpFS) URL() string {
@@ -130,6 +141,17 @@ func (f *awssmpFS) WithClient(ssmclient SSMClient) fs.FS {
 	return &fsys
 }
 
+func (f *awssmpFS) WithIMDSFS(imdsfs fs.FS) fs.FS {
+	if imdsfs == nil {
+		return f
+	}
+
+	fsys := *f
+	fsys.imdsfs = imdsfs
+
+	return &fsys
+}
+
 func (f *awssmpFS) getClient(ctx context.Context) (SSMClient, error) {
 	if f.ssmclient != nil {
 		return f.ssmclient, nil
@@ -143,6 +165,16 @@ func (f *awssmpFS) getClient(ctx context.Context) (SSMClient, error) {
 	cfg, err := config.LoadDefaultConfig(ctx, opts...)
 	if err != nil {
 		return nil, err
+	}
+
+	if cfg.Region == "" && f.imdsfs != nil {
+		// if we have an IMDS filesystem, use it to get the region
+		region, err := fs.ReadFile(f.imdsfs, "meta-data/placement/region")
+		if err != nil {
+			return nil, fmt.Errorf("couldn't get region from IMDS: %w", err)
+		}
+
+		cfg.Region = string(region)
 	}
 
 	optFns := []func(*ssm.Options){}
