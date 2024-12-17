@@ -19,6 +19,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
 	smtypes "github.com/aws/aws-sdk-go-v2/service/secretsmanager/types"
 	"github.com/hairyhenderson/go-fsimpl"
+	"github.com/hairyhenderson/go-fsimpl/awsimdsfs"
 	"github.com/hairyhenderson/go-fsimpl/internal"
 )
 
@@ -47,6 +48,7 @@ type awssmFS struct {
 	base       *url.URL
 	httpclient *http.Client
 	smclient   SecretsManagerClient
+	imdsfs     fs.FS
 	root       string
 }
 
@@ -66,10 +68,18 @@ func New(u *url.URL) (fs.FS, error) {
 		root = u.Opaque
 	}
 
+	iu, _ := url.Parse("aws+imds:")
+
+	imdsfs, err := awsimdsfs.New(iu)
+	if err != nil {
+		return nil, fmt.Errorf("couldn't create IMDS filesystem: %w", err)
+	}
+
 	return &awssmFS{
-		ctx:  context.Background(),
-		base: u,
-		root: root,
+		ctx:    context.Background(),
+		base:   u,
+		root:   root,
+		imdsfs: imdsfs,
 	}, nil
 }
 
@@ -86,6 +96,7 @@ var (
 	_ internal.WithContexter    = (*awssmFS)(nil)
 	_ internal.WithHTTPClienter = (*awssmFS)(nil)
 	_ withSMClienter            = (*awssmFS)(nil)
+	_ internal.WithIMDSFSer     = (*awssmFS)(nil)
 )
 
 func (f awssmFS) URL() string {
@@ -125,6 +136,17 @@ func (f *awssmFS) WithSMClient(smclient SecretsManagerClient) fs.FS {
 	return &fsys
 }
 
+func (f *awssmFS) WithIMDSFS(imdsfs fs.FS) fs.FS {
+	if imdsfs == nil {
+		return f
+	}
+
+	fsys := *f
+	fsys.imdsfs = imdsfs
+
+	return &fsys
+}
+
 func (f *awssmFS) getClient(ctx context.Context) (SecretsManagerClient, error) {
 	if f.smclient != nil {
 		return f.smclient, nil
@@ -138,6 +160,16 @@ func (f *awssmFS) getClient(ctx context.Context) (SecretsManagerClient, error) {
 	cfg, err := config.LoadDefaultConfig(ctx, opts...)
 	if err != nil {
 		return nil, err
+	}
+
+	if cfg.Region == "" && f.imdsfs != nil {
+		// if we have an IMDS filesystem, use it to get the region
+		region, err := fs.ReadFile(f.imdsfs, "meta-data/placement/region")
+		if err != nil {
+			return nil, fmt.Errorf("couldn't get region from IMDS: %w", err)
+		}
+
+		cfg.Region = string(region)
 	}
 
 	optFns := []func(*secretsmanager.Options){}
