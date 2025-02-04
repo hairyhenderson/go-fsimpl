@@ -17,16 +17,11 @@ type sopsFS struct {
 	base *url.URL
 }
 
-// New provides a filesystem (an fs.FS) for the HTTP (or HTTPS) endpoint
-// rooted at u. This filesystem is suitable for use with the 'http' or
-// 'https' URL schemes. All reads are made with the GET method, while stat calls
-// are made with the HEAD method (with a fallback to GET).
-//
-// A context can be given by using WithContextFS.
-// HTTP Headers can be provided by using WithHeaderFS.
+// New provides a filesystem (an fs.FS) for a directory
+// rooted at u. This filesystem is suitable for use with the
+// 'sops' protocol.
 func New(u *url.URL) (fs.FS, error) {
 	return &sopsFS{
-		ctx:  context.Background(),
 		base: u,
 	}, nil
 }
@@ -37,25 +32,13 @@ func New(u *url.URL) (fs.FS, error) {
 var FS = fsimpl.FSProviderFunc(New, "sops")
 
 var (
-	_ fs.FS                  = (*sopsFS)(nil)
-	_ fs.ReadFileFS          = (*sopsFS)(nil)
-	_ fs.SubFS               = (*sopsFS)(nil)
-	_ internal.WithContexter = (*sopsFS)(nil)
+	_ fs.FS         = (*sopsFS)(nil)
+	_ fs.ReadFileFS = (*sopsFS)(nil)
+	_ fs.SubFS      = (*sopsFS)(nil)
 )
 
 func (f sopsFS) URL() string {
 	return f.base.String()
-}
-
-func (f *sopsFS) WithContext(ctx context.Context) fs.FS {
-	if ctx == nil {
-		return f
-	}
-
-	fsys := *f
-	fsys.ctx = ctx
-
-	return &fsys
 }
 
 func (f sopsFS) Open(name string) (fs.File, error) {
@@ -74,7 +57,6 @@ func (f sopsFS) Open(name string) (fs.File, error) {
 	}
 
 	return &sopsFile{
-		ctx:    f.ctx,
 		u:      u,
 		format: format,
 	}, nil
@@ -109,7 +91,6 @@ func (f sopsFS) Sub(name string) (fs.FS, error) {
 }
 
 type sopsFile struct {
-	ctx    context.Context
 	fi     fs.FileInfo
 	u      *url.URL
 	format string
