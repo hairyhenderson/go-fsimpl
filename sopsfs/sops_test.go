@@ -2,6 +2,7 @@ package sopsfs
 
 import (
 	"fmt"
+	"github.com/getsops/sops/v3/pgp"
 	"io/fs"
 	"net/url"
 	"os"
@@ -9,21 +10,28 @@ import (
 	"testing"
 )
 
-func TestExample(t *testing.T) {
+func TestYAMLandJSON(t *testing.T) {
 	// Get current working directory
-	wd, err := os.Getwd()
+	wd, _ := os.Getwd()
+	sopsPath, _ := filepath.Abs(fmt.Sprintf("%s/../internal/tests/integration/sops/", wd))
+	sopsPath += "/"
+
+	home, err := pgp.NewGnuPGHome()
 	if err != nil {
-		t.Fatalf("Failed to get current working directory: %v", err)
+		t.Error(err)
 	}
+	os.Setenv("GNUPGHOME", home.String())
 
-	// Construct absolute path to the fixture file
-	fixture, _ := filepath.Abs(fmt.Sprintf("%s/../internal/tests/integration/sops/.sops-integration-test.enc.yaml", wd))
+	if err = home.ImportFile(fmt.Sprintf("%s/sops_functional_tests_key.asc", sopsPath)); err != nil {
+		t.Error(err)
+	}
+	defer home.Cleanup()
 
-	base, _ := url.Parse("sops://?format=yaml")
+	base, _ := url.Parse(fmt.Sprintf("sops://%s", sopsPath))
 
 	fsys, _ := New(base)
 
-	b, err := fs.ReadFile(fsys, fixture)
+	b, err := fs.ReadFile(fsys, ".sops-integration-test.enc.yaml")
 	yaml := `hello: Welcome to SOPS! Edit this file as you please!
 example_key: example_value
 # Example comment!
@@ -36,25 +44,14 @@ example_booleans:
     - false
 `
 	if string(b) != yaml {
-		t.Error(fmt.Errorf("Expected SOPS file to match default value, got:\n\"%s\"\n expected:\n\"%s\"", string(b), yaml))
+		t.Error(fmt.Errorf("Expected SOPS YAML to match default value, got:\n\"%s\"\n expected:\n\"%s\"", string(b), yaml))
 	}
-}
 
-func TestJSON(t *testing.T) {
-	// Get current working directory
-	wd, err := os.Getwd()
 	if err != nil {
-		t.Fatalf("Failed to get current working directory: %v", err)
+		t.Error(err)
 	}
 
-	// Construct absolute path to the fixture file
-	fixture, _ := filepath.Abs(fmt.Sprintf("%s/../internal/tests/integration/sops/.sops-integration-test.enc.json", wd))
-
-	base, _ := url.Parse("sops://?format=json")
-
-	fsys, _ := New(base)
-
-	b, err := fs.ReadFile(fsys, fixture)
+	b, err = fs.ReadFile(fsys, ".sops-integration-test.enc.json")
 	json := `{
 	"hello": "Welcome to SOPS! Edit this file as you please!",
 	"example_key": "example_value",
@@ -69,6 +66,6 @@ func TestJSON(t *testing.T) {
 	]
 }`
 	if string(b) != json {
-		t.Error(fmt.Errorf("Expected SOPS file to match default value, got:\n\"%s\"\n expected:\n\"%s\"", string(b), json))
+		t.Error(fmt.Errorf("Expected SOPS JSON to match default value, got:\n\"%s\"\n expected:\n\"%s\"", string(b), json))
 	}
 }

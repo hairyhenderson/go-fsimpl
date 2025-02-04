@@ -66,11 +66,11 @@ func (f sopsFS) Open(name string) (fs.File, error) {
 
 	format := u.Query().Get("format")
 	if format == "" {
-		format = filepath.Ext(name)
+		format = filepath.Ext(name)[1:]
 	}
 
 	if format != "json" && format != "yaml" {
-		return nil, fmt.Errorf("could not determine sops format")
+		return nil, fmt.Errorf("could not determine sops format; got: %s", format)
 	}
 
 	return &sopsFile{
