@@ -31,6 +31,7 @@ TEST_ARGS=-race
 endif
 
 test:
+	gpg --import sops_functional_tests_key.asc
 	go test $(TEST_ARGS) -coverprofile=c.out ./...
 
 bench.txt:
