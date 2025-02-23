@@ -5,6 +5,10 @@ on:
       - main
   pull_request:
 
+permissions:
+  pull-requests: write
+  contents: read
+
 jobs:
   benchmark:
     name: benchmark regression check
