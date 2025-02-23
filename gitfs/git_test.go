@@ -86,7 +86,7 @@ func BenchmarkSplitRepoPath(b *testing.B) {
 		b.ResetTimer()
 
 		b.Run(strconv.Itoa(i), func(b *testing.B) {
-			for i := 0; i < b.N; i++ {
+			for range b.N {
 				splitRepoPath(d)
 			}
 		})
