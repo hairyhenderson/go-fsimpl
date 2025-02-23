@@ -14,6 +14,12 @@ updates:
     golang-x:
       patterns:
         - "golang.org/x/*"
+    otel:
+      patterns:
+        - "go.opentelemetry.io/*"
+    hashicorp:
+      patterns:
+        - "github.com/hashicorp/*"
 - package-ecosystem: github-actions
   directory: "/"
   schedule:
