@@ -28,7 +28,7 @@ require (
 	go.opentelemetry.io/otel/trace v1.33.0
 	gocloud.dev v0.40.0
 	golang.org/x/crypto v0.34.0
-	gotest.tools/v3 v3.5.1
+	gotest.tools/v3 v3.5.2
 )
 
 // TODO: once https://github.com/go-git/go-git/pull/416 is merged, this can be
