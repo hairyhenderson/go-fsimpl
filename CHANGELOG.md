@@ -1,5 +1,34 @@
 # Changelog
 
+## [0.2.2](https://github.com/hairyhenderson/go-fsimpl/compare/v0.2.1...v0.2.2) (2025-02-23)
+
+
+### Bug Fixes
+
+* **ci:** add explicit permissions to benchmark workflow ([#1000](https://github.com/hairyhenderson/go-fsimpl/issues/1000)) ([d32cdf9](https://github.com/hairyhenderson/go-fsimpl/commit/d32cdf90d2838d31736510529678ae72f9622cc1))
+* **ci:** need contents write perm for benchmark workflow ([#1001](https://github.com/hairyhenderson/go-fsimpl/issues/1001)) ([3548a51](https://github.com/hairyhenderson/go-fsimpl/commit/3548a516c00c6c26391e295588e27e5da132172e))
+* **lint:** Address new lint warnings ([#996](https://github.com/hairyhenderson/go-fsimpl/issues/996)) ([e784bce](https://github.com/hairyhenderson/go-fsimpl/commit/e784bce35d41eb80923da46fc92516a4926cc155))
+
+
+### Dependencies
+
+* **go:** Bump github.com/aws/aws-sdk-go-v2/config from 1.28.6 to 1.29.7 ([#991](https://github.com/hairyhenderson/go-fsimpl/issues/991)) ([954a32e](https://github.com/hairyhenderson/go-fsimpl/commit/954a32e702917d3661e8c60847a3bd3527645581))
+* **go:** Bump github.com/aws/aws-sdk-go-v2/service/s3 ([#994](https://github.com/hairyhenderson/go-fsimpl/issues/994)) ([66c34ef](https://github.com/hairyhenderson/go-fsimpl/commit/66c34ef4a1067eff5782327ca8ab635ad12c9876))
+* **go:** Bump github.com/aws/aws-sdk-go-v2/service/secretsmanager ([#993](https://github.com/hairyhenderson/go-fsimpl/issues/993)) ([9444bcf](https://github.com/hairyhenderson/go-fsimpl/commit/9444bcfd096b6b126ced5d490ec324b9a3d6e100))
+* **go:** Bump github.com/aws/aws-sdk-go-v2/service/ssm ([#992](https://github.com/hairyhenderson/go-fsimpl/issues/992)) ([531f924](https://github.com/hairyhenderson/go-fsimpl/commit/531f924bcd348d8be59137b7efa65e153746425f))
+* **go:** Bump github.com/aws/smithy-go from 1.22.2 to 1.22.3 ([#1010](https://github.com/hairyhenderson/go-fsimpl/issues/1010)) ([040a287](https://github.com/hairyhenderson/go-fsimpl/commit/040a2872720eaa64d69b1a5410ff65478f8aec72))
+* **go:** Bump github.com/Azure/azure-sdk-for-go/sdk/storage/azblob ([#1012](https://github.com/hairyhenderson/go-fsimpl/issues/1012)) ([f249969](https://github.com/hairyhenderson/go-fsimpl/commit/f249969e50986eae6416ee94bed23be238578f40))
+* **go:** Bump github.com/fsouza/fake-gcs-server from 1.50.2 to 1.52.2 ([#987](https://github.com/hairyhenderson/go-fsimpl/issues/987)) ([f9b772f](https://github.com/hairyhenderson/go-fsimpl/commit/f9b772ff70dc60d1f23275995d5d298b86a10d60))
+* **go:** Bump github.com/go-git/go-billy/v5 from 5.6.0 to 5.6.2 ([#934](https://github.com/hairyhenderson/go-fsimpl/issues/934)) ([0f614b2](https://github.com/hairyhenderson/go-fsimpl/commit/0f614b23c31a8e36a997c59b651fff029b3de092))
+* **go:** Bump github.com/hashicorp/consul/api from 1.30.0 to 1.31.2 ([#990](https://github.com/hairyhenderson/go-fsimpl/issues/990)) ([dab2094](https://github.com/hairyhenderson/go-fsimpl/commit/dab209402162f42f313fe1ae2b171124afb9cde8))
+* **go:** Bump github.com/hashicorp/vault/api/auth/approle ([#1004](https://github.com/hairyhenderson/go-fsimpl/issues/1004)) ([fed7bda](https://github.com/hairyhenderson/go-fsimpl/commit/fed7bdaf9800521c551ad3095f5e72399ed124b8))
+* **go:** Bump github.com/hashicorp/vault/api/auth/userpass ([#1011](https://github.com/hairyhenderson/go-fsimpl/issues/1011)) ([70e8e61](https://github.com/hairyhenderson/go-fsimpl/commit/70e8e61ea9c3e76e0085a25fa9269fdfe2638d01))
+* **go:** Bump go.opentelemetry.io/contrib/propagators/autoprop ([#1007](https://github.com/hairyhenderson/go-fsimpl/issues/1007)) ([7eb66a6](https://github.com/hairyhenderson/go-fsimpl/commit/7eb66a64df5b3e8a294563930eb21877f114467f))
+* **go:** Bump go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc ([#1008](https://github.com/hairyhenderson/go-fsimpl/issues/1008)) ([4a0f82a](https://github.com/hairyhenderson/go-fsimpl/commit/4a0f82ac7cb6064629a2c3d0683449f0fa7a7d34))
+* **go:** Bump go.opentelemetry.io/otel/sdk from 1.33.0 to 1.34.0 ([#1003](https://github.com/hairyhenderson/go-fsimpl/issues/1003)) ([179f531](https://github.com/hairyhenderson/go-fsimpl/commit/179f5313c378a9d893e5e0d2ab0d114bdad630ba))
+* **go:** Bump golang.org/x/crypto from 0.32.0 to 0.34.0 ([#999](https://github.com/hairyhenderson/go-fsimpl/issues/999)) ([670bdfe](https://github.com/hairyhenderson/go-fsimpl/commit/670bdfe504c6ce737b95b8fb483c0a3ef68f637d))
+* **go:** Bump gotest.tools/v3 from 3.5.1 to 3.5.2 ([#1006](https://github.com/hairyhenderson/go-fsimpl/issues/1006)) ([0b8ddb7](https://github.com/hairyhenderson/go-fsimpl/commit/0b8ddb7cc03f827bffc5b06975320b75bb563dd7))
+
 ## [0.2.1](https://github.com/hairyhenderson/go-fsimpl/compare/v0.2.0...v0.2.1) (2024-12-17)
 
 
