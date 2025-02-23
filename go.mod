@@ -12,7 +12,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.77.1
 	github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.34.19
 	github.com/aws/aws-sdk-go-v2/service/ssm v1.56.13
-	github.com/aws/smithy-go v1.22.2
+	github.com/aws/smithy-go v1.22.3
 	github.com/fsouza/fake-gcs-server v1.52.2
 	github.com/go-git/go-billy/v5 v5.6.2
 	github.com/hashicorp/consul/api v1.31.2
