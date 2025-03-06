@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.2.3](https://github.com/hairyhenderson/go-fsimpl/compare/v0.2.2...v0.2.3) (2025-03-06)
+
+
+### Dependencies
+
+* **go:** Bump github.com/go-jose/go-jose/v4 in the go_modules group ([#1015](https://github.com/hairyhenderson/go-fsimpl/issues/1015)) ([5599993](https://github.com/hairyhenderson/go-fsimpl/commit/559999329df9c29b1ee7fa3793f67335bd1a7950))
+* **go:** Bump golang.org/x/crypto in the golang-x group ([#1019](https://github.com/hairyhenderson/go-fsimpl/issues/1019)) ([aa71e23](https://github.com/hairyhenderson/go-fsimpl/commit/aa71e23c51bda0c9c14ad34bb31f1e1a3e553b6f))
+* **go:** Bump the aws-sdk group across 1 directory with 6 updates ([#1022](https://github.com/hairyhenderson/go-fsimpl/issues/1022)) ([053af5f](https://github.com/hairyhenderson/go-fsimpl/commit/053af5f739024c273c12348d68dc7f0107f778d0))
+* **go:** Bump the otel group across 1 directory with 5 updates ([#1021](https://github.com/hairyhenderson/go-fsimpl/issues/1021)) ([d18de10](https://github.com/hairyhenderson/go-fsimpl/commit/d18de108437f5fa39f2b03e69009b753bde78a18))
+
 ## [0.2.2](https://github.com/hairyhenderson/go-fsimpl/compare/v0.2.1...v0.2.2) (2025-02-23)
 
 
