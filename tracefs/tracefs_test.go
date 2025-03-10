@@ -1,7 +1,6 @@
 package tracefs
 
 import (
-	"context"
 	"io"
 	"io/fs"
 	"testing"
@@ -42,7 +41,7 @@ func (f *fsysWithURL) URL() string {
 }
 
 func TestTraceFS_Open(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 
 	exporter.Reset()
 
@@ -74,7 +73,7 @@ func TestTraceFS_Open(t *testing.T) {
 }
 
 func TestTraceFS_Open_URLFS(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 
 	exporter.Reset()
 
@@ -135,7 +134,7 @@ func TestTraceFS_Open_URLFS(t *testing.T) {
 }
 
 func TestTraceFS_ReadDir(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 
 	exporter.Reset()
 
@@ -163,7 +162,7 @@ func TestTraceFS_ReadDir(t *testing.T) {
 }
 
 func TestTraceFS_ReadFile(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 
 	exporter.Reset()
 
@@ -192,7 +191,7 @@ func TestTraceFS_ReadFile(t *testing.T) {
 }
 
 func TestTraceFS_Stat(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 
 	exporter.Reset()
 
@@ -220,7 +219,7 @@ func TestTraceFS_Stat(t *testing.T) {
 }
 
 func TestTraceFS_Sub(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 
 	exporter.Reset()
 
@@ -257,7 +256,7 @@ func TestTraceFS_Sub(t *testing.T) {
 }
 
 func TestTraceFS_Glob(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 
 	exporter.Reset()
 
@@ -293,7 +292,7 @@ func TestTraceFS_Glob(t *testing.T) {
 }
 
 func TestTraceFS_Dir_Read(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 
 	exporter.Reset()
 

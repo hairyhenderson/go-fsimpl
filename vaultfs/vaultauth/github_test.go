@@ -1,7 +1,6 @@
 package vaultauth
 
 import (
-	"context"
 	"encoding/json"
 	"net/http"
 	"testing"
@@ -29,8 +28,7 @@ func TestGitHubAuthMethod(t *testing.T) {
 		_ = enc.Encode(out)
 	}))
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	_, err := NewGitHubAuth(nil)
 	require.Error(t, err)

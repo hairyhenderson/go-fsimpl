@@ -161,9 +161,9 @@ func TestNew(t *testing.T) {
 func TestWithContext(t *testing.T) {
 	type key struct{}
 
-	ctx := context.WithValue(context.Background(), key{}, "foo")
+	ctx := context.WithValue(t.Context(), key{}, "foo")
 
-	fsys := &consulFS{ctx: context.Background()}
+	fsys := &consulFS{ctx: t.Context()}
 	fsys = fsys.WithContext(ctx).(*consulFS)
 
 	assert.Same(t, ctx, fsys.ctx)

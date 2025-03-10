@@ -1,7 +1,6 @@
 package vaultfs
 
 import (
-	"context"
 	"encoding/json"
 	"net/http"
 	"os"
@@ -18,8 +17,7 @@ import (
 func TestEnvAuthLogin(t *testing.T) {
 	v := fakevault.Server(t)
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	t.Setenv("VAULT_TOKEN", "foo")
 
@@ -36,8 +34,7 @@ func TestEnvAuthLogin(t *testing.T) {
 }
 
 func TestTokenLogin(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	client := &api.Client{}
 
@@ -99,8 +96,7 @@ func TestAppRoleAuthMethod(t *testing.T) {
 		_ = enc.Encode(out)
 	}))
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	m := AppRoleAuthMethod("", "", "")
 	err := m.Login(ctx, client)
@@ -160,8 +156,7 @@ func TestUserPassAuthMethod(t *testing.T) {
 
 	client := fakevault.FakeVault(t, mux)
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	m := UserPassAuthMethod("", "", "")
 	err := m.Login(ctx, client)
@@ -208,8 +203,7 @@ func TestGitHubAuthMethod(t *testing.T) {
 		_ = enc.Encode(out)
 	}))
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	m := GitHubAuthMethod("", "")
 	err := m.Login(ctx, client)

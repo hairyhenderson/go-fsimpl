@@ -164,7 +164,7 @@ func TestGitFS_HTTPDatasource(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, int64(706), fi.Size())
 
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(t.Context())
 	cancel()
 
 	fsys, _ = gitfs.New(tests.MustURL("git+https://github.com/git-fixtures/basic//json/"))

@@ -150,8 +150,7 @@ func startVault(ctx context.Context, t *testing.T) string {
 }
 
 func TestVaultFS(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	addr := setupVaultFSTest(ctx, t)
 
@@ -178,8 +177,7 @@ func TestVaultFS(t *testing.T) {
 }
 
 func TestVaultFS_TokenAuth(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	addr := setupVaultFSTest(ctx, t)
 
@@ -229,8 +227,7 @@ func TestVaultFS_TokenAuth(t *testing.T) {
 
 //nolint:funlen
 func TestVaultFS_UserPassAuth(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	addr := setupVaultFSTest(ctx, t)
 
@@ -350,8 +347,7 @@ func TestVaultFS_UserPassAuth(t *testing.T) {
 
 //nolint:errcheck,funlen
 func TestVaultFS_AppRoleAuth(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	addr := setupVaultFSTest(ctx, t)
 
@@ -434,8 +430,7 @@ func TestVaultFS_AppRoleAuth(t *testing.T) {
 
 //nolint:errcheck,funlen
 func TestVaultFS_AppRoleAuth_ReusedToken(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	addr := setupVaultFSTest(ctx, t)
 
@@ -520,8 +515,7 @@ func TestVaultFS_AppRoleAuth_ReusedToken(t *testing.T) {
 }
 
 func TestVaultFS_DynamicAuth(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	addr := setupVaultFSTest(ctx, t)
 
@@ -568,8 +562,7 @@ func TestVaultFS_DynamicAuth(t *testing.T) {
 }
 
 func TestVaultFS_List(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	addr := setupVaultFSTest(ctx, t)
 
@@ -598,8 +591,7 @@ func TestVaultFS_List(t *testing.T) {
 
 //nolint:funlen
 func TestVaultFS_KVv2(t *testing.T) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
+	ctx := t.Context()
 
 	addr := setupVaultFSTest(ctx, t)
 	client := adminClient(t, addr)

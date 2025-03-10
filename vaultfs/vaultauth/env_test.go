@@ -1,7 +1,6 @@
 package vaultauth
 
 import (
-	"context"
 	"testing"
 
 	"github.com/hairyhenderson/go-fsimpl/internal/tests/fakevault"
@@ -12,8 +11,7 @@ import (
 func TestEnvAuthLogin(t *testing.T) {
 	v := fakevault.Server(t)
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	t.Setenv("VAULT_TOKEN", "foo")
 

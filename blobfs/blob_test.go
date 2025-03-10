@@ -99,8 +99,8 @@ func TestBlobFS_S3(t *testing.T) {
 	defer func() { fakeModTime = nil }()
 
 	srvURL := setupTestS3Bucket(t)
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 
+	ctx, cancel := context.WithTimeout(t.Context(), 5*time.Second)
 	defer cancel()
 
 	t.Setenv("AWS_ANON", "true")
@@ -168,8 +168,7 @@ func TestBlobFS_Azure(t *testing.T) {
 
 	defer func() { fakeModTime = nil }()
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-
+	ctx, cancel := context.WithTimeout(t.Context(), 5*time.Second)
 	defer cancel()
 
 	t.Setenv("AZURE_STORAGE_ACCOUNT", "azureopendatastorage")
