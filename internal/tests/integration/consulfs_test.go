@@ -3,7 +3,6 @@
 package integration
 
 import (
-	"context"
 	"io"
 	"strconv"
 	"testing"
@@ -98,7 +97,7 @@ func setupConsulFSTest(t *testing.T) consulTestConfig {
 
 	t.Logf("Fired up Consul: %v", consul)
 
-	ctx := context.Background()
+	ctx := t.Context()
 
 	err := waitForURL(ctx, t, "http://"+consulAddr+"/v1/status/leader")
 	require.NoError(t, err)
@@ -217,11 +216,11 @@ func TestConsulFS_WithVaultAuth(t *testing.T) {
 		_ = vaultClient.Sys().Unmount("consul/")
 	})
 
-	_, err = vaultClient.Logical().Write("consul/config/access", map[string]interface{}{
+	_, err = vaultClient.Logical().Write("consul/config/access", map[string]any{
 		"address": tcfg.consulAddr, "token": tcfg.rootToken,
 	})
 	require.NoError(t, err)
-	_, err = vaultClient.Logical().Write("consul/roles/vaultpol", map[string]interface{}{
+	_, err = vaultClient.Logical().Write("consul/roles/vaultpol", map[string]any{
 		"policies": "vaultpol",
 	})
 	require.NoError(t, err)

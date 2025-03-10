@@ -227,7 +227,7 @@ func (m *appRoleAuthMethod) Login(ctx context.Context, client *api.Client) error
 	mount := findValue(m.mount, "VAULT_AUTH_APPROLE_MOUNT", "approle", m.fsys)
 
 	secret, err := remoteAuth(ctx, client, mount, "",
-		map[string]interface{}{"role_id": roleID, "secret_id": secretID})
+		map[string]any{"role_id": roleID, "secret_id": secretID})
 	if err != nil {
 		return fmt.Errorf("approle login failed: %w", err)
 	}
@@ -276,7 +276,7 @@ func (m *gitHubAuthMethod) Login(ctx context.Context, client *api.Client) error 
 	mount := findValue(m.mount, "VAULT_AUTH_GITHUB_MOUNT", "github", m.fsys)
 
 	secret, err := remoteAuth(ctx, client, mount, "",
-		map[string]interface{}{"token": ghtoken})
+		map[string]any{"token": ghtoken})
 	if err != nil {
 		return fmt.Errorf("github login failed: %w", err)
 	}
@@ -331,7 +331,7 @@ func (m *userPassAuthMethod) Login(ctx context.Context, client *api.Client) erro
 	mount := findValue(m.mount, "VAULT_AUTH_USERPASS_MOUNT", "userpass", m.fsys)
 
 	secret, err := remoteAuth(ctx, client, mount, username,
-		map[string]interface{}{"password": password})
+		map[string]any{"password": password})
 	if err != nil {
 		return fmt.Errorf("userpass login failed: %w", err)
 	}
@@ -359,7 +359,7 @@ func findValue(s, envvar, def string, fsys fs.FS) string {
 	return s
 }
 
-func remoteAuth(ctx context.Context, client *api.Client, mount, extra string, vars map[string]interface{}) (*api.Secret, error) {
+func remoteAuth(ctx context.Context, client *api.Client, mount, extra string, vars map[string]any) (*api.Secret, error) {
 	p := path.Join("auth", mount, "login", extra)
 
 	secret, err := client.Logical().WriteWithContext(ctx, p, vars)

@@ -28,7 +28,7 @@ func WithAuthMethod(auth api.AuthMethod, fsys fs.FS) fs.FS {
 	return fsys
 }
 
-func remoteAuth(ctx context.Context, client *api.Client, mount, extra string, vars map[string]interface{}) (*api.Secret, error) {
+func remoteAuth(ctx context.Context, client *api.Client, mount, extra string, vars map[string]any) (*api.Secret, error) {
 	p := path.Join("auth", mount, "login", extra)
 
 	secret, err := client.Logical().WriteWithContext(ctx, p, vars)

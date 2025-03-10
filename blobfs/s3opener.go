@@ -229,7 +229,7 @@ func V2ConfigFromURLParams(ctx context.Context, q url.Values) (awsv2.Config, err
 	if endpoint != "" {
 		//nolint:staticcheck
 		customResolver := awsv2.EndpointResolverWithOptionsFunc(
-			func(_, region string, _ ...interface{}) (awsv2.Endpoint, error) {
+			func(_, region string, _ ...any) (awsv2.Endpoint, error) {
 				//nolint:staticcheck
 				return awsv2.Endpoint{
 					PartitionID:       "aws",

@@ -359,7 +359,7 @@ func (f *vaultFile) newRequest(method string) (*api.Request, error) {
 	if method == http.MethodGet {
 		req.Params = values
 	} else if len(values) > 0 {
-		data := map[string]interface{}{}
+		data := map[string]any{}
 
 		for k, vs := range values {
 			for _, v := range vs {
@@ -522,7 +522,7 @@ func (f *vaultFile) list() ([]string, error) {
 		return nil, fmt.Errorf("keys missing from vault LIST response %+v", s)
 	}
 
-	k, ok := keys.([]interface{})
+	k, ok := keys.([]any)
 	if !ok {
 		return nil, fmt.Errorf("keys returned in unexpected format from vault LIST response: %#v", keys)
 	}
@@ -646,7 +646,7 @@ func (f *vaultFile) getMountInfo(ctx context.Context) (*mountInfo, error) {
 		return nil, fmt.Errorf("parse mount info: %w", err)
 	}
 
-	rawMounts, ok := s.Data["secret"].(map[string]interface{})
+	rawMounts, ok := s.Data["secret"].(map[string]any)
 	if !ok {
 		return nil, fmt.Errorf("unexpected mount info format: %#v", s.Data)
 	}
@@ -665,19 +665,19 @@ func (f *vaultFile) getMountInfo(ctx context.Context) (*mountInfo, error) {
 	return f.mountInfo, nil
 }
 
-func findMountInfo(rawFilePath string, rawMounts map[string]interface{}) (*mountInfo, error) {
+func findMountInfo(rawFilePath string, rawMounts map[string]any) (*mountInfo, error) {
 	for mountName, mountOpts := range rawMounts {
 		mountPrefix := path.Join("/v1", mountName)
 
 		if strings.HasPrefix(rawFilePath, mountPrefix) {
-			v, ok := mountOpts.(map[string]interface{})
+			v, ok := mountOpts.(map[string]any)
 			if !ok {
 				return nil, fmt.Errorf("unexpected mount info format for %q: %#v", mountName, v)
 			}
 
 			mount := &api.MountOutput{Type: v["type"].(string)}
 
-			opts, ok := v["options"].(map[string]interface{})
+			opts, ok := v["options"].(map[string]any)
 			if ok {
 				mount.Options = make(map[string]string, len(opts))
 				for k, v := range opts {

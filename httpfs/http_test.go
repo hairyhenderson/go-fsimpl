@@ -57,8 +57,7 @@ func setupHTTP(t *testing.T) *httptest.Server {
 }
 
 func TestHttpFS(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	srv := setupHTTP(t)
 

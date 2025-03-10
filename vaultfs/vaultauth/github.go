@@ -105,7 +105,7 @@ func (a *gitHubAuthMethod) Login(ctx context.Context, client *api.Client) (*api.
 	}
 
 	secret, err := remoteAuth(ctx, client, a.mountPath, "",
-		map[string]interface{}{"token": token})
+		map[string]any{"token": token})
 	if err != nil {
 		return nil, fmt.Errorf("github login failed: %w", err)
 	}

@@ -73,9 +73,7 @@ func BenchmarkPathForDirFS(b *testing.B) {
 		tests.MustURL("file://invalid"),
 	}
 
-	b.ResetTimer()
-
-	for range b.N {
+	for b.Loop() {
 		for _, d := range testdata {
 			pathForDirFS(d)
 		}

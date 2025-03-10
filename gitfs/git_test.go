@@ -1,7 +1,6 @@
 package gitfs
 
 import (
-	"context"
 	"fmt"
 	"io"
 	"io/fs"
@@ -83,10 +82,8 @@ func BenchmarkSplitRepoPath(b *testing.B) {
 	}
 
 	for i, d := range data {
-		b.ResetTimer()
-
 		b.Run(strconv.Itoa(i), func(b *testing.B) {
-			for range b.N {
+			for b.Loop() {
 				splitRepoPath(d)
 			}
 		})
@@ -226,7 +223,7 @@ func TestGitFS(t *testing.T) {
 }
 
 func TestGitFS_Clone(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	testHashes := setupGitRepo(t)
 
 	g := &gitFS{auth: NoopAuthenticator()}
@@ -264,7 +261,7 @@ func TestGitFS_Clone(t *testing.T) {
 }
 
 func TestGitFS_Clone_BareFileRepo(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	_ = setupGitRepo(t)
 
 	g := &gitFS{auth: NoopAuthenticator()}
@@ -280,7 +277,7 @@ func TestGitFS_Clone_BareFileRepo(t *testing.T) {
 }
 
 func TestGitFS_Clone_HTTPS(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 
 	g := &gitFS{auth: NoopAuthenticator()}
 
@@ -298,7 +295,7 @@ func TestGitFS_Clone_HTTPS(t *testing.T) {
 func TestGitFS_ReadDir(t *testing.T) {
 	_ = setupGitRepo(t)
 
-	ctx := context.Background()
+	ctx := t.Context()
 
 	fsys, _ := New(tests.MustURL("git+file:///bare.git"))
 	fsys = fsimpl.WithContextFS(ctx, fsys)

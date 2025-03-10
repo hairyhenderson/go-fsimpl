@@ -2,6 +2,7 @@ package awsimdsfs
 
 import (
 	"io"
+	"maps"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -368,9 +369,7 @@ eP9n/rGEGGm0cGEbbeB=`),
 				return
 			}
 
-			for k, v := range wrec.Header() {
-				w.Header()[k] = v
-			}
+			maps.Copy(w.Header(), wrec.Header())
 
 			w.WriteHeader(wrec.Code)
 			_, _ = w.Write(wrec.Body.Bytes())

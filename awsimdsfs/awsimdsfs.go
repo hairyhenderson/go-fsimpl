@@ -409,7 +409,7 @@ func (f *awsimdsFile) parseListOutput(r io.ReadCloser) ([]string, error) {
 
 	children := []string{}
 
-	for _, line := range strings.Split(string(b), "\n") {
+	for line := range strings.SplitSeq(string(b), "\n") {
 		if line == "" {
 			continue
 		}
