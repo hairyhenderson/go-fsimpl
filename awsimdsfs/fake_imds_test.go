@@ -2,13 +2,12 @@ package awsimdsfs
 
 import (
 	"io"
+	"maps"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 	"testing/fstest"
-
-	"maps"
 
 	"github.com/stretchr/testify/require"
 )

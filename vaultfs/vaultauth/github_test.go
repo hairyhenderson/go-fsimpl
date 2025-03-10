@@ -18,8 +18,8 @@ func TestGitHubAuthMethod(t *testing.T) {
 	client := fakevault.FakeVault(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, "/v1/auth/"+mount+"/login", r.URL.Path)
 
-		out := map[string]interface{}{
-			"auth": map[string]interface{}{
+		out := map[string]any{
+			"auth": map[string]any{
 				"client_token": token,
 			},
 		}

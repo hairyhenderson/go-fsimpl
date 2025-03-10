@@ -21,8 +21,8 @@ var (
 	tp       = sdktrace.NewTracerProvider(sdktrace.WithSyncer(exporter))
 )
 
-func attribmap(kvs []attribute.KeyValue) map[string]interface{} {
-	m := make(map[string]interface{}, len(kvs))
+func attribmap(kvs []attribute.KeyValue) map[string]any {
+	m := make(map[string]any, len(kvs))
 
 	for _, attr := range kvs {
 		m[string(attr.Key)] = attr.Value.AsInterface()
@@ -66,7 +66,7 @@ func TestTraceFS_Open(t *testing.T) {
 
 	assert.Equal(t, "fs.Open", spans[0].Name)
 	assert.Equal(t, "file.Read", spans[1].Name)
-	assert.Equal(t, map[string]interface{}{
+	assert.Equal(t, map[string]any{
 		"fs.path": "foo/bar",
 		"fs.type": "fstest.MapFS",
 	}, attribmap(spans[0].Attributes))
@@ -97,12 +97,12 @@ func TestTraceFS_Open_URLFS(t *testing.T) {
 
 	assert.Equal(t, "fs.Open", spans[0].Name)
 	assert.Equal(t, "file.Stat", spans[1].Name)
-	assert.Equal(t, map[string]interface{}{
+	assert.Equal(t, map[string]any{
 		"fs.base_url": "mem:///",
 		"fs.path":     "baz",
 		"fs.type":     "*tracefs.fsysWithURL",
 	}, attribmap(spans[0].Attributes))
-	assert.Equal(t, map[string]interface{}{
+	assert.Equal(t, map[string]any{
 		"fs.base_url":  "mem:///",
 		"fs.path":      "baz",
 		"fs.type":      "*tracefs.fsysWithURL",
@@ -126,7 +126,7 @@ func TestTraceFS_Open_URLFS(t *testing.T) {
 
 	assert.Equal(t, "fs.Open", spans[0].Name)
 	assert.Equal(t, "file.ReadDir", spans[1].Name)
-	assert.Equal(t, map[string]interface{}{
+	assert.Equal(t, map[string]any{
 		"fs.base_url": "mem:///",
 		"fs.path":     "foo",
 		"fs.type":     "*tracefs.fsysWithURL",
@@ -154,7 +154,7 @@ func TestTraceFS_ReadDir(t *testing.T) {
 	spans := exporter.GetSpans()
 
 	assert.Equal(t, "fs.ReadDir", spans[0].Name)
-	assert.Equal(t, map[string]interface{}{
+	assert.Equal(t, map[string]any{
 		"fs.path":     ".",
 		"fs.type":     "fstest.MapFS",
 		"dir.entries": int64(2),
@@ -182,7 +182,7 @@ func TestTraceFS_ReadFile(t *testing.T) {
 	spans := exporter.GetSpans()
 
 	assert.Equal(t, "fs.ReadFile", spans[0].Name)
-	assert.Equal(t, map[string]interface{}{
+	assert.Equal(t, map[string]any{
 		"fs.path":         "foo/bar",
 		"fs.type":         "fstest.MapFS",
 		"file.size":       int64(5),
@@ -209,7 +209,7 @@ func TestTraceFS_Stat(t *testing.T) {
 	spans := exporter.GetSpans()
 
 	assert.Equal(t, "fs.Stat", spans[0].Name)
-	assert.Equal(t, map[string]interface{}{
+	assert.Equal(t, map[string]any{
 		"fs.path":      "baz",
 		"fs.type":      "fstest.MapFS",
 		"file.size":    int64(5),
@@ -243,11 +243,11 @@ func TestTraceFS_Sub(t *testing.T) {
 
 	assert.Equal(t, "fs.Sub", spans[0].Name)
 	assert.Equal(t, "fs.ReadFile", spans[1].Name)
-	assert.Equal(t, map[string]interface{}{
+	assert.Equal(t, map[string]any{
 		"fs.path": "foo",
 		"fs.type": "fstest.MapFS",
 	}, attribmap(spans[0].Attributes))
-	assert.Equal(t, map[string]interface{}{
+	assert.Equal(t, map[string]any{
 		"fs.path":         "bar",
 		"fs.type":         "*fs.subFS",
 		"file.size":       int64(5),
@@ -276,7 +276,7 @@ func TestTraceFS_Glob(t *testing.T) {
 	spans := exporter.GetSpans()
 
 	assert.Equal(t, "fs.Glob", spans[0].Name)
-	assert.Equal(t, map[string]interface{}{"fs.pattern": "*.txt"}, attribmap(spans[0].Attributes))
+	assert.Equal(t, map[string]any{"fs.pattern": "*.txt"}, attribmap(spans[0].Attributes))
 
 	exporter.Reset()
 
@@ -288,7 +288,7 @@ func TestTraceFS_Glob(t *testing.T) {
 	spans = exporter.GetSpans()
 
 	assert.Equal(t, "fs.Glob", spans[0].Name)
-	assert.Equal(t, map[string]interface{}{"fs.pattern": "*"}, attribmap(spans[0].Attributes))
+	assert.Equal(t, map[string]any{"fs.pattern": "*"}, attribmap(spans[0].Attributes))
 }
 
 func TestTraceFS_Dir_Read(t *testing.T) {
@@ -314,17 +314,17 @@ func TestTraceFS_Dir_Read(t *testing.T) {
 	spans := exporter.GetSpans()
 
 	assert.Equal(t, "fs.Open", spans[0].Name)
-	assert.Equal(t, map[string]interface{}{
+	assert.Equal(t, map[string]any{
 		"fs.path": ".",
 		"fs.type": "fstest.MapFS",
 	}, attribmap(spans[0].Attributes))
 	assert.Equal(t, "file.Read", spans[1].Name)
-	assert.Equal(t, map[string]interface{}{
+	assert.Equal(t, map[string]any{
 		"fs.path":         ".",
 		"fs.type":         "fstest.MapFS",
 		"file.bytes_read": int64(0),
 	}, attribmap(spans[1].Attributes))
-	assert.Equal(t, map[string]interface{}{
+	assert.Equal(t, map[string]any{
 		"exception.message": "read .: invalid argument",
 		"exception.type":    "*fs.PathError",
 	}, attribmap(spans[1].Events[0].Attributes))
@@ -339,7 +339,7 @@ func TestTraceFS_Dir_Read(t *testing.T) {
 	spans = exporter.GetSpans()
 
 	assert.Equal(t, "file.Stat", spans[0].Name)
-	assert.Equal(t, map[string]interface{}{
+	assert.Equal(t, map[string]any{
 		"fs.path":      ".",
 		"fs.type":      "fstest.MapFS",
 		"file.modtime": "0001-01-01T00:00:00Z",

@@ -216,11 +216,11 @@ func TestConsulFS_WithVaultAuth(t *testing.T) {
 		_ = vaultClient.Sys().Unmount("consul/")
 	})
 
-	_, err = vaultClient.Logical().Write("consul/config/access", map[string]interface{}{
+	_, err = vaultClient.Logical().Write("consul/config/access", map[string]any{
 		"address": tcfg.consulAddr, "token": tcfg.rootToken,
 	})
 	require.NoError(t, err)
-	_, err = vaultClient.Logical().Write("consul/roles/vaultpol", map[string]interface{}{
+	_, err = vaultClient.Logical().Write("consul/roles/vaultpol", map[string]any{
 		"policies": "vaultpol",
 	})
 	require.NoError(t, err)

@@ -12,14 +12,14 @@ import (
 )
 
 func mountHandler(w http.ResponseWriter, _ *http.Request) {
-	mounts := map[string]interface{}{
-		"secret/": map[string]interface{}{
+	mounts := map[string]any{
+		"secret/": map[string]any{
 			"type": "kv",
 		},
 	}
 
-	resp := map[string]interface{}{
-		"data": map[string]interface{}{
+	resp := map[string]any{
+		"data": map[string]any{
 			"secret": mounts,
 		},
 	}
@@ -55,7 +55,7 @@ func vaultHandler(t *testing.T, files map[string]fakeSecret) http.Handler {
 			}
 		}
 
-		body := map[string]interface{}{}
+		body := map[string]any{}
 
 		if r.Body != nil {
 			dec := json.NewDecoder(r.Body)
@@ -81,7 +81,7 @@ func vaultHandler(t *testing.T, files map[string]fakeSecret) http.Handler {
 		t.Logf("encoding %#v", data)
 
 		enc := json.NewEncoder(w)
-		_ = enc.Encode(map[string]interface{}{"data": data})
+		_ = enc.Encode(map[string]any{"data": data})
 	})
 }
 
