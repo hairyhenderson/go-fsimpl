@@ -8,6 +8,8 @@ import (
 	"testing"
 	"testing/fstest"
 
+	"maps"
+
 	"github.com/stretchr/testify/require"
 )
 
@@ -368,9 +370,7 @@ eP9n/rGEGGm0cGEbbeB=`),
 				return
 			}
 
-			for k, v := range wrec.Header() {
-				w.Header()[k] = v
-			}
+			maps.Copy(w.Header(), wrec.Header())
 
 			w.WriteHeader(wrec.Code)
 			_, _ = w.Write(wrec.Body.Bytes())
