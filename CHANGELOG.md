@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.2.4](https://github.com/hairyhenderson/go-fsimpl/compare/v0.2.3...v0.2.4) (2025-03-10)
+
+
+### Bug Fixes
+
+* **perf:** Fix regression in pathForDirFS benchmark ([#1027](https://github.com/hairyhenderson/go-fsimpl/issues/1027)) ([cc55871](https://github.com/hairyhenderson/go-fsimpl/commit/cc558713dc47cf98a791887cbba4f8e475e3c8b1))
+
+
+### Dependencies
+
+* **go:** Upgrade to 1.24 and pull in outstanding upgrades ([#1025](https://github.com/hairyhenderson/go-fsimpl/issues/1025)) ([c001f6f](https://github.com/hairyhenderson/go-fsimpl/commit/c001f6f2965c3dc3273e465185380d105471bf60))
+
 ## [0.2.3](https://github.com/hairyhenderson/go-fsimpl/compare/v0.2.2...v0.2.3) (2025-03-06)
 
 
