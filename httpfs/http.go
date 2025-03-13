@@ -2,6 +2,7 @@ package httpfs
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"io/fs"
@@ -180,7 +181,9 @@ func (f *httpFile) request(method string) (io.ReadCloser, error) {
 	f.fi = internal.FileInfo(f.name, resp.ContentLength, 0o444, modTime, resp.Header.Get("Content-Type"))
 
 	if resp.StatusCode == 0 || resp.StatusCode >= 400 {
-		return nil, fmt.Errorf("http GET failed with status %d", resp.StatusCode)
+		resp.Body.Close()
+
+		return nil, httpError(method, resp.StatusCode)
 	}
 
 	// The response body must be closed later
@@ -210,10 +213,45 @@ func (f *httpFile) Read(p []byte) (int, error) {
 
 func (f *httpFile) Stat() (fs.FileInfo, error) {
 	body, err := f.request(http.MethodHead)
+	if err == nil {
+		defer body.Close()
+
+		return f.fi, nil
+	}
+
+	var he httpErr
+	if !errors.As(err, &he) || he.StatusCode() != http.StatusMethodNotAllowed {
+		return nil, err
+	}
+
+	// fall back to GET if HEAD returns 405
+	body, err = f.request(http.MethodGet)
 	if err != nil {
 		return nil, err
 	}
+
 	defer body.Close()
 
 	return f.fi, nil
+}
+
+// httpError represents an HTTP error with its status code
+func httpError(method string, statusCode int) error {
+	return httpErr{
+		method:     method,
+		statusCode: statusCode,
+	}
+}
+
+type httpErr struct {
+	method     string
+	statusCode int
+}
+
+func (e httpErr) Error() string {
+	return fmt.Sprintf("http %s failed with status %d", e.method, e.statusCode)
+}
+
+func (e httpErr) StatusCode() int {
+	return e.statusCode
 }
