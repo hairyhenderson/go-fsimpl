@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.2.5](https://github.com/hairyhenderson/go-fsimpl/compare/v0.2.4...v0.2.5) (2025-03-14)
+
+
+### Bug Fixes
+
+* **httpfs:** Fall back to GET when HEAD not allowed on Stat ([#1031](https://github.com/hairyhenderson/go-fsimpl/issues/1031)) ([97ef3c0](https://github.com/hairyhenderson/go-fsimpl/commit/97ef3c0528bf33be916562a132c10aeb65c395d2))
+
+
+### Dependencies
+
+* **go:** Bump github.com/aws/aws-sdk-go-v2/service/s3 ([#1028](https://github.com/hairyhenderson/go-fsimpl/issues/1028)) ([e897108](https://github.com/hairyhenderson/go-fsimpl/commit/e897108f260fb945e76d2209efba63a241eb2e47))
+
 ## [0.2.4](https://github.com/hairyhenderson/go-fsimpl/compare/v0.2.3...v0.2.4) (2025-03-10)
 
 
