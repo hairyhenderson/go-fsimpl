@@ -3,6 +3,7 @@ package httpfs
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/fs"
@@ -48,6 +49,21 @@ func setupHTTP(t *testing.T) *httptest.Server {
 		if err != nil {
 			t.Fatalf("error encoding: %v", err)
 		}
+	})
+
+	// a path where HEAD gets a 405, to ensure Stat can handle it
+	mux.HandleFunc("HEAD /nohead.json", func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+	})
+	mux.HandleFunc("GET /nohead.json", func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"msg": "hi there"}`))
+	})
+	mux.HandleFunc("HEAD /notfound.json", func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusNotFound)
+	})
+	mux.HandleFunc("GET /notfound.json", func(_ http.ResponseWriter, _ *http.Request) {
+		t.Fatal("GET should not be called when HEAD returns 404")
 	})
 
 	srv := httptest.NewServer(mux)
@@ -112,6 +128,39 @@ func TestHttpFS(t *testing.T) {
 
 		assert.JSONEq(t, `{"foo":["bar"],"baz":["qux"]}`, string(body))
 	})
+}
+
+func TestHttpFS_Stat_NoHead(t *testing.T) {
+	srv := setupHTTP(t)
+
+	ctx := t.Context()
+
+	fsys, _ := New(tests.MustURL(srv.URL))
+	fsys = fsimpl.WithContextFS(ctx, fsys)
+
+	fi, err := fs.Stat(fsys, "nohead.json")
+	assert.NoError(t, err)
+	assert.Equal(t, int64(19), fi.Size())
+	assert.Equal(t, "nohead.json", fi.Name())
+	assert.Equal(t, "application/json", fsimpl.ContentType(fi))
+}
+
+func TestHttpFS_Stat_NoFallbackForOtherErrors(t *testing.T) {
+	srv := setupHTTP(t)
+
+	ctx := t.Context()
+
+	fsys, _ := New(tests.MustURL(srv.URL))
+	fsys = fsimpl.WithContextFS(ctx, fsys)
+
+	_, err := fs.Stat(fsys, "notfound.json")
+	assert.Error(t, err)
+
+	var he httpErr
+
+	assert.True(t, errors.As(err, &he), "error should be of type httpErr")
+	assert.Equal(t, http.StatusNotFound, he.StatusCode())
+	assert.Equal(t, "HEAD", he.method)
 }
 
 func setupExampleHTTPServer() *httptest.Server {
