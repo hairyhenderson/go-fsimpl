@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.6](https://github.com/hairyhenderson/go-fsimpl/compare/v0.2.5...v0.2.6) (2025-03-24)
+
+
+### Dependencies
+
+* **go:** Bump github.com/golang-jwt/jwt/v5 in the go_modules group ([#1033](https://github.com/hairyhenderson/go-fsimpl/issues/1033)) ([8449c50](https://github.com/hairyhenderson/go-fsimpl/commit/8449c504375e97d8bba3854f603a35cd3d0a6645))
+
 ## [0.2.5](https://github.com/hairyhenderson/go-fsimpl/compare/v0.2.4...v0.2.5) (2025-03-14)
 
 
