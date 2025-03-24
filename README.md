@@ -58,6 +58,7 @@ Here's the list of filesystems & URL schemes supported by this module:
 | [blobfs]   | `s3` | [Amazon S3][] |
 | [consulfs] | `consul`, `consul+http`, `consul+https` | [HashiCorp Consul][] |
 | [filefs]   | `file` | local filesystem |
+| [gcpmetafs] | `gcp+meta` | [GCP Metadata][] |
 | [gitfs]    | `git`, `git+file`, `git+http`, `git+https`, `git+ssh` | local/remote git repository |
 | [httpfs]   | `http`, `https` | HTTP server |
 | [tracefs]  | n/a | a filesystem that instruments other filesystems for tracing with [OpenTelemetry][] |
@@ -152,6 +153,7 @@ Copyright (c) 2021-2024 Dave Henderson
 [Google Cloud Storage]: https://cloud.google.com/storage/
 [Azure Blob Storage]: https://azure.microsoft.com/en-us/services/storage/blobs/
 [OpenTelemetry]: https://opentelemetry.io
+[GCP Metadata]: https://cloud.google.com/compute/docs/metadata/overview
 
 [awsimdsfs]: https://pkg.go.dev/github.com/hairyhenderson/go-fsimpl/awsimdsfs
 [awssmfs]: https://pkg.go.dev/github.com/hairyhenderson/go-fsimpl/awssmfs
@@ -165,3 +167,4 @@ Copyright (c) 2021-2024 Dave Henderson
 [blobfs]: https://pkg.go.dev/github.com/hairyhenderson/go-fsimpl/blobfs
 [tracefs]: https://pkg.go.dev/github.com/hairyhenderson/go-fsimpl/tracefs
 [vaultfs]: https://pkg.go.dev/github.com/hairyhenderson/go-fsimpl/vaultfs
+[gcpmetafs]: https://pkg.go.dev/github.com/hairyhenderson/go-fsimpl/gcpmetafs
