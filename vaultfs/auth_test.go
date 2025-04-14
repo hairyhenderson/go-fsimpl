@@ -12,6 +12,7 @@ import (
 	"github.com/hairyhenderson/go-fsimpl/internal/tests/fakevault"
 	"github.com/hashicorp/vault/api"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestEnvAuthLogin(t *testing.T) {
@@ -23,13 +24,13 @@ func TestEnvAuthLogin(t *testing.T) {
 
 	m := EnvAuthMethod()
 	err := m.Login(ctx, v)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "foo", v.Token())
 	assert.NotNil(t, m.(*envAuthMethod).chosen)
 
 	err = m.Logout(ctx, v)
-	assert.NoError(t, err)
-	assert.Equal(t, "", v.Token())
+	require.NoError(t, err)
+	assert.Empty(t, v.Token())
 	assert.Nil(t, m.(*envAuthMethod).chosen)
 }
 
@@ -43,13 +44,13 @@ func TestTokenLogin(t *testing.T) {
 
 	m := TokenAuthMethod("")
 	err := m.Login(ctx, client)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "foo", client.Token())
 
 	// use provided token, ignore env var
 	m = TokenAuthMethod("bar")
 	err = m.Login(ctx, client)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "bar", client.Token())
 
 	// support VAULT_TOKEN_FILE
@@ -62,7 +63,7 @@ func TestTokenLogin(t *testing.T) {
 
 	m = &tokenAuthMethod{fsys: fsys}
 	err = m.Login(ctx, client)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "tempfiletoken", client.Token())
 
 	// fall back to ~/.vault-token
@@ -75,7 +76,7 @@ func TestTokenLogin(t *testing.T) {
 
 	m = &tokenAuthMethod{fsys: fsys}
 	err = m.Login(ctx, client)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "filetoken", client.Token())
 }
 
@@ -100,21 +101,21 @@ func TestAppRoleAuthMethod(t *testing.T) {
 
 	m := AppRoleAuthMethod("", "", "")
 	err := m.Login(ctx, client)
-	assert.Error(t, err)
+	require.Error(t, err)
 
 	m = AppRoleAuthMethod("some_id", "", "")
 	err = m.Login(ctx, client)
-	assert.Error(t, err)
+	require.Error(t, err)
 
 	m = AppRoleAuthMethod("r", "s", "")
 	err = m.Login(ctx, client)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, token, client.Token())
 
 	mount = "elorppa"
 	m = AppRoleAuthMethod("r", "s", mount)
 	err = m.Login(ctx, client)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, token, client.Token())
 }
 
@@ -160,29 +161,29 @@ func TestUserPassAuthMethod(t *testing.T) {
 
 	m := UserPassAuthMethod("", "", "")
 	err := m.Login(ctx, client)
-	assert.Error(t, err)
+	require.Error(t, err)
 
 	m = UserPassAuthMethod("some_id", "", "")
 	err = m.Login(ctx, client)
-	assert.Error(t, err)
+	require.Error(t, err)
 
 	m = UserPassAuthMethod(username, "s", "")
 	err = m.Login(ctx, client)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, token, client.Token())
 
 	err = m.Logout(ctx, client)
-	assert.NoError(t, err)
-	assert.Equal(t, "", client.Token())
+	require.NoError(t, err)
+	assert.Empty(t, client.Token())
 
 	m = UserPassAuthMethod(username, "s", "ssapresu")
 	err = m.Login(ctx, client)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, token, client.Token())
 
 	err = m.Logout(ctx, client)
-	assert.NoError(t, err)
-	assert.Equal(t, "", client.Token())
+	require.NoError(t, err)
+	assert.Empty(t, client.Token())
 }
 
 func TestGitHubAuthMethod(t *testing.T) {
@@ -207,16 +208,16 @@ func TestGitHubAuthMethod(t *testing.T) {
 
 	m := GitHubAuthMethod("", "")
 	err := m.Login(ctx, client)
-	assert.Error(t, err)
+	require.Error(t, err)
 
 	m = GitHubAuthMethod(ghtoken, "")
 	err = m.Login(ctx, client)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, token, client.Token())
 
 	mount = "buhtig"
 	m = GitHubAuthMethod(ghtoken, mount)
 	err = m.Login(ctx, client)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, token, client.Token())
 }

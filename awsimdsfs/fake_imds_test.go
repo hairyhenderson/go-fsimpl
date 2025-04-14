@@ -9,7 +9,7 @@ import (
 	"testing"
 	"testing/fstest"
 
-	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/assert"
 )
 
 //nolint:funlen
@@ -381,7 +381,7 @@ eP9n/rGEGGm0cGEbbeB=`),
 		if r.Body != nil {
 			var err error
 			_, err = io.ReadAll(r.Body)
-			require.NoError(t, err)
+			assert.NoError(t, err)
 
 			defer r.Body.Close()
 		}

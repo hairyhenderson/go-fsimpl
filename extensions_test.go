@@ -10,7 +10,7 @@ import (
 
 func TestContentType(t *testing.T) {
 	fi := internal.FileInfo("foo", 0, 0, time.Time{}, "")
-	assert.Equal(t, "", ContentType(fi))
+	assert.Empty(t, ContentType(fi))
 
 	fi = internal.FileInfo("foo", 0, 0, time.Time{}, "text/plain")
 	assert.Equal(t, "text/plain", ContentType(fi))

@@ -9,7 +9,7 @@ import (
 
 	"github.com/go-git/go-billy/v5"
 	"github.com/go-git/go-billy/v5/memfs"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func createMemFS(t *testing.T) billy.Filesystem {
@@ -17,16 +17,16 @@ func createMemFS(t *testing.T) billy.Filesystem {
 	_ = bfs.MkdirAll("/dir/subdir", 0o755)
 
 	f, err := bfs.Create("/foo")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	_, err = f.Write([]byte("hello world"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	f, err = bfs.Create("/dir/subdir/bar")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	_, err = f.Write([]byte("hello"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	return FrozenModTimeFilesystem(bfs, time.Now())
 }
@@ -37,7 +37,7 @@ func TestBillyFS(t *testing.T) {
 	fsys := BillyToFS(bfs)
 
 	_, err := fsys.Open(".")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
-	assert.NoError(t, fstest.TestFS(fsys, "foo", "dir/subdir/bar"))
+	require.NoError(t, fstest.TestFS(fsys, "foo", "dir/subdir/bar"))
 }

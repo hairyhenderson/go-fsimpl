@@ -3,7 +3,6 @@ package httpfs
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"io/fs"
@@ -81,26 +80,26 @@ func TestHttpFS(t *testing.T) {
 	fsys = fsimpl.WithContextFS(ctx, fsys)
 
 	f, err := fsys.Open("hello.txt")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	defer f.Close()
 
 	body, err := io.ReadAll(f)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "hello world", string(body))
 
 	body, err = fs.ReadFile(fsys, "sub/subfile.json")
-	assert.NoError(t, err)
-	assert.Equal(t, `{"msg": "hi there"}`, string(body))
+	require.NoError(t, err)
+	assert.JSONEq(t, `{"msg": "hi there"}`, string(body))
 
 	hdr := http.Header{}
 	hdr.Set("Accept", "application/json")
 	fi, err := fs.Stat(fsimpl.WithHeaderFS(hdr, fsys), "sub/subfile.json")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "application/json", fsimpl.ContentType(fi))
 
 	fi, err = fs.Stat(fsys, "hello.txt")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, int64(11), fi.Size())
 	assert.Equal(t, "hello.txt", fi.Name())
 	assert.Equal(t, "text/plain", fsimpl.ContentType(fi))
@@ -112,14 +111,14 @@ func TestHttpFS(t *testing.T) {
 	assert.Nil(t, fi.Sys())
 
 	_, err = fs.Stat(fsys, "bogus")
-	assert.Error(t, err)
+	require.Error(t, err)
 
 	t.Run("base URL query params are preserved", func(t *testing.T) {
 		fsys, _ = New(tests.MustURL(srv.URL + "/?foo=bar&baz=qux"))
 		fsys = fsimpl.WithContextFS(ctx, fsys)
 
 		f, err := fsys.Open("params")
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		defer f.Close()
 
@@ -139,7 +138,7 @@ func TestHttpFS_Stat_NoHead(t *testing.T) {
 	fsys = fsimpl.WithContextFS(ctx, fsys)
 
 	fi, err := fs.Stat(fsys, "nohead.json")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, int64(19), fi.Size())
 	assert.Equal(t, "nohead.json", fi.Name())
 	assert.Equal(t, "application/json", fsimpl.ContentType(fi))
@@ -154,11 +153,11 @@ func TestHttpFS_Stat_NoFallbackForOtherErrors(t *testing.T) {
 	fsys = fsimpl.WithContextFS(ctx, fsys)
 
 	_, err := fs.Stat(fsys, "notfound.json")
-	assert.Error(t, err)
+	require.Error(t, err)
 
 	var he httpErr
 
-	assert.True(t, errors.As(err, &he), "error should be of type httpErr")
+	require.ErrorAs(t, err, &he, "error should be of type httpErr")
 	assert.Equal(t, http.StatusNotFound, he.StatusCode())
 	assert.Equal(t, "HEAD", he.method)
 }

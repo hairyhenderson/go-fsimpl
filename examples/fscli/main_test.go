@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestLs(t *testing.T) {
@@ -16,8 +17,8 @@ func TestLs(t *testing.T) {
 	w := &bytes.Buffer{}
 
 	err := fsLs(fsys, ".", w)
-	assert.NoError(t, err)
-	assert.Equal(t, "", w.String())
+	require.NoError(t, err)
+	assert.Empty(t, w.String())
 
 	mtime := time.Unix(0, 0).UTC()
 
@@ -35,7 +36,7 @@ func TestLs(t *testing.T) {
 	}
 
 	err = fsLs(fsys, ".", w)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, ` -r--r--r--     1B 1970-01-01 00:00 a
  -r-xr-x---   512B 1971-02-02 12:00 b
  -r-------- 2.5KiB 1970-01-01 00:00 c
@@ -52,7 +53,7 @@ func TestCat(t *testing.T) {
 	w := &bytes.Buffer{}
 
 	err := cat(fsys, []string{"a"}, w)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "aaa", w.String())
 }
 
@@ -64,7 +65,7 @@ func TestStat(t *testing.T) {
 	w := &bytes.Buffer{}
 
 	err := fsStat(fsys, "a.txt", w)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, `a.txt:
 	Size:         3B
 	Modified:     1970-01-01T00:00:00Z

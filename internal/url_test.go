@@ -11,12 +11,12 @@ import (
 func TestSubURL(t *testing.T) {
 	base := tests.MustURL("https://example.com/dir/")
 	sub, err := SubURL(base, "sub")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "https://example.com/dir/sub", sub.String())
 
 	base = tests.MustURL("consul:///dir/")
 	sub, err = SubURL(base, "sub/foo?param=foo")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "consul:///dir/sub/foo?param=foo", sub.String())
 
 	base = tests.MustURL("vault:///dir/?param1=foo&param2=bar")

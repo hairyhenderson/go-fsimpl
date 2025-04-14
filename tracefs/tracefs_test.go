@@ -271,7 +271,7 @@ func TestTraceFS_Glob(t *testing.T) {
 	matches, err := fs.Glob(tfsys, "*.txt")
 	require.NoError(t, err)
 
-	assert.Len(t, matches, 0)
+	assert.Empty(t, matches)
 
 	spans := exporter.GetSpans()
 

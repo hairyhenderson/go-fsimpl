@@ -124,7 +124,7 @@ func fakeConsulServer(t *testing.T) *api.Config {
 }
 
 func TestGetAddress(t *testing.T) {
-	assert.Equal(t, "", getAddress(tests.MustURL("consul:///")))
+	assert.Empty(t, getAddress(tests.MustURL("consul:///")))
 	assert.Equal(t, "http://myconsul.local:1234",
 		getAddress(tests.MustURL("consul://myconsul.local:1234")))
 	assert.Equal(t, "https://consul.example.com",
@@ -133,10 +133,10 @@ func TestGetAddress(t *testing.T) {
 
 func TestNew(t *testing.T) {
 	_, err := New(nil)
-	assert.Error(t, err)
+	require.Error(t, err)
 
 	_, err = New(tests.MustURL("consul:///secret/foo"))
-	assert.Error(t, err)
+	require.Error(t, err)
 
 	testdata := []struct {
 		in, expected string
@@ -150,7 +150,7 @@ func TestNew(t *testing.T) {
 
 	for _, d := range testdata {
 		fsys, err := New(tests.MustURL(d.in))
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		require.IsType(t, &consulFS{}, fsys)
 
 		consulfs := fsys.(*consulFS)
@@ -193,8 +193,8 @@ func TestWithHeader(t *testing.T) {
 	hdr.Add("baz", "qux")
 	fsys = fsys.WithHeader(hdr).(*consulFS)
 
-	assert.EqualValues(t, []string{"bar", "bar2"}, fsys.client.Headers().Values("foo"))
-	assert.EqualValues(t, "qux", fsys.client.Headers().Get("baz"))
+	assert.Equal(t, []string{"bar", "bar2"}, fsys.client.Headers().Values("foo"))
+	assert.Equal(t, "qux", fsys.client.Headers().Get("baz"))
 }
 
 func TestWithToken(t *testing.T) {
@@ -220,14 +220,14 @@ func TestWithQueryOptions(t *testing.T) {
 
 func TestOpen(t *testing.T) {
 	fsys, err := New(tests.MustURL("consul+https://127.0.0.1:8500/foo/"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	_, err = fsys.Open("/bogus")
-	assert.Error(t, err)
+	require.Error(t, err)
 
 	if runtime.GOOS != "windows" {
 		_, err = fsys.Open("bo\\gus")
-		assert.Error(t, err)
+		require.Error(t, err)
 	}
 }
 
@@ -236,59 +236,59 @@ func TestReadFile(t *testing.T) {
 	config := fakeConsulServer(t)
 
 	fsys, err := New(tests.MustURL("consul:///dir/"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	fsys = WithConfigFS(config, fsys)
 
 	f, err := fsys.Open("foo")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	b, err := io.ReadAll(f)
 	require.NoError(t, err)
 	assert.Equal(t, []byte(expected), b)
 
 	b, err = fs.ReadFile(fsys, "bar")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, []byte(expected), b)
 
-	assert.NoError(t, f.Close())
+	require.NoError(t, f.Close())
 
 	// should error on second call
-	assert.Error(t, f.Close())
+	require.Error(t, f.Close())
 }
 
 func TestReadDirFS(t *testing.T) {
 	config := fakeConsulServer(t)
 
 	fsys, err := New(tests.MustURL("consul:///dir/sub/"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	fsys = WithConfigFS(config, fsys)
 
 	de, err := fs.ReadDir(fsys, ".")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	des := []fs.DirEntry{
 		internal.FileInfo("bar", 3, 0o444, time.Time{}, "").(fs.DirEntry),
 		internal.DirInfo("bazDir", time.Time{}).(fs.DirEntry),
 		internal.FileInfo("foo", 3, 0o444, time.Time{}, "").(fs.DirEntry),
 	}
-	assert.EqualValues(t, des, de)
+	assert.Equal(t, des, de)
 
 	fsys, err = New(tests.MustURL("consul:///dir/"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	fsys = WithConfigFS(config, fsys)
 
 	de, err = fs.ReadDir(fsys, "sub")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	des = []fs.DirEntry{
 		internal.FileInfo("bar", 3, 0o444, time.Time{}, "").(fs.DirEntry),
 		internal.DirInfo("bazDir", time.Time{}).(fs.DirEntry),
 		internal.FileInfo("foo", 3, 0o444, time.Time{}, "").(fs.DirEntry),
 	}
-	assert.EqualValues(t, des, de)
+	assert.Equal(t, des, de)
 }
 
 //nolint:funlen
@@ -296,74 +296,74 @@ func TestReadDirN(t *testing.T) {
 	config := fakeConsulServer(t)
 
 	fsys, err := New(tests.MustURL("consul:///dir/"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	fsys = WithConfigFS(config, fsys)
 
 	// open and read a few entries at a time
 	df, err := fsys.Open("sub")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Implements(t, (*fs.ReadDirFile)(nil), df)
 
 	defer df.Close()
 
 	dir := df.(fs.ReadDirFile)
 	de, err := dir.ReadDir(1)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	des := []fs.DirEntry{
 		internal.FileInfo("bar", 3, 0o444, time.Time{}, "").(fs.DirEntry),
 	}
-	assert.EqualValues(t, des, de)
+	assert.Equal(t, des, de)
 
 	de, err = dir.ReadDir(2)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	des = []fs.DirEntry{
 		internal.DirInfo("bazDir", time.Time{}).(fs.DirEntry),
 		internal.FileInfo("foo", 3, 0o444, time.Time{}, "").(fs.DirEntry),
 	}
-	assert.EqualValues(t, des, de)
+	assert.Equal(t, des, de)
 
 	de, err = dir.ReadDir(1)
-	assert.ErrorIs(t, err, io.EOF)
-	assert.Len(t, de, 0)
+	require.ErrorIs(t, err, io.EOF)
+	assert.Empty(t, de)
 
 	// open and read everything
 	df, err = fsys.Open("sub")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	defer df.Close()
 
 	dir = df.(fs.ReadDirFile)
 	de, err = dir.ReadDir(0)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Len(t, de, 3)
 
 	// open and read everything a few times
 	df, err = fsys.Open("sub")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	defer df.Close()
 
 	dir = df.(fs.ReadDirFile)
 	de, err = dir.ReadDir(-1)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Len(t, de, 3)
 
 	de, err = dir.ReadDir(-1)
-	assert.NoError(t, err)
-	assert.Len(t, de, 0)
+	require.NoError(t, err)
+	assert.Empty(t, de)
 
 	// open and read too many entries
 	df, err = fsys.Open(".")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	defer df.Close()
 
 	dir = df.(fs.ReadDirFile)
 	de, err = dir.ReadDir(8)
-	assert.ErrorIs(t, err, io.EOF)
+	require.ErrorIs(t, err, io.EOF)
 	assert.Len(t, de, 3)
 }
 
@@ -371,32 +371,32 @@ func TestStat(t *testing.T) {
 	config := fakeConsulServer(t)
 
 	fsys, err := New(tests.MustURL("consul:///dir/"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	fsys = WithConfigFS(config, fsys)
 
 	f, err := fsys.Open("foo")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	fi, err := f.Stat()
 	require.NoError(t, err)
-	assert.Equal(t, "", fsimpl.ContentType(fi))
+	assert.Empty(t, fsimpl.ContentType(fi))
 
 	err = f.Close()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	f, err = fsys.Open("bogus")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	_, err = f.Stat()
-	assert.ErrorIs(t, err, fs.ErrNotExist)
+	require.ErrorIs(t, err, fs.ErrNotExist)
 
 	err = f.Close()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	fi, err = fs.Stat(fsys, "sub")
-	assert.NoError(t, err)
-	assert.EqualValues(t, internal.DirInfo("sub", time.Time{}), fi)
+	require.NoError(t, err)
+	assert.Equal(t, internal.DirInfo("sub", time.Time{}), fi)
 }
 
 func TestOnlyChildren(t *testing.T) {

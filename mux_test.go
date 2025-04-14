@@ -9,6 +9,7 @@ import (
 
 	"github.com/hairyhenderson/go-fsimpl/internal/tests"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestFSMux(t *testing.T) {
@@ -20,36 +21,36 @@ func TestFSMux(t *testing.T) {
 	m := NewMux()
 
 	_, err := m.Lookup(":bogus/url")
-	assert.Error(t, err)
+	require.Error(t, err)
 
 	_, err = m.Lookup("foo:///")
-	assert.Error(t, err)
+	require.Error(t, err)
 
 	m.Add(fsp)
 	m.Add(fsp2)
 
 	actual, err := m.Lookup("foo:///")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, fsys, actual)
 
 	actual, err = m.Lookup("bar:///")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, fsys, actual)
 
 	actual, err = m.Lookup("qux:///")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, fsys, actual)
 
 	_, err = m.Lookup("file:///")
-	assert.Error(t, err)
+	require.Error(t, err)
 
 	// test out FSProvider functionality
 	assert.Equal(t, []string{"bar", "baz", "foo", "qux"}, m.Schemes())
 	actual, err = m.New(tests.MustURL("foo:///"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, fsys, actual)
 	actual, err = m.New(tests.MustURL("bar:///"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, fsys, actual)
 }
 
@@ -61,14 +62,14 @@ func TestWrappedFSProvider(t *testing.T) {
 
 	fsp := WrappedFSProvider(&basefsys, "foo")
 	fsys, err := fsp.New(tests.MustURL("foo:///"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Same(t, &basefsys, fsys)
 
 	fsys, err = fsp.New(tests.MustURL("foo:///root/sub"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NotSame(t, &basefsys, fsys)
 
 	b, err := fs.ReadFile(fsys, "subsub/file.txt")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, []byte("hello"), b)
 }

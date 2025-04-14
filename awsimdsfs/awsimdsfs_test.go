@@ -35,7 +35,7 @@ func TestAWSIMDSFS_TestFS(t *testing.T) {
 
 func TestAWSIMDSFS_New(t *testing.T) {
 	_, err := New(tests.MustURL("https://example.com"))
-	assert.Error(t, err)
+	require.Error(t, err)
 }
 
 func TestAWSIMDSFS_Stat(t *testing.T) {
@@ -54,11 +54,11 @@ func TestAWSIMDSFS_Stat(t *testing.T) {
 
 	_, err = f.Stat()
 	require.Error(t, err)
-	assert.ErrorIs(t, err, fs.ErrNotExist)
+	require.ErrorIs(t, err, fs.ErrNotExist)
 
 	_, err = fs.Stat(fsys, "noleadingslash")
 	require.Error(t, err)
-	assert.ErrorIs(t, err, fs.ErrNotExist)
+	require.ErrorIs(t, err, fs.ErrNotExist)
 
 	fi, err = fs.Stat(fsys, "meta-data")
 	require.NoError(t, err)
@@ -88,7 +88,7 @@ func TestAWSIMDSFS_Read(t *testing.T) {
 	assert.Equal(t, "amazonaws.com", string(b))
 
 	_, err = f.Read(b)
-	assert.Error(t, err)
+	require.Error(t, err)
 }
 
 func TestAWSIMDSFS_ReadFile(t *testing.T) {
