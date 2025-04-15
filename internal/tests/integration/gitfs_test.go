@@ -109,18 +109,18 @@ func TestGitFS_File(t *testing.T) {
 
 	fsys, _ := gitfs.New(tests.MustURL("git+file://" + repoPath))
 	f, err := fsys.Open("config.json")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	b, err := io.ReadAll(f)
-	assert.NoError(t, err)
-	assert.Equal(t, `{"foo": {"bar": "baz"}}`, string(b))
+	require.NoError(t, err)
+	assert.JSONEq(t, `{"foo": {"bar": "baz"}}`, string(b))
 
 	fsys, _ = gitfs.New(tests.MustURL("git+file://" + repoPath + "//dir"))
 	_, err = fsys.Open("config.json")
-	assert.Error(t, err)
+	require.Error(t, err)
 
 	files, err := fs.ReadDir(fsys, ".")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Len(t, files, 3)
 
 	assert.Equal(t, "file1.txt", files[0].Name())
@@ -141,7 +141,7 @@ func TestGitFS_Daemon(t *testing.T) {
 	fsys, _ := gitfs.New(tests.MustURL("git://" + addr + "/repo//dir"))
 
 	files, err := fs.ReadDir(fsys, ".")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Len(t, files, 3)
 
 	assert.Equal(t, "file1.txt", files[0].Name())
@@ -157,11 +157,11 @@ func TestGitFS_HTTPDatasource(t *testing.T) {
 	fsys = gitfs.WithAuthenticator(gitfs.BasicAuthenticator("", ""), fsys)
 
 	files, err := fs.ReadDir(fsys, ".")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Len(t, files, 2)
 
 	fi, err := fs.Stat(fsys, "short.json")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, int64(706), fi.Size())
 
 	ctx, cancel := context.WithCancel(t.Context())
@@ -171,7 +171,7 @@ func TestGitFS_HTTPDatasource(t *testing.T) {
 	fsys = fsimpl.WithContextFS(ctx, fsys)
 
 	_, err = fs.ReadDir(fsys, ".")
-	assert.ErrorIs(t, err, context.Canceled)
+	require.ErrorIs(t, err, context.Canceled)
 }
 
 func TestGitFS_SSHDatasource(t *testing.T) {
@@ -183,6 +183,6 @@ func TestGitFS_SSHDatasource(t *testing.T) {
 	fsys = gitfs.WithAuthenticator(gitfs.SSHAgentAuthenticator(""), fsys)
 
 	files, err := fs.ReadDir(fsys, ".")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Len(t, files, 2)
 }

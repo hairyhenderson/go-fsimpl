@@ -42,23 +42,23 @@ func Example() {
 
 func TestVaultConfig(t *testing.T) {
 	err := os.Unsetenv("VAULT_ADDR")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	config, err := vaultConfig(tests.MustURL("vault:///"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "https://127.0.0.1:8200", config.Address)
 
 	config, err = vaultConfig(tests.MustURL("vault://vault.example.com"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "https://vault.example.com", config.Address)
 }
 
 func TestNew(t *testing.T) {
 	_, err := New(nil)
-	assert.Error(t, err)
+	require.Error(t, err)
 
 	_, err = New(tests.MustURL("vault:///secret/foo"))
-	assert.Error(t, err)
+	require.Error(t, err)
 
 	testdata := []struct {
 		in, expected string
@@ -72,7 +72,7 @@ func TestNew(t *testing.T) {
 
 	for _, d := range testdata {
 		fsys, err := New(tests.MustURL(d.in))
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		require.IsType(t, &vaultFS{}, fsys)
 
 		vfs := fsys.(*vaultFS)
@@ -111,20 +111,20 @@ func TestWithHeader(t *testing.T) {
 		"baz": []string{"qux"},
 	}).(*vaultFS)
 
-	assert.EqualValues(t, []string{"bar", "bar2"}, fsys.client.Headers().Values("foo"))
-	assert.EqualValues(t, "qux", fsys.client.Headers().Get("baz"))
+	assert.Equal(t, []string{"bar", "bar2"}, fsys.client.Headers().Values("foo"))
+	assert.Equal(t, "qux", fsys.client.Headers().Get("baz"))
 }
 
 func TestOpen(t *testing.T) {
 	fsys, err := New(tests.MustURL("vault+https://127.0.0.1:8200/secret/"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	_, err = fsys.Open("/bogus")
-	assert.Error(t, err)
+	require.Error(t, err)
 
 	if runtime.GOOS != "windows" {
 		_, err = fsys.Open("bo\\gus")
-		assert.Error(t, err)
+		require.Error(t, err)
 	}
 }
 
@@ -143,25 +143,25 @@ func TestReadFile(t *testing.T) {
 	fsys = WithAuthMethod(TokenAuthMethod("blargh"), fsys)
 
 	f, err := fsys.Open("foo")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	b, err := io.ReadAll(f)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, []byte(expected), b)
 
 	b, err = fs.ReadFile(fsys, "bar")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, []byte(expected), b)
 
 	b, err = fs.ReadFile(fsys, "foo?param=value&method=POST")
-	assert.NoError(t, err)
-	assert.EqualValues(t,
+	require.NoError(t, err)
+	assert.Equal(t,
 		map[string]string{"param": "value", "value": "foo"},
 		jsonMap(b),
 	)
 
 	err = f.Close()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 }
 
 func TestReadDirFS(t *testing.T) {
@@ -171,27 +171,27 @@ func TestReadDirFS(t *testing.T) {
 	fsys = WithAuthMethod(TokenAuthMethod("blargh"), fsys)
 
 	de, err := fs.ReadDir(fsys, ".")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	des := []fs.DirEntry{
 		internal.FileInfo("bar", 15, 0o444, time.Time{}, "application/json").(fs.DirEntry),
 		internal.DirInfo("bazDir", time.Time{}).(fs.DirEntry),
 		internal.FileInfo("foo", 15, 0o444, time.Time{}, "application/json").(fs.DirEntry),
 	}
-	assert.EqualValues(t, des, de)
+	assert.Equal(t, des, de)
 
 	fsys = newWithVaultClient(tests.MustURL("vault:///secret/"), v)
 	fsys = WithAuthMethod(TokenAuthMethod("blargh"), fsys)
 
 	de, err = fs.ReadDir(fsys, "foo")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	des = []fs.DirEntry{
 		internal.FileInfo("bar", 15, 0o444, time.Time{}, "application/json").(fs.DirEntry),
 		internal.DirInfo("bazDir", time.Time{}).(fs.DirEntry),
 		internal.FileInfo("foo", 15, 0o444, time.Time{}, "application/json").(fs.DirEntry),
 	}
-	assert.EqualValues(t, des, de)
+	assert.Equal(t, des, de)
 }
 
 //nolint:funlen
@@ -203,68 +203,68 @@ func TestReadDirN(t *testing.T) {
 
 	// open and read a few entries at a time
 	df, err := fsys.Open("foo")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Implements(t, (*fs.ReadDirFile)(nil), df)
 
 	defer df.Close()
 
 	dir := df.(fs.ReadDirFile)
 	de, err := dir.ReadDir(1)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	des := []fs.DirEntry{
 		internal.FileInfo("foo", 15, 0o444, time.Time{}, "application/json").(fs.DirEntry),
 	}
-	assert.EqualValues(t, des, de)
+	assert.Equal(t, des, de)
 
 	de, err = dir.ReadDir(2)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	des = []fs.DirEntry{
 		internal.FileInfo("bar", 15, 0o444, time.Time{}, "application/json").(fs.DirEntry),
 		internal.DirInfo("bazDir", time.Time{}).(fs.DirEntry),
 	}
-	assert.EqualValues(t, des, de)
+	assert.Equal(t, des, de)
 
 	de, err = dir.ReadDir(1)
-	assert.ErrorIs(t, err, io.EOF)
-	assert.Len(t, de, 0)
+	require.ErrorIs(t, err, io.EOF)
+	assert.Empty(t, de)
 
 	// open and read everything
 	df, err = fsys.Open("foo")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	defer df.Close()
 
 	dir = df.(fs.ReadDirFile)
 	de, err = dir.ReadDir(0)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Len(t, de, 3)
 
 	// open and read everything a few times
 	df, err = fsys.Open("foo")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	defer df.Close()
 
 	dir = df.(fs.ReadDirFile)
 	de, err = dir.ReadDir(-1)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Len(t, de, 3)
 
 	de, err = dir.ReadDir(-1)
-	assert.NoError(t, err)
-	assert.Len(t, de, 0)
+	require.NoError(t, err)
+	assert.Empty(t, de)
 
 	// open and read too many entries
 	df, err = fsys.Open(".")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	defer df.Close()
 
 	dir = df.(fs.ReadDirFile)
 	de, err = dir.ReadDir(8)
-	assert.ErrorIs(t, err, io.EOF)
+	require.ErrorIs(t, err, io.EOF)
 	assert.Len(t, de, 3)
 }
 
@@ -277,23 +277,23 @@ func TestStat(t *testing.T) {
 	)
 
 	f, err := fsys.Open("foo")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	fi, err := f.Stat()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "application/json", fsimpl.ContentType(fi))
 
 	err = f.Close()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	f, err = fsys.Open("bogus")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	_, err = f.Stat()
-	assert.ErrorIs(t, err, fs.ErrNotExist)
+	require.ErrorIs(t, err, fs.ErrNotExist)
 
 	err = f.Close()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 }
 
 type spyAuthMethod struct {
@@ -412,7 +412,7 @@ func TestFindMountInfo(t *testing.T) {
 
 		actual, err := findMountInfo(d.rawFilePath, rawMounts)
 		require.NoError(t, err)
-		assert.EqualValues(t, d.expected, actual)
+		assert.Equal(t, d.expected, actual)
 	}
 }
 

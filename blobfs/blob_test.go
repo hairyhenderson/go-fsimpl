@@ -30,16 +30,16 @@ func setupTestS3Bucket(t *testing.T) *url.URL {
 
 	t.Cleanup(srv.Close)
 
-	assert.NoError(t, backend.CreateBucket("mybucket"))
-	assert.NoError(t, putFile(backend, "file1", "text/plain", "hello"))
-	assert.NoError(t, putFile(backend, "file2", "application/json", `{"value": "goodbye world"}`))
-	assert.NoError(t, putFile(backend, "file3", "application/yaml", `value: what a world`))
-	assert.NoError(t, putFile(backend, "dir1/file1", "application/yaml", `value: out of this world`))
-	assert.NoError(t, putFile(backend, "dir1/file2", "application/yaml", `value: foo`))
-	assert.NoError(t, putFile(backend, "dir2/file3", "text/plain", "foo"))
-	assert.NoError(t, putFile(backend, "dir2/file4", "text/plain", "bar"))
-	assert.NoError(t, putFile(backend, "dir2/sub1/subfile1", "text/plain", "baz"))
-	assert.NoError(t, putFile(backend, "dir2/sub1/subfile2", "text/plain", "qux"))
+	require.NoError(t, backend.CreateBucket("mybucket"))
+	require.NoError(t, putFile(backend, "file1", "text/plain", "hello"))
+	require.NoError(t, putFile(backend, "file2", "application/json", `{"value": "goodbye world"}`))
+	require.NoError(t, putFile(backend, "file3", "application/yaml", `value: what a world`))
+	require.NoError(t, putFile(backend, "dir1/file1", "application/yaml", `value: out of this world`))
+	require.NoError(t, putFile(backend, "dir1/file2", "application/yaml", `value: foo`))
+	require.NoError(t, putFile(backend, "dir2/file3", "text/plain", "foo"))
+	require.NoError(t, putFile(backend, "dir2/file4", "text/plain", "bar"))
+	require.NoError(t, putFile(backend, "dir2/sub1/subfile1", "text/plain", "baz"))
+	require.NoError(t, putFile(backend, "dir2/sub1/subfile2", "text/plain", "qux"))
 
 	return tests.MustURL(srv.URL)
 }
@@ -106,9 +106,9 @@ func TestBlobFS_S3(t *testing.T) {
 	t.Setenv("AWS_ANON", "true")
 
 	fsys, err := New(tests.MustURL("s3://mybucket/?region=us-east-1&disableSSL=true&s3ForcePathStyle=true&endpoint=" + srvURL.Host))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
-	assert.NoError(t, fstest.TestFS(fsimpl.WithContextFS(ctx, fsys),
+	require.NoError(t, fstest.TestFS(fsimpl.WithContextFS(ctx, fsys),
 		"file1", "file2", "file3",
 		"dir1/file1", "dir1/file2",
 		"dir2/file3", "dir2/file4",
@@ -123,9 +123,9 @@ func TestBlobFS_S3(t *testing.T) {
 	t.Setenv("AWS_REGION", "eu-west-1")
 
 	fsys, err = New(tests.MustURL("s3://mybucket/dir2/?disableSSL=true&s3ForcePathStyle=true"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
-	assert.NoError(t, fstest.TestFS(fsimpl.WithContextFS(ctx, fsys),
+	require.NoError(t, fstest.TestFS(fsimpl.WithContextFS(ctx, fsys),
 		"file3", "file4", "sub1/subfile1", "sub1/subfile2"))
 }
 
@@ -140,11 +140,11 @@ func TestBlobFS_GCS(t *testing.T) {
 	t.Setenv("GOOGLE_ANON", "true")
 
 	fsys, err := New(tests.MustURL("gs://mybucket"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	fsys = fsimpl.WithHTTPClientFS(srv.HTTPClient(), fsys)
 
-	assert.NoError(t, fstest.TestFS(fsys,
+	require.NoError(t, fstest.TestFS(fsys,
 		"file1", "file2", "file3",
 		"dir1/file1", "dir1/file2",
 		"dir2/file3", "dir2/file4",
@@ -152,11 +152,11 @@ func TestBlobFS_GCS(t *testing.T) {
 	)
 
 	fsys, err = New(tests.MustURL("gs://mybucket/dir2/"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	fsys = fsimpl.WithHTTPClientFS(srv.HTTPClient(), fsys)
 
-	assert.NoError(t, fstest.TestFS(fsys,
+	require.NoError(t, fstest.TestFS(fsys,
 		"file3", "file4", "sub1/subfile1", "sub1/subfile2"))
 }
 
@@ -174,12 +174,12 @@ func TestBlobFS_Azure(t *testing.T) {
 	t.Setenv("AZURE_STORAGE_ACCOUNT", "azureopendatastorage")
 
 	fsys, err := New(tests.MustURL("azblob://citydatacontainer/Crime/Processed/2020/1/20/"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	fsys = fsimpl.WithContextFS(ctx, fsys)
 
 	des, err := fs.ReadDir(fsys, ".")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	t.Logf("entries: %d", len(des))
 
@@ -188,7 +188,7 @@ func TestBlobFS_Azure(t *testing.T) {
 			t.Logf("%s/", de.Name())
 		} else {
 			fi, err := de.Info()
-			assert.NoError(t, err)
+			require.NoError(t, err)
 
 			t.Logf("%s - %d - %v", de.Name(), fi.Size(), fi.ModTime())
 		}
@@ -196,7 +196,7 @@ func TestBlobFS_Azure(t *testing.T) {
 
 	t.Fail()
 
-	assert.NoError(t, fstest.TestFS(fsys,
+	require.NoError(t, fstest.TestFS(fsys,
 		"Boston", "Chicago", "NewYorkCity", "SanFrancisco", "Seattle"))
 }
 

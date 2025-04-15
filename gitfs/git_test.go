@@ -34,7 +34,7 @@ func TestSplitRepoPath(t *testing.T) {
 	u := tests.MustURL("http://example.com//foo")
 	assert.Equal(t, "//foo", u.Path)
 	left, right, _ := strings.Cut(u.Path, "//")
-	assert.Equal(t, "", left)
+	assert.Empty(t, left)
 	assert.Equal(t, "foo", right)
 
 	data := []struct {
@@ -229,7 +229,7 @@ func TestGitFS_Clone(t *testing.T) {
 	g := &gitFS{auth: NoopAuthenticator()}
 
 	fsys, _, err := g.gitClone(ctx, *tests.MustURL("file:///repo"), 0)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	f, err := fsys.Open("/foo/bar/hi.txt")
 	require.NoError(t, err)
@@ -238,24 +238,24 @@ func TestGitFS_Clone(t *testing.T) {
 	assert.Equal(t, "hello world", string(b))
 
 	_, repo, err := g.gitClone(ctx, *tests.MustURL("file:///repo#master"), 0)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	ref, err := repo.Reference(plumbing.NewBranchReferenceName("master"), true)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "refs/heads/master", ref.Name().String())
 
 	_, repo, err = g.gitClone(ctx, *tests.MustURL("file:///repo#refs/tags/v1"), 0)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	ref, err = repo.Head()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, testHashes["v1"], ref.Hash().String())
 
 	_, repo, err = g.gitClone(ctx, *tests.MustURL("file:///repo/#mybranch"), 0)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	ref, err = repo.Head()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "refs/heads/mybranch", ref.Name().String())
 	assert.Equal(t, testHashes["mybranch"], ref.Hash().String())
 }
@@ -267,7 +267,7 @@ func TestGitFS_Clone_BareFileRepo(t *testing.T) {
 	g := &gitFS{auth: NoopAuthenticator()}
 
 	fsys, _, err := g.gitClone(ctx, *tests.MustURL("file:///bare.git"), 0)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	f, err := fsys.Open("/hello.txt")
 	require.NoError(t, err)
@@ -289,7 +289,7 @@ func TestGitFS_Clone_HTTPS(t *testing.T) {
 
 	b, err := io.ReadAll(f)
 	require.NoError(t, err)
-	assert.Equal(t, "{\"foo\": \"bar\"}\n", string(b))
+	assert.JSONEq(t, "{\"foo\": \"bar\"}\n", string(b))
 }
 
 func TestGitFS_ReadDir(t *testing.T) {
@@ -301,28 +301,28 @@ func TestGitFS_ReadDir(t *testing.T) {
 	fsys = fsimpl.WithContextFS(ctx, fsys)
 
 	file, err := fsys.Open("hello.txt")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NotNil(t, file)
 
 	defer file.Close()
 
 	fi, err := file.Stat()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, int64(11), fi.Size())
 
 	b, _ := io.ReadAll(file)
 	assert.Equal(t, "hello world", string(b))
 
 	file, err = fsys.Open(".")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	fi, err = file.Stat()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.True(t, fi.IsDir())
 
 	dirents, err := file.(fs.ReadDirFile).ReadDir(-1)
-	assert.NoError(t, err)
-	assert.Equal(t, 1, len(dirents))
+	require.NoError(t, err)
+	assert.Len(t, dirents, 1)
 
 	assert.Equal(t, "hello.txt", dirents[0].Name())
 }

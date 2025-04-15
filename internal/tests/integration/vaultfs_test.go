@@ -173,7 +173,7 @@ func TestVaultFS(t *testing.T) {
 		filepath.Join("dir", "four"),
 		filepath.Join("dir", "five"),
 	)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 }
 
 func TestVaultFS_TokenAuth(t *testing.T) {
@@ -191,38 +191,38 @@ func TestVaultFS_TokenAuth(t *testing.T) {
 
 	// address provided, token provided
 	fsys, err := vaultfs.New(tests.MustURL("vault+http://" + addr))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	fsys = vaultauth.WithAuthMethod(vaultauth.NewTokenAuth(tok), fsys)
 	fsys = fsimpl.WithContextFS(ctx, fsys)
 
 	b, err := fs.ReadFile(fsys, "secret/foo")
-	assert.NoError(t, err)
-	assert.Equal(t, `{"value":"bar"}`, string(b))
+	require.NoError(t, err)
+	assert.JSONEq(t, `{"value":"bar"}`, string(b))
 
 	// token in env var
 	t.Setenv("VAULT_TOKEN", tok)
 
 	fsys, err = vaultfs.New(tests.MustURL("vault+http://" + addr))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	fsys = fsimpl.WithContextFS(ctx, fsys)
 
 	b, err = fs.ReadFile(fsys, "secret/foo")
-	assert.NoError(t, err)
-	assert.Equal(t, `{"value":"bar"}`, string(b))
+	require.NoError(t, err)
+	assert.JSONEq(t, `{"value":"bar"}`, string(b))
 
 	// address and token in env var
 	t.Setenv("VAULT_ADDR", "http://"+addr)
 
 	fsys, err = vaultfs.New(tests.MustURL("vault:///"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	fsys = fsimpl.WithContextFS(ctx, fsys)
 
 	b, err = fs.ReadFile(fsys, "secret/foo")
-	assert.NoError(t, err)
-	assert.Equal(t, `{"value":"bar"}`, string(b))
+	require.NoError(t, err)
+	assert.JSONEq(t, `{"value":"bar"}`, string(b))
 }
 
 //nolint:funlen
@@ -258,7 +258,7 @@ func TestVaultFS_UserPassAuth(t *testing.T) {
 	require.NoError(t, err)
 
 	fsys, err := vaultfs.New(tests.MustURL("http://" + addr + "/secret/"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	upauth, err := userpass.NewUserpassAuth("dave", &userpass.Password{FromString: "foo"})
 	require.NoError(t, err)
@@ -267,8 +267,8 @@ func TestVaultFS_UserPassAuth(t *testing.T) {
 	fsys = fsimpl.WithContextFS(ctx, fsys)
 
 	b, err := fs.ReadFile(fsys, "foo")
-	assert.NoError(t, err)
-	assert.Equal(t, `{"value":"bar"}`, string(b))
+	require.NoError(t, err)
+	assert.JSONEq(t, `{"value":"bar"}`, string(b))
 
 	// should only have the root token remaining (Close should logout and revoke
 	// token)
@@ -278,7 +278,7 @@ func TestVaultFS_UserPassAuth(t *testing.T) {
 
 	// now with the other mount point
 	fsys, err = vaultfs.New(tests.MustURL("http://" + addr + "/secret/"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	upauth, err = userpass.NewUserpassAuth("dave",
 		&userpass.Password{FromString: "bar"}, userpass.WithMountPath("userpass2"))
@@ -288,8 +288,8 @@ func TestVaultFS_UserPassAuth(t *testing.T) {
 	fsys = fsimpl.WithContextFS(ctx, fsys)
 
 	b, err = fs.ReadFile(fsys, "foo")
-	assert.NoError(t, err)
-	assert.Equal(t, `{"value":"bar"}`, string(b))
+	require.NoError(t, err)
+	assert.JSONEq(t, `{"value":"bar"}`, string(b))
 
 	// with a bunch of env vars
 	t.Setenv("VAULT_ADDR", "http://"+addr)
@@ -297,46 +297,46 @@ func TestVaultFS_UserPassAuth(t *testing.T) {
 	t.Setenv("VAULT_AUTH_PASSWORD", "foo")
 
 	fsys, err = vaultfs.New(tests.MustURL("vault:///secret/"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	fsys = fsimpl.WithContextFS(ctx, fsys)
 
 	f, err := fsys.Open("foo")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	fi, err := f.Stat()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, int64(15), fi.Size())
 
 	b, err = io.ReadAll(f)
-	assert.NoError(t, err)
-	assert.Equal(t, `{"value":"bar"}`, string(b))
+	require.NoError(t, err)
+	assert.JSONEq(t, `{"value":"bar"}`, string(b))
 
 	b, err = fs.ReadFile(fsys, "foo")
-	assert.NoError(t, err)
-	assert.Equal(t, `{"value":"bar"}`, string(b))
+	require.NoError(t, err)
+	assert.JSONEq(t, `{"value":"bar"}`, string(b))
 
 	b, err = fs.ReadFile(fsys, "foo")
-	assert.NoError(t, err)
-	assert.Equal(t, `{"value":"bar"}`, string(b))
+	require.NoError(t, err)
+	assert.JSONEq(t, `{"value":"bar"}`, string(b))
 
 	dir, err := fsys.Open("dir")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	de, err := dir.(fs.ReadDirFile).ReadDir(-1)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Len(t, de, 2)
 
 	de, err = fs.ReadDir(fsys, "dir")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Len(t, de, 2)
 
 	// make sure files are closed so the token will be revoked
 	err = dir.Close()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	err = f.Close()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// should only have the root token remaining (Close should logout and revoke
 	// token)
@@ -383,7 +383,7 @@ func TestVaultFS_AppRoleAuth(t *testing.T) {
 	secretID := sid.Data["secret_id"].(string)
 
 	fsys, err := vaultfs.New(tests.MustURL("http://" + addr + "/secret/"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	apauth, err := approle.NewAppRoleAuth(roleID, &approle.SecretID{FromString: secretID})
 	require.NoError(t, err)
@@ -392,14 +392,14 @@ func TestVaultFS_AppRoleAuth(t *testing.T) {
 	fsys = fsimpl.WithContextFS(ctx, fsys)
 
 	f, err := fsys.Open("foo")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	b, err := io.ReadAll(f)
-	assert.NoError(t, err)
-	assert.Equal(t, `{"value":"bar"}`, string(b))
+	require.NoError(t, err)
+	assert.JSONEq(t, `{"value":"bar"}`, string(b))
 
 	err = f.Close()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// should only have the root token remaining (Close should logout and revoke
 	// token)
@@ -414,7 +414,7 @@ func TestVaultFS_AppRoleAuth(t *testing.T) {
 	secretID = sid.Data["secret_id"].(string)
 
 	fsys, err = vaultfs.New(tests.MustURL("http://" + addr + "/secret/"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	apauth, err = approle.NewAppRoleAuth(roleID, &approle.SecretID{FromString: secretID},
 		approle.WithMountPath("approle2"))
@@ -424,8 +424,8 @@ func TestVaultFS_AppRoleAuth(t *testing.T) {
 	fsys = fsimpl.WithContextFS(ctx, fsys)
 
 	b, err = fs.ReadFile(fsys, "foo")
-	assert.NoError(t, err)
-	assert.Equal(t, `{"value":"bar"}`, string(b))
+	require.NoError(t, err)
+	assert.JSONEq(t, `{"value":"bar"}`, string(b))
 }
 
 //nolint:errcheck,funlen
@@ -464,7 +464,7 @@ func TestVaultFS_AppRoleAuth_ReusedToken(t *testing.T) {
 	secretID := sid.Data["secret_id"].(string)
 
 	fsys, err := vaultfs.New(tests.MustURL("http://" + addr + "/secret/"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	apauth, err := approle.NewAppRoleAuth(roleID, &approle.SecretID{FromString: secretID})
 	require.NoError(t, err)
@@ -474,44 +474,44 @@ func TestVaultFS_AppRoleAuth_ReusedToken(t *testing.T) {
 
 	// open 4 files simultaneously, and one of them twice
 	f1, err := fsys.Open("foo")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	f2, err := fsys.Open("bar")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	f3, err := fsys.Open("baz")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	f4, err := fsys.Open("foo")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	b, err := io.ReadAll(f1)
-	assert.NoError(t, err)
-	assert.Equal(t, `{"value":"foobar"}`, string(b))
+	require.NoError(t, err)
+	assert.JSONEq(t, `{"value":"foobar"}`, string(b))
 
 	b, err = io.ReadAll(f2)
-	assert.NoError(t, err)
-	assert.Equal(t, `{"value":"barbar"}`, string(b))
+	require.NoError(t, err)
+	assert.JSONEq(t, `{"value":"barbar"}`, string(b))
 
 	err = f1.Close()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	err = f2.Close()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	b, err = io.ReadAll(f3)
-	assert.NoError(t, err)
-	assert.Equal(t, `{"value":"bazbar"}`, string(b))
+	require.NoError(t, err)
+	assert.JSONEq(t, `{"value":"bazbar"}`, string(b))
 
 	b, err = io.ReadAll(f4)
-	assert.NoError(t, err)
-	assert.Equal(t, `{"value":"foobar"}`, string(b))
+	require.NoError(t, err)
+	assert.JSONEq(t, `{"value":"foobar"}`, string(b))
 
 	err = f3.Close()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	err = f4.Close()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 }
 
 func TestVaultFS_DynamicAuth(t *testing.T) {
@@ -544,17 +544,17 @@ func TestVaultFS_DynamicAuth(t *testing.T) {
 	for _, d := range testCommands {
 		t.Run(d.url, func(t *testing.T) {
 			fsys, err := vaultfs.New(tests.MustURL("http://" + addr + d.url))
-			assert.NoError(t, err)
+			require.NoError(t, err)
 
 			fsys = vaultauth.WithAuthMethod(vaultauth.NewTokenAuth(tok), fsys)
 			fsys = fsimpl.WithContextFS(ctx, fsys)
 
 			b, err := fs.ReadFile(fsys, d.path)
-			assert.NoError(t, err)
+			require.NoError(t, err)
 
 			data := map[string]any{}
 			err = json.Unmarshal(b, &data)
-			assert.NoError(t, err)
+			require.NoError(t, err)
 
 			assert.Equal(t, "10.1.2.3", data["ip"])
 		})
@@ -576,13 +576,13 @@ func TestVaultFS_List(t *testing.T) {
 	require.NoError(t, err)
 
 	fsys, err := vaultfs.New(tests.MustURL("http://" + addr + "/secret/dir/"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	fsys = vaultauth.WithAuthMethod(vaultauth.NewTokenAuth(tok), fsys)
 	fsys = fsimpl.WithContextFS(ctx, fsys)
 
 	de, err := fs.ReadDir(fsys, ".")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Len(t, de, 2)
 
 	assert.Equal(t, "bar", de[0].Name())
@@ -621,7 +621,7 @@ func TestVaultFS_KVv2(t *testing.T) {
 
 	b, err := fs.ReadFile(fsys, "kv2/foo")
 	require.NoError(t, err)
-	assert.Equal(t, `{"second":"two"}`, string(b))
+	assert.JSONEq(t, `{"second":"two"}`, string(b))
 
 	f, err := fsys.Open("kv2/foo")
 	require.NoError(t, err)
@@ -640,7 +640,7 @@ func TestVaultFS_KVv2(t *testing.T) {
 
 	b, err = io.ReadAll(f)
 	require.NoError(t, err)
-	assert.Equal(t, `{"first":"one"}`, string(b))
+	assert.JSONEq(t, `{"first":"one"}`, string(b))
 
 	fi, err = f.Stat()
 	require.NoError(t, err)
@@ -681,7 +681,7 @@ func TestVaultFS_KVv2(t *testing.T) {
 
 			b, err = io.ReadAll(f)
 			require.NoError(t, err)
-			assert.Equal(t, `{"e":"f"}`, string(b))
+			assert.JSONEq(t, `{"e":"f"}`, string(b))
 		})
 
 		t.Run("can list", func(t *testing.T) {

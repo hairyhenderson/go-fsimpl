@@ -15,7 +15,7 @@ import (
 
 func setupAWSSMPFsys(t *testing.T, dir string) fs.FS {
 	fsys, err := New(tests.MustURL("aws+smp:///" + dir))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	fsys = WithClientFS(clientWithValues(t, map[string]*testVal{
 		"/noleadingslash": vs("hiyo"),
@@ -40,7 +40,7 @@ func setupAWSSMPFsys(t *testing.T, dir string) fs.FS {
 func TestAWSSMPFS_TestFS(t *testing.T) {
 	fsys := setupAWSSMPFsys(t, "")
 
-	assert.NoError(t, fstest.TestFS(fsys,
+	require.NoError(t, fstest.TestFS(fsys,
 		"noleadingslash",
 		"notsub/bogus",
 		"sub/a", "sub/b", "sub/c",
@@ -56,7 +56,7 @@ func TestAWSSMPFS_TestFS(t *testing.T) {
 	// test subdirectory
 	fsys = setupAWSSMPFsys(t, "sub")
 
-	assert.NoError(t, fstest.TestFS(fsys,
+	require.NoError(t, fstest.TestFS(fsys,
 		"a", "b", "c",
 		"b/ba", "b/bb", "b/bc", "c/ca",
 		"a/aa", "a/ab", "a/ac",
@@ -70,36 +70,36 @@ func TestAWSSMPFS_TestFS(t *testing.T) {
 
 func TestAWSSMPFS_New(t *testing.T) {
 	_, err := New(tests.MustURL("https://example.com"))
-	assert.Error(t, err)
+	require.Error(t, err)
 }
 
 func TestAWSSMPFS_Stat(t *testing.T) {
 	fsys := setupAWSSMPFsys(t, "sub")
 
 	f, err := fsys.Open(".")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	fi, err := f.Stat()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.True(t, fi.IsDir())
-	assert.Equal(t, "", fi.Name())
+	assert.Empty(t, fi.Name())
 
 	f, err = fsys.Open("missing")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	_, err = f.Stat()
-	assert.ErrorIs(t, err, fs.ErrNotExist)
+	require.ErrorIs(t, err, fs.ErrNotExist)
 
 	_, err = fs.Stat(fsys, "noleadingslash")
-	assert.ErrorIs(t, err, fs.ErrNotExist)
+	require.ErrorIs(t, err, fs.ErrNotExist)
 
 	fi, err = fs.Stat(fsys, "a")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.True(t, fi.IsDir())
 
 	// stat shouldn't leak AWS error types when GetParametersByPath errors
 	fsys, err = New(tests.MustURL("aws+smp:///"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// shouldn't leak AWS error types when GetParameter errors
 	fsys = WithClientFS(clientWithValues(t,
@@ -108,7 +108,7 @@ func TestAWSSMPFS_Stat(t *testing.T) {
 	), fsys)
 
 	_, err = fs.Stat(fsys, "blah")
-	assert.ErrorIs(t, err, fs.ErrInvalid)
+	require.ErrorIs(t, err, fs.ErrInvalid)
 }
 
 func TestAWSSMPFS_Read(t *testing.T) {
@@ -116,30 +116,30 @@ func TestAWSSMPFS_Read(t *testing.T) {
 
 	// /sub/a/aa is a SecureString, so make sure it's decrypted
 	f, err := fsys.Open("sub/a/aa")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	b, err := io.ReadAll(f)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "secure string aa", string(b))
 
 	fsys, err = fs.Sub(fsys, "sub/b/bb")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	f, err = fsys.Open("bbc")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	defer f.Close()
 
 	b, err = io.ReadAll(f)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "bbbbbc", string(b))
 
 	_, err = f.Read(b)
-	assert.Error(t, err)
+	require.Error(t, err)
 
 	// read shouldn't leak AWS error types when GetParameter errors
 	fsys, err = New(tests.MustURL("aws+smp:///"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	fsys = WithClientFS(clientWithValues(t,
 		map[string]*testVal{},
@@ -154,36 +154,36 @@ func TestAWSSMPFS_ReadFile(t *testing.T) {
 	fsys := setupAWSSMPFsys(t, "")
 
 	b, err := fs.ReadFile(fsys, "sub/a/aa")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "secure string aa", string(b))
 
 	fsys, err = fs.Sub(fsys, "sub/a")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	b, err = fs.ReadFile(fsys, "ab")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "aab", string(b))
 
 	// /sub/a/ac is a StringList, so make sure it's not mangled
 	b, err = fs.ReadFile(fsys, "ac")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "one,two,three", string(b))
 }
 
 func TestAWSSMPFS_ReadDir(t *testing.T) {
 	fsys, err := New(tests.MustURL("aws+smp:///"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	fsys = WithClientFS(clientWithValues(t, nil), fsys)
 
 	_, err = fs.ReadDir(fsys, "dir1")
-	assert.Error(t, err)
-	assert.ErrorIs(t, err, fs.ErrNotExist)
+	require.Error(t, err)
+	require.ErrorIs(t, err, fs.ErrNotExist)
 
 	fsys = setupAWSSMPFsys(t, "")
 
 	de, err := fs.ReadDir(fsys, ".")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Len(t, de, 3)
 
 	assert.Equal(t, "noleadingslash", de[0].Name())
@@ -196,7 +196,7 @@ func TestAWSSMPFS_ReadDir(t *testing.T) {
 	fsys = setupAWSSMPFsys(t, "sub")
 
 	de, err = fs.ReadDir(fsys, ".")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Len(t, de, 4)
 
 	testdata := []struct {
@@ -208,22 +208,22 @@ func TestAWSSMPFS_ReadDir(t *testing.T) {
 	for i, d := range testdata {
 		var fi fs.FileInfo
 		fi, err = de[i].Info()
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, d.name, fi.Name())
 		assert.Equal(t, d.dir, fi.IsDir())
 	}
 
 	de, err = fs.ReadDir(fsys, "b")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Len(t, de, 3)
 
 	f, err := fsys.Open("b/bb")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	require.Implements(t, (*fs.ReadDirFile)(nil), f)
 
 	dir := f.(fs.ReadDirFile)
 
 	de, err = dir.ReadDir(-1)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Len(t, de, 3)
 }

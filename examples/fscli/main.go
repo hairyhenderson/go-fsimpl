@@ -50,6 +50,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -119,7 +120,7 @@ func run(o *opts, fsArgs []string) error {
 	defer stop()
 
 	if len(fsArgs) == 0 {
-		return fmt.Errorf("no command specified")
+		return errors.New("no command specified")
 	}
 
 	subCmd := fsArgs[0]
@@ -165,7 +166,7 @@ func cmd(fsys fs.FS, subCmd string, useOpen bool, fsArgs []string) error {
 		return fsLs(fsys, fsArgs[1], os.Stdout)
 	case "cat":
 		if len(fsArgs) == 1 {
-			return fmt.Errorf("no files specified")
+			return errors.New("no files specified")
 		}
 
 		return cat(fsys, fsArgs[1:], os.Stdout)

@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // freeport - find a free TCP port for immediate use. No guarantees!
@@ -38,7 +38,7 @@ func waitForURL(ctx context.Context, t *testing.T, url string) error {
 		time.Sleep(200 * time.Millisecond)
 
 		req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		resp, err := client.Do(req)
 		if err != nil {

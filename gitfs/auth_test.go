@@ -22,22 +22,22 @@ func TestAutoAuthenticator(t *testing.T) {
 	a := AutoAuthenticator()
 
 	_, err := a.Authenticate(tests.MustURL("bogus:///bare.git"))
-	assert.Error(t, err)
+	require.Error(t, err)
 
 	// valid for all supported schemes
 	am, err := a.Authenticate(tests.MustURL("git://"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	// no-op returns a nil AuthMethod
 	assert.Nil(t, am)
 
 	am, err = a.Authenticate(tests.MustURL("file:///bare.git"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	// no-op returns a nil AuthMethod
 	assert.Nil(t, am)
 
 	// basic auth
 	am, err = a.Authenticate(tests.MustURL("https://user@example.com"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.EqualValues(t,
 		&githttp.BasicAuth{Username: "user", Password: ""}, am)
 
@@ -48,7 +48,7 @@ func TestAutoAuthenticator(t *testing.T) {
 
 		// ssh-agent auth
 		am, err = a.Authenticate(tests.MustURL("ssh://git@example.com"))
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		pkc, ok := am.(*ssh.PublicKeysCallback)
 		assert.True(t, ok)
@@ -61,7 +61,7 @@ func TestAutoAuthenticator(t *testing.T) {
 	t.Setenv("GIT_SSH_KEY", key)
 
 	am, err = a.Authenticate(tests.MustURL("ssh://git@example.com"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	pk, ok := am.(*ssh.PublicKeys)
 	assert.True(t, ok)
@@ -88,22 +88,22 @@ func TestNoopAuthenticator(t *testing.T) {
 
 	// only valid for git/file/http/https schemes
 	_, err := a.Authenticate(tests.MustURL("ssh://example.com/foo"))
-	assert.Error(t, err)
+	require.Error(t, err)
 
 	am, err := a.Authenticate(tests.MustURL("git://"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Nil(t, am)
 
 	am, err = a.Authenticate(tests.MustURL("file:///bare.git"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Nil(t, am)
 
 	am, err = a.Authenticate(tests.MustURL("https://example.com"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Nil(t, am)
 
 	am, err = a.Authenticate(tests.MustURL("http://example.com"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Nil(t, am)
 }
 
@@ -115,17 +115,17 @@ func TestBasicAuthenticator(t *testing.T) {
 
 	// only valid for http[s] schemes
 	_, err := a.Authenticate(tests.MustURL("file:///bare.git"))
-	assert.Error(t, err)
+	require.Error(t, err)
 
 	// user/pass are not required with basic auth - this results in a no-op -
 	// useful for public repos
 	am, err := a.Authenticate(tests.MustURL("http://example.com/foo"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Nil(t, am)
 
 	// credentials from URL
 	am, err = a.Authenticate(tests.MustURL("https://user:swordfish@example.com/foo"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.EqualValues(t,
 		&githttp.BasicAuth{Username: "user", Password: "swordfish"}, am)
 
@@ -133,7 +133,7 @@ func TestBasicAuthenticator(t *testing.T) {
 	t.Setenv("GIT_HTTP_PASSWORD", "swordfish")
 
 	am, err = a.Authenticate(tests.MustURL("https://example.com/foo"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.EqualValues(t,
 		&githttp.BasicAuth{Username: "", Password: "swordfish"}, am)
 
@@ -143,13 +143,13 @@ func TestBasicAuthenticator(t *testing.T) {
 	a.username = "user"
 	a.password = "swordfish"
 	am, err = a.Authenticate(tests.MustURL("http://example.com/foo"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.EqualValues(t,
 		&githttp.BasicAuth{Username: "user", Password: "swordfish"}, am)
 
 	// credentials from URL override provided & env credentials
 	am, err = a.Authenticate(tests.MustURL("https://foo:bar@example.com/foo"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.EqualValues(t,
 		&githttp.BasicAuth{Username: "foo", Password: "bar"}, am)
 }
@@ -199,23 +199,23 @@ func TestTokenAuthenticator(t *testing.T) {
 
 	// only valid for http[s] schemes
 	_, err := a.Authenticate(tests.MustURL("file:///bare.git"))
-	assert.Error(t, err)
+	require.Error(t, err)
 
 	// token must be set _somewhere_
 	_, err = a.Authenticate(tests.MustURL("https://example.com/foo"))
-	assert.Error(t, err)
+	require.Error(t, err)
 
 	// token from env
 	t.Setenv("GIT_HTTP_TOKEN", "foo")
 
 	am, err := a.Authenticate(tests.MustURL("http://example.com/foo"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.EqualValues(t, &githttp.TokenAuth{Token: "foo"}, am)
 
 	// provided token overrides env
 	a.token = "bar"
 	am, err = a.Authenticate(tests.MustURL("https://example.com/foo"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.EqualValues(t, &githttp.TokenAuth{Token: "bar"}, am)
 }
 
@@ -227,14 +227,14 @@ func TestPublicKeyAuthenticator(t *testing.T) {
 
 	// only valid for ssh schemes
 	_, err := a.Authenticate(tests.MustURL("file:///bare.git"))
-	assert.Error(t, err)
+	require.Error(t, err)
 
 	_, err = a.Authenticate(tests.MustURL("https:///bare.git"))
-	assert.Error(t, err)
+	require.Error(t, err)
 
 	// key must be set _somewhere_
 	_, err = a.Authenticate(tests.MustURL("ssh://example.com/foo"))
-	assert.Error(t, err)
+	require.Error(t, err)
 
 	// key from env, base64-encoded
 	key := string(testdata.PEMBytes["ed25519"])
@@ -244,7 +244,7 @@ func TestPublicKeyAuthenticator(t *testing.T) {
 	t.Setenv("GIT_SSH_KEY", enckey)
 
 	am, err := a.Authenticate(tests.MustURL("ssh://example.com/foo"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.IsType(t, &ssh.PublicKeys{}, am)
 
 	// key from file referenced by env (non-base64)
@@ -255,7 +255,7 @@ func TestPublicKeyAuthenticator(t *testing.T) {
 	envfsys["testdata/key.pem"] = &fstest.MapFile{Data: []byte(key)}
 
 	am, err = a.Authenticate(tests.MustURL("ssh://example.com/foo"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.IsType(t, &ssh.PublicKeys{}, am)
 
 	// provided key overrides env
@@ -266,7 +266,7 @@ func TestPublicKeyAuthenticator(t *testing.T) {
 	a.username = "user"
 	a.privKey = testdata.PEMBytes["ed25519"]
 	am, err = a.Authenticate(tests.MustURL("ssh://example.com/foo"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.IsType(t, &ssh.PublicKeys{}, am)
 
 	pk := am.(*ssh.PublicKeys)
@@ -274,7 +274,7 @@ func TestPublicKeyAuthenticator(t *testing.T) {
 
 	// username in URL overrides provided
 	am, err = a.Authenticate(tests.MustURL("ssh://git@example.com/foo"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.IsType(t, &ssh.PublicKeys{}, am)
 
 	pk = am.(*ssh.PublicKeys)
@@ -299,33 +299,33 @@ func TestSSHAgentAuthenticator(t *testing.T) {
 
 	// only valid for ssh schemes
 	_, err := a.Authenticate(tests.MustURL("file:///bare.git"))
-	assert.Error(t, err)
+	require.Error(t, err)
 
 	_, err = a.Authenticate(tests.MustURL("https:///bare.git"))
-	assert.Error(t, err)
+	require.Error(t, err)
 
 	// user defaults to current user
 	am, err := a.Authenticate(tests.MustURL("ssh://example.com/foo"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	pkc, ok := am.(*ssh.PublicKeysCallback)
-	assert.Equal(t, true, ok)
+	assert.True(t, ok)
 	assert.Equal(t, currentUser, pkc.User)
 
 	// provided user overrides
 	a.username = "user"
 	am, err = a.Authenticate(tests.MustURL("ssh://example.com/foo"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	pkc, ok = am.(*ssh.PublicKeysCallback)
-	assert.Equal(t, true, ok)
+	assert.True(t, ok)
 	assert.Equal(t, "user", pkc.User)
 
 	// username in URL overrides provided
 	am, err = a.Authenticate(tests.MustURL("ssh://git@example.com"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	pkc, ok = am.(*ssh.PublicKeysCallback)
-	assert.Equal(t, true, ok)
+	assert.True(t, ok)
 	assert.Equal(t, "git", pkc.User)
 }
