@@ -10,7 +10,6 @@ import (
 
 func (f *blobFS) cleanS3URL(u url.URL) url.URL {
 	q := u.Query()
-	translateV1Params(q)
 
 	// allow known query parameters, remove unknown ones
 	for param := range q {
@@ -25,10 +24,15 @@ func (f *blobFS) cleanS3URL(u url.URL) url.URL {
 			"profile",
 			"rate_limiter_capacity",
 			"region",
+			"s3ForcePathStyle", // for backwards compatibility, still supported in CDK
 			"use_path_style":
-		// not relevant for read operations, but are be passed through to the
-		// Go CDK
 		case "kmskeyid", "ssetype":
+			// not relevant for read operations, but are be passed through to the
+			// Go CDK
+		case "disableSSL":
+			// changed to 'disable_https' in s3v2
+			q.Set("disable_https", q.Get(param))
+			q.Del(param)
 		default:
 			q.Del(param)
 		}
@@ -41,22 +45,6 @@ func (f *blobFS) cleanS3URL(u url.URL) url.URL {
 	u.RawQuery = q.Encode()
 
 	return u
-}
-
-// translateV1Params translates v1 query parameters to v2 query parameters.
-func translateV1Params(q url.Values) {
-	for param := range q {
-		switch param {
-		// changed to 'disable_https' in s3v2
-		case "disableSSL":
-			q.Set("disable_https", q.Get(param))
-			q.Del(param)
-		// changed to 'use_path_style' in s3v2
-		case "s3ForcePathStyle":
-			q.Set("use_path_style", q.Get(param))
-			q.Del(param)
-		}
-	}
 }
 
 func ensureValidEndpointURL(q url.Values) {

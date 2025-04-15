@@ -217,8 +217,12 @@ func (f *blobFS) ReadFile(name string) ([]byte, error) {
 func (f *blobFS) newOpener(ctx context.Context, scheme string) (opener blob.BucketURLOpener, err error) {
 	switch scheme {
 	case s3blob.Scheme:
-		// see https://gocloud.dev/concepts/urls/#muxes
-		return &s3v2URLOpener{imdsfs: f.imdsfs}, nil
+		opener := &s3WithRegionOpener{
+			imdsfs: f.imdsfs,
+			opener: &s3blob.URLOpener{UseV2: true},
+		}
+
+		return opener, nil
 	case gcsblob.Scheme:
 		if env.GetenvFS(f.envfs, "GOOGLE_ANON") == "true" {
 			return &gcsblob.URLOpener{
