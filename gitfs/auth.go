@@ -8,9 +8,9 @@ import (
 	"net/url"
 	"os"
 
+	githttp "github.com/go-git/go-git/v5/plumbing/transport/http"
+	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
 	"github.com/hairyhenderson/go-fsimpl/internal/env"
-	githttp "github.com/hairyhenderson/go-git/v5/plumbing/transport/http"
-	"github.com/hairyhenderson/go-git/v5/plumbing/transport/ssh"
 )
 
 // withAuthenticatorer is an fs.FS that can be configured to authenticate to a
