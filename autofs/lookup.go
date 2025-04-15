@@ -16,6 +16,7 @@ import (
 	"github.com/hairyhenderson/go-fsimpl/blobfs"
 	"github.com/hairyhenderson/go-fsimpl/consulfs"
 	"github.com/hairyhenderson/go-fsimpl/filefs"
+	"github.com/hairyhenderson/go-fsimpl/gcpmetafs"
 	"github.com/hairyhenderson/go-fsimpl/gitfs"
 	"github.com/hairyhenderson/go-fsimpl/httpfs"
 	"github.com/hairyhenderson/go-fsimpl/vaultfs"
@@ -54,6 +55,7 @@ func initMux() fsimpl.FSMux {
 		mux.Add(blobfs.FS)
 		mux.Add(consulfs.FS)
 		mux.Add(filefs.FS)
+		mux.Add(gcpmetafs.FS)
 		mux.Add(gitfs.FS)
 		mux.Add(httpfs.FS)
 		mux.Add(vaultfs.FS)
