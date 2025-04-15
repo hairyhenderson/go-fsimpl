@@ -13,14 +13,14 @@ import (
 
 	"github.com/go-git/go-billy/v5"
 	"github.com/go-git/go-billy/v5/memfs"
+	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing"
+	"github.com/go-git/go-git/v5/plumbing/transport"
+	"github.com/go-git/go-git/v5/plumbing/transport/client"
+	"github.com/go-git/go-git/v5/storage/memory"
 	"github.com/hairyhenderson/go-fsimpl"
 	"github.com/hairyhenderson/go-fsimpl/internal"
 	"github.com/hairyhenderson/go-fsimpl/internal/billyadapter"
-	"github.com/hairyhenderson/go-git/v5"
-	"github.com/hairyhenderson/go-git/v5/plumbing"
-	"github.com/hairyhenderson/go-git/v5/plumbing/transport"
-	"github.com/hairyhenderson/go-git/v5/plumbing/transport/client"
-	"github.com/hairyhenderson/go-git/v5/storage/memory"
 )
 
 type gitFS struct {
@@ -221,7 +221,10 @@ func (f *gitFS) gitClone(ctx context.Context, repoURL url.URL, depth int) (billy
 
 	repo, err := git.CloneContext(ctx, storer, bfs, &opts)
 
-	if u.Scheme == "file" && errors.Is(err, transport.ErrRepositoryNotFound) && !strings.HasSuffix(u.Path, ".git") {
+	if u.Scheme == "file" &&
+		(errors.Is(err, transport.ErrRepositoryNotFound) ||
+			errors.Is(err, transport.ErrEmptyRemoteRepository)) &&
+		!strings.HasSuffix(u.Path, ".git") {
 		// maybe this has a `.git` subdirectory...
 		u = repoURL
 		u.Path = path.Join(u.Path, ".git")

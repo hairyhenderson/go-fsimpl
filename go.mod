@@ -13,6 +13,7 @@ require (
 	github.com/aws/smithy-go v1.22.3
 	github.com/fsouza/fake-gcs-server v1.52.2
 	github.com/go-git/go-billy/v5 v5.6.2
+	github.com/go-git/go-git/v5 v5.15.0
 	github.com/hashicorp/consul/api v1.32.0
 	github.com/hashicorp/vault/api v1.16.0
 	github.com/hashicorp/vault/api/auth/approle v0.9.0
@@ -28,11 +29,6 @@ require (
 	golang.org/x/crypto v0.37.0
 	gotest.tools/v3 v3.5.2
 )
-
-// TODO: once https://github.com/go-git/go-git/pull/416 is merged, this can be
-// reverted to the upstream module. This commit on my fork is a cherry-pick from
-// the PR on top of v5.12.0
-require github.com/hairyhenderson/go-git/v5 v5.12.1-0.20240530140403-1b868a7b8a3c
 
 require (
 	cel.dev/expr v0.22.1 // indirect
@@ -74,7 +70,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sts v1.33.19 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
-	github.com/cloudflare/circl v1.6.0 // indirect
+	github.com/cloudflare/circl v1.6.1 // indirect
 	github.com/cncf/xds/go v0.0.0-20250326154945-ae57f3c0d45f // indirect
 	github.com/cyphar/filepath-securejoin v0.4.1 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
@@ -147,7 +143,7 @@ require (
 	go.shabbyrobe.org/gocovmerge v0.0.0-20230507111327-fa4f82cfbf4d // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/exp v0.0.0-20250305212735-054e65f0b394 // indirect
-	golang.org/x/net v0.38.0 // indirect
+	golang.org/x/net v0.39.0 // indirect
 	golang.org/x/oauth2 v0.28.0 // indirect
 	golang.org/x/sync v0.13.0 // indirect
 	golang.org/x/sys v0.32.0 // indirect
