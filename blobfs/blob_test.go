@@ -6,14 +6,15 @@ import (
 	"io/fs"
 	"net/http/httptest"
 	"net/url"
-	"os"
 	"testing"
 	"testing/fstest"
 	"time"
 
 	"github.com/fsouza/fake-gcs-server/fakestorage"
 	"github.com/hairyhenderson/go-fsimpl"
+	"github.com/hairyhenderson/go-fsimpl/awsimdsfs"
 	"github.com/hairyhenderson/go-fsimpl/internal/tests"
+	"github.com/hairyhenderson/go-fsimpl/internal/tests/fakeimds"
 	"github.com/johannesboyne/gofakes3"
 	"github.com/johannesboyne/gofakes3/backend/s3mem"
 	"github.com/stretchr/testify/assert"
@@ -93,40 +94,58 @@ func putFile(backend gofakes3.Backend, file, mime, content string) error {
 }
 
 func TestBlobFS_S3(t *testing.T) {
+	// override timestamps to make tests deterministic
 	ft := time.Now()
 	fakeModTime = &ft
 
-	defer func() { fakeModTime = nil }()
+	t.Cleanup(func() { fakeModTime = nil })
 
 	srvURL := setupTestS3Bucket(t)
+	_, u := fakeimds.Server(t)
+	imdsfsys, err := awsimdsfs.New(u)
+	require.NoError(t, err)
 
 	ctx, cancel := context.WithTimeout(t.Context(), 5*time.Second)
 	defer cancel()
 
-	t.Setenv("AWS_ANON", "true")
+	t.Run("anon with region from URL", func(t *testing.T) {
+		t.Setenv("AWS_ANON", "true")
 
-	fsys, err := New(tests.MustURL("s3://mybucket/?region=us-east-1&disableSSL=true&s3ForcePathStyle=true&endpoint=" + srvURL.Host))
-	require.NoError(t, err)
+		fsys, err := New(tests.MustURL("s3://mybucket/?region=us-east-1&disableSSL=true&use_path_style=true&endpoint=" + srvURL.Host))
+		require.NoError(t, err)
 
-	require.NoError(t, fstest.TestFS(fsimpl.WithContextFS(ctx, fsys),
-		"file1", "file2", "file3",
-		"dir1/file1", "dir1/file2",
-		"dir2/file3", "dir2/file4",
-		"dir2/sub1/subfile1", "dir2/sub1/subfile2"),
-	)
+		require.NoError(t, fstest.TestFS(fsimpl.WithContextFS(ctx, fsys),
+			"file1", "file2", "file3", "dir1/file1", "dir1/file2",
+			"dir2/file3", "dir2/file4", "dir2/sub1/subfile1", "dir2/sub1/subfile2"),
+		)
+	})
 
-	os.Unsetenv("AWS_ANON")
+	t.Run("auth with region from URL and subdir", func(t *testing.T) {
+		t.Setenv("AWS_ACCESS_KEY_ID", "fake")
+		t.Setenv("AWS_SECRET_ACCESS_KEY", "fake")
+		t.Setenv("AWS_S3_ENDPOINT", srvURL.Host)
+		t.Setenv("AWS_REGION", "eu-west-1")
 
-	t.Setenv("AWS_ACCESS_KEY_ID", "fake")
-	t.Setenv("AWS_SECRET_ACCESS_KEY", "fake")
-	t.Setenv("AWS_S3_ENDPOINT", srvURL.Host)
-	t.Setenv("AWS_REGION", "eu-west-1")
+		fsys, err := New(tests.MustURL("s3://mybucket/dir2/?disableSSL=true&use_path_style=true"))
+		require.NoError(t, err)
 
-	fsys, err = New(tests.MustURL("s3://mybucket/dir2/?disableSSL=true&s3ForcePathStyle=true"))
-	require.NoError(t, err)
+		require.NoError(t, fstest.TestFS(fsimpl.WithContextFS(ctx, fsys),
+			"file3", "file4", "sub1/subfile1", "sub1/subfile2"))
+	})
 
-	require.NoError(t, fstest.TestFS(fsimpl.WithContextFS(ctx, fsys),
-		"file3", "file4", "sub1/subfile1", "sub1/subfile2"))
+	t.Run("auth with region from IMDS and subdir", func(t *testing.T) {
+		t.Setenv("AWS_ACCESS_KEY_ID", "fake")
+		t.Setenv("AWS_SECRET_ACCESS_KEY", "fake")
+		t.Setenv("AWS_S3_ENDPOINT", srvURL.Host)
+
+		fsys, err := New(tests.MustURL("s3://mybucket/dir2/?disableSSL=true&use_path_style=true"))
+		require.NoError(t, err)
+
+		fsys = fsys.(*blobFS).WithIMDSFS(imdsfsys)
+
+		require.NoError(t, fstest.TestFS(fsimpl.WithContextFS(ctx, fsys),
+			"file3", "file4", "sub1/subfile1", "sub1/subfile2"))
+	})
 }
 
 func TestBlobFS_GCS(t *testing.T) {
@@ -205,7 +224,7 @@ func TestBlobFS_ReadDir(t *testing.T) {
 
 	t.Setenv("AWS_ANON", "true")
 
-	fsys, err := New(tests.MustURL("s3://mybucket/?region=us-east-1&disableSSL=true&s3ForcePathStyle=true&endpoint=" + srvURL.Host))
+	fsys, err := New(tests.MustURL("s3://mybucket/?region=us-east-1&disableSSL=true&use_path_style=true&endpoint=" + srvURL.Host))
 	require.NoError(t, err)
 
 	de, err := fs.ReadDir(fsys, "dir1")
@@ -249,13 +268,13 @@ func TestBlobFS_CleanCdkURL(t *testing.T) {
 		{"s3://foo/bar/baz?region=us-east-1", "s3://foo/bar/baz?region=us-east-1"},
 		{"s3://foo/bar/baz?disableSSL=true&type=text/csv", "s3://foo/bar/baz?disable_https=true"},
 		{
-			"s3://foo/bar/baz?type=text/csv&s3ForcePathStyle=true&endpoint=1.2.3.4",
+			"s3://foo/bar/baz?type=text/csv&use_path_style=true&endpoint=1.2.3.4",
 			"s3://foo/bar/baz?endpoint=https%3A%2F%2F1.2.3.4&use_path_style=true",
 		},
 		{"s3://foo/bar/baz?disable_https=true&type=text/csv", "s3://foo/bar/baz?disable_https=true"},
 		{
-			"s3://foo/bar/baz?type=text/csv&use_path_style=true&endpoint=1.2.3.4",
-			"s3://foo/bar/baz?endpoint=https%3A%2F%2F1.2.3.4&use_path_style=true",
+			"s3://foo/bar/baz?type=text/csv&s3ForcePathStyle=true&endpoint=1.2.3.4",
+			"s3://foo/bar/baz?endpoint=https%3A%2F%2F1.2.3.4&s3ForcePathStyle=true",
 		},
 		{
 			"s3://foo/bar/baz?disable_https=true&type=text/csv&use_path_style=true&endpoint=1.2.3.4:1234",
