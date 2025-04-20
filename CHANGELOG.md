@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.3.0](https://github.com/hairyhenderson/go-fsimpl/compare/v0.2.5...v0.3.0) (2025-04-20)
+
+
+### Features
+
+* New gcpmetafs filesystem ([#1032](https://github.com/hairyhenderson/go-fsimpl/issues/1032)) ([cfadbfb](https://github.com/hairyhenderson/go-fsimpl/commit/cfadbfb466828d30449bde749ad9f64beaa725f7))
+
+
+### Dependencies
+
+* **actions:** Bump actions/create-github-app-token in the actions group ([#1041](https://github.com/hairyhenderson/go-fsimpl/issues/1041)) ([28b08e6](https://github.com/hairyhenderson/go-fsimpl/commit/28b08e6bde3a16b70fe6309bc86cc401206dca0b))
+* **actions:** Bump aquasecurity/setup-trivy from 0.2.2 to 0.2.3 ([#1043](https://github.com/hairyhenderson/go-fsimpl/issues/1043)) ([5777c2f](https://github.com/hairyhenderson/go-fsimpl/commit/5777c2f7459ea4e7b83ffcc07f0692af5b8868c7))
+* **actions:** Bump golangci/golangci-lint-action from 6 to 7 ([#1035](https://github.com/hairyhenderson/go-fsimpl/issues/1035)) ([a6ea466](https://github.com/hairyhenderson/go-fsimpl/commit/a6ea466b05dda8cb6660dfedeacc8fb1a7b0e2cc))
+* **go:** Bump github.com/aws/aws-sdk-go-v2/service/secretsmanager ([#1046](https://github.com/hairyhenderson/go-fsimpl/issues/1046)) ([6277fa4](https://github.com/hairyhenderson/go-fsimpl/commit/6277fa4024885d2c43e2d665ecb3d30c54e62f0d))
+* **go:** Bump github.com/go-git/go-git/v5 from 5.15.0 to 5.16.0 ([#1045](https://github.com/hairyhenderson/go-fsimpl/issues/1045)) ([cb64fc3](https://github.com/hairyhenderson/go-fsimpl/commit/cb64fc316ba75a11851feea8b54db367cbb08ab6))
+* **go:** Bump github.com/golang-jwt/jwt/v5 in the go_modules group ([#1033](https://github.com/hairyhenderson/go-fsimpl/issues/1033)) ([8449c50](https://github.com/hairyhenderson/go-fsimpl/commit/8449c504375e97d8bba3854f603a35cd3d0a6645))
+* **go:** Bump github.com/hashicorp/consul/api in the hashicorp group ([#1038](https://github.com/hairyhenderson/go-fsimpl/issues/1038)) ([624bc8e](https://github.com/hairyhenderson/go-fsimpl/commit/624bc8e9eaf3025bee20b71a8643cc0fb470e087))
+* **go:** Bump gocloud.dev from 0.40.0 to 0.41.0 ([#1037](https://github.com/hairyhenderson/go-fsimpl/issues/1037)) ([591131e](https://github.com/hairyhenderson/go-fsimpl/commit/591131e50677ba2d09cb678b134750ea230fb098))
+* **go:** Bump golang.org/x/crypto in the golang-x group ([#1042](https://github.com/hairyhenderson/go-fsimpl/issues/1042)) ([e6f2a31](https://github.com/hairyhenderson/go-fsimpl/commit/e6f2a31ca94cbcabaeb9f7250d9a6ac1c03051b3))
+* **go:** Bump the aws-sdk group across 1 directory with 4 updates ([#1040](https://github.com/hairyhenderson/go-fsimpl/issues/1040)) ([5f3fb0b](https://github.com/hairyhenderson/go-fsimpl/commit/5f3fb0b9d66acecffd7baeb65c5e0277ade2ed40))
+* **go:** Switch back to upstream github.com/go-git/go-git/v5 module ([#1044](https://github.com/hairyhenderson/go-fsimpl/issues/1044)) ([896abf7](https://github.com/hairyhenderson/go-fsimpl/commit/896abf7136945260ddcf52165eb97fb63bb3a8b1))
+
 ## [0.2.5](https://github.com/hairyhenderson/go-fsimpl/compare/v0.2.4...v0.2.5) (2025-03-14)
 
 
