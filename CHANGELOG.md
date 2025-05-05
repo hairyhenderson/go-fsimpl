@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.1](https://github.com/hairyhenderson/go-fsimpl/compare/v0.3.0...v0.3.1) (2025-05-05)
+
+
+### Dependencies
+
+* **go:** Bump github.com/Azure/azure-sdk-for-go/sdk/storage/azblob ([#1047](https://github.com/hairyhenderson/go-fsimpl/issues/1047)) ([d3de082](https://github.com/hairyhenderson/go-fsimpl/commit/d3de082910e565bfa9f27bbd69c08a6873505c78))
+* **go:** Bump the aws-sdk group across 1 directory with 2 updates ([#1049](https://github.com/hairyhenderson/go-fsimpl/issues/1049)) ([c1e9709](https://github.com/hairyhenderson/go-fsimpl/commit/c1e9709023e0df02786f7250e7b96c8e699884e8))
+
 ## [0.3.0](https://github.com/hairyhenderson/go-fsimpl/compare/v0.2.5...v0.3.0) (2025-04-20)
 
 
