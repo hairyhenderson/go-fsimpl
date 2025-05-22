@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.3.1](https://github.com/hairyhenderson/go-fsimpl/compare/v0.3.0...v0.3.1) (2025-05-22)
+
+
+### Dependencies
+
+* **go:** Bump github.com/Azure/azure-sdk-for-go/sdk/storage/azblob ([#1047](https://github.com/hairyhenderson/go-fsimpl/issues/1047)) ([d3de082](https://github.com/hairyhenderson/go-fsimpl/commit/d3de082910e565bfa9f27bbd69c08a6873505c78))
+* **go:** Bump github.com/hashicorp/consul/api in the hashicorp group ([#1053](https://github.com/hairyhenderson/go-fsimpl/issues/1053)) ([5692bdc](https://github.com/hairyhenderson/go-fsimpl/commit/5692bdc97d01c7312dfd6bce0342f144e0f20985))
+* **go:** Bump the aws-sdk group across 1 directory with 2 updates ([#1049](https://github.com/hairyhenderson/go-fsimpl/issues/1049)) ([c1e9709](https://github.com/hairyhenderson/go-fsimpl/commit/c1e9709023e0df02786f7250e7b96c8e699884e8))
+* **go:** Bump the otel group across 1 directory with 5 updates ([#1060](https://github.com/hairyhenderson/go-fsimpl/issues/1060)) ([d365973](https://github.com/hairyhenderson/go-fsimpl/commit/d365973fa32842b918f1507c87422838755f09ae))
+
 ## [0.3.0](https://github.com/hairyhenderson/go-fsimpl/compare/v0.2.5...v0.3.0) (2025-04-20)
 
 
