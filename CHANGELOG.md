@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.2](https://github.com/hairyhenderson/go-fsimpl/compare/v0.3.1...v0.3.2) (2025-06-04)
+
+
+### Dependencies
+
+* **actions:** Bump github/codeql-action from 3.28.18 to 3.28.19 ([#1064](https://github.com/hairyhenderson/go-fsimpl/issues/1064)) ([f30a4fa](https://github.com/hairyhenderson/go-fsimpl/commit/f30a4fa703b7b45b8842ff9bbf924a98ee465820))
+* **go:** Bump github.com/aws/aws-sdk-go-v2/service/s3 ([#1062](https://github.com/hairyhenderson/go-fsimpl/issues/1062)) ([0cf5221](https://github.com/hairyhenderson/go-fsimpl/commit/0cf5221414527966fb44108a01063d7cc0831ddf))
+
 ## [0.3.1](https://github.com/hairyhenderson/go-fsimpl/compare/v0.3.0...v0.3.1) (2025-05-25)
 
 
