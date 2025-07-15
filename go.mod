@@ -8,9 +8,9 @@ require (
 	github.com/aws/aws-sdk-go-v2 v1.36.5
 	github.com/aws/aws-sdk-go-v2/config v1.29.17
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.16.32
-	github.com/aws/aws-sdk-go-v2/service/s3 v1.80.3
+	github.com/aws/aws-sdk-go-v2/service/s3 v1.83.0
 	github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.35.7
-	github.com/aws/aws-sdk-go-v2/service/ssm v1.59.3
+	github.com/aws/aws-sdk-go-v2/service/ssm v1.60.0
 	github.com/aws/smithy-go v1.22.4
 	github.com/fsouza/fake-gcs-server v1.52.2
 	github.com/go-git/go-billy/v5 v5.6.2
