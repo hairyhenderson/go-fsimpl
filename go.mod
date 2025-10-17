@@ -4,7 +4,7 @@ go 1.24.1
 
 require (
 	cloud.google.com/go/compute/metadata v0.7.0
-	github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v1.6.1
+	github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v1.6.3
 	github.com/aws/aws-sdk-go-v2 v1.36.5
 	github.com/aws/aws-sdk-go-v2/config v1.29.17
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.16.32
@@ -20,14 +20,14 @@ require (
 	github.com/hashicorp/vault/api/auth/approle v0.10.0
 	github.com/hashicorp/vault/api/auth/userpass v0.10.0
 	github.com/johannesboyne/gofakes3 v0.0.0-20250106100439-5c39aecd6999
-	github.com/stretchr/testify v1.10.0
+	github.com/stretchr/testify v1.11.1
 	go.opentelemetry.io/contrib/propagators/autoprop v0.62.0
 	go.opentelemetry.io/otel v1.37.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.37.0
 	go.opentelemetry.io/otel/sdk v1.37.0
 	go.opentelemetry.io/otel/trace v1.37.0
 	gocloud.dev v0.42.0
-	golang.org/x/crypto v0.40.0
+	golang.org/x/crypto v0.41.0
 	gotest.tools/v3 v3.5.2
 )
 
@@ -41,12 +41,12 @@ require (
 	cloud.google.com/go/pubsub v1.49.0 // indirect
 	cloud.google.com/go/storage v1.55.0 // indirect
 	dario.cat/mergo v1.0.1 // indirect
-	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.18.0 // indirect
-	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.9.0 // indirect
-	github.com/Azure/azure-sdk-for-go/sdk/internal v1.11.1 // indirect
+	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.19.1 // indirect
+	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.13.0 // indirect
+	github.com/Azure/azure-sdk-for-go/sdk/internal v1.11.2 // indirect
 	github.com/Azure/go-autorest v14.2.0+incompatible // indirect
 	github.com/Azure/go-autorest/autorest/to v0.4.1 // indirect
-	github.com/AzureAD/microsoft-authentication-library-for-go v1.4.2 // indirect
+	github.com/AzureAD/microsoft-authentication-library-for-go v1.5.0 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/detectors/gcp v1.27.0 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/metric v0.51.0 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/internal/resourcemapping v0.51.0 // indirect
@@ -84,7 +84,7 @@ require (
 	github.com/go-jose/go-jose/v4 v4.0.5 // indirect
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
-	github.com/golang-jwt/jwt/v5 v5.2.2 // indirect
+	github.com/golang-jwt/jwt/v5 v5.3.0 // indirect
 	github.com/golang/groupcache v0.0.0-20241129210726-2c02b8208cf8 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/google/renameio/v2 v2.0.0 // indirect
@@ -146,13 +146,13 @@ require (
 	go.shabbyrobe.org/gocovmerge v0.0.0-20230507111327-fa4f82cfbf4d // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/exp v0.0.0-20250305212735-054e65f0b394 // indirect
-	golang.org/x/net v0.41.0 // indirect
+	golang.org/x/net v0.43.0 // indirect
 	golang.org/x/oauth2 v0.30.0 // indirect
 	golang.org/x/sync v0.16.0 // indirect
-	golang.org/x/sys v0.34.0 // indirect
-	golang.org/x/text v0.27.0 // indirect
+	golang.org/x/sys v0.35.0 // indirect
+	golang.org/x/text v0.28.0 // indirect
 	golang.org/x/time v0.11.0 // indirect
-	golang.org/x/tools v0.34.0 // indirect
+	golang.org/x/tools v0.35.0 // indirect
 	golang.org/x/xerrors v0.0.0-20240903120638-7835f813f4da // indirect
 	google.golang.org/api v0.235.0 // indirect
 	google.golang.org/genproto v0.0.0-20250603155806-513f23925822 // indirect
