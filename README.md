@@ -141,7 +141,7 @@ Copyright (c) 2021-2024 Dave Henderson
 
 [godocs]: https://pkg.go.dev/github.com/hairyhenderson/go-fsimpl
 [godoc-image]: https://pkg.go.dev/badge/github.com/hairyhenderson/go-fsimpl
-[gh-actions-image]: https://github.com/hairyhenderson/go-fsimpl/workflows/Build/badge.svg?branch=main
+[gh-actions-image]: https://github.com/hairyhenderson/go-fsimpl/actions/workflows/build.yml/badge.svg
 [gh-actions-url]: https://github.com/hairyhenderson/go-fsimpl/actions?workflow=Build&branch=main
 
 [AWS IMDS]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-metadata.html
