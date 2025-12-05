@@ -55,6 +55,6 @@ jobs:
       if: always() && github.repository == 'hairyhenderson/go-fsimpl'
     - name: Upload Trivy scan results to GitHub Security tab
       if: always() && github.repository == 'hairyhenderson/go-fsimpl'
-      uses: github/codeql-action/upload-sarif@fdbfb4d2750291e159f0156def62b853c2798ca2 # v4.31.5
+      uses: github/codeql-action/upload-sarif@cf1bb45a277cb3c205638b2cd5c984db1c46a412 # v4.31.7
       with:
         sarif_file: 'trivy-results.sarif'
