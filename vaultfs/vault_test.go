@@ -358,6 +358,7 @@ func TestFileAuthCaching(t *testing.T) {
 	assert.Empty(t, v.Token())
 }
 
+//nolint:funlen
 func TestFindMountInfo(t *testing.T) {
 	testdata := []struct {
 		expected    *mountInfo
@@ -396,6 +397,21 @@ func TestFindMountInfo(t *testing.T) {
 			expected: &mountInfo{
 				secretPath: "",
 				name:       "kv2/",
+				MountOutput: &api.MountOutput{
+					Type:    "kv",
+					Options: map[string]string{"version": "2"},
+				},
+			},
+		},
+		{
+			// mount on a path with multiple slashes
+			rawFilePath: "/v1/k/v", mountName: "k/v/",
+			mountOpts: map[string]any{
+				"type": "kv", "options": map[string]any{"version": "2"},
+			},
+			expected: &mountInfo{
+				secretPath: "",
+				name:       "k/v/",
 				MountOutput: &api.MountOutput{
 					Type:    "kv",
 					Options: map[string]string{"version": "2"},
