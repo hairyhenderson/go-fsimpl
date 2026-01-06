@@ -277,7 +277,7 @@ type mountInfo struct {
 
 var _ fs.ReadDirFile = (*vaultFile)(nil)
 
-func (f *vaultFile) request(method string) (*api.KVSecret, *api.Secret, error) {
+func (f *vaultFile) request() (*api.KVSecret, *api.Secret, error) {
 	mountInfo, err := f.getMountInfo(f.ctx)
 	if err != nil {
 		return nil, nil, fmt.Errorf("get mount info: %w", err)
@@ -296,7 +296,7 @@ func (f *vaultFile) request(method string) (*api.KVSecret, *api.Secret, error) {
 		return kv, nil, nil
 	}
 
-	secret, err := f.rawRequest(method)
+	secret, err := f.rawRequest(http.MethodGet)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -411,7 +411,7 @@ func (f *vaultFile) Read(p []byte) (int, error) {
 		return f.body.Read(p)
 	}
 
-	kvsec, s, err := f.request(http.MethodGet)
+	kvsec, s, err := f.request()
 	if err != nil {
 		return 0, err
 	}
@@ -440,7 +440,7 @@ func (f *vaultFile) Read(p []byte) (int, error) {
 
 //nolint:gocyclo
 func (f *vaultFile) Stat() (fs.FileInfo, error) {
-	kvsec, secret, err := f.request(http.MethodGet)
+	kvsec, secret, err := f.request()
 
 	rerr := &api.ResponseError{}
 	if errors.As(err, &rerr) && rerr.StatusCode != http.StatusNotFound {
