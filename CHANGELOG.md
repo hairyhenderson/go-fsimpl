@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.3.3](https://github.com/hairyhenderson/go-fsimpl/compare/v0.3.2...v0.3.3) (2026-01-17)
+
+
+### Bug Fixes
+
+* **consulfs:** Fix root directory resolution bug ([#1172](https://github.com/hairyhenderson/go-fsimpl/issues/1172)) ([78ae95f](https://github.com/hairyhenderson/go-fsimpl/commit/78ae95fd96885a649f0790e04adc65fc4d2bc981))
+
+
+### Dependencies
+
+* **actions:** Bump aquasecurity/setup-trivy from 0.2.3 to 0.2.5 ([#1169](https://github.com/hairyhenderson/go-fsimpl/issues/1169)) ([38e8caf](https://github.com/hairyhenderson/go-fsimpl/commit/38e8cafd30ef63ede8cbb7292fa53e7f20799d89))
+* **actions:** Bump github/codeql-action from 4.31.9 to 4.31.10 ([#1163](https://github.com/hairyhenderson/go-fsimpl/issues/1163)) ([e95c30f](https://github.com/hairyhenderson/go-fsimpl/commit/e95c30f5976167b30ef8667669a29f8767f476f4))
+* **actions:** Bump the actions group across 1 directory with 2 updates ([#1170](https://github.com/hairyhenderson/go-fsimpl/issues/1170)) ([fa347bb](https://github.com/hairyhenderson/go-fsimpl/commit/fa347bb5b734177852811664fccf4796f2219812))
+* **go:** Bump github.com/Azure/azure-sdk-for-go/sdk/storage/azblob ([#1168](https://github.com/hairyhenderson/go-fsimpl/issues/1168)) ([80631ac](https://github.com/hairyhenderson/go-fsimpl/commit/80631ac5eba80d3ce445d828810bf107cbadcb3e))
+* **go:** Bump github.com/hashicorp/consul/api in the hashicorp group ([#1167](https://github.com/hairyhenderson/go-fsimpl/issues/1167)) ([76da066](https://github.com/hairyhenderson/go-fsimpl/commit/76da066d274cbd87d1e0c912e10c03659443bbbe))
+* **go:** Bump golang.org/x/crypto in the golang-x group ([#1164](https://github.com/hairyhenderson/go-fsimpl/issues/1164)) ([25b385f](https://github.com/hairyhenderson/go-fsimpl/commit/25b385f89173fe0a1b9de1f8071cf777c601b2f1))
+
 ## [0.3.2](https://github.com/hairyhenderson/go-fsimpl/compare/v0.3.1...v0.3.2) (2026-01-10)
 
 
