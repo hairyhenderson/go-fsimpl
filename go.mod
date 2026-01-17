@@ -1,6 +1,6 @@
 module github.com/hairyhenderson/go-fsimpl
 
-go 1.25.3
+go 1.25.5
 
 require (
 	cloud.google.com/go/compute/metadata v0.9.0
@@ -15,7 +15,7 @@ require (
 	github.com/fsouza/fake-gcs-server v1.52.3
 	github.com/go-git/go-billy/v5 v5.7.0
 	github.com/go-git/go-git/v5 v5.16.4
-	github.com/hashicorp/consul/api v1.33.0
+	github.com/hashicorp/consul/api v1.33.2
 	github.com/hashicorp/vault/api v1.22.0
 	github.com/hashicorp/vault/api/auth/approle v0.11.0
 	github.com/hashicorp/vault/api/auth/userpass v0.11.0
