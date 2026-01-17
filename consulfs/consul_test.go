@@ -2,16 +2,12 @@ package consulfs
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"io"
 	"io/fs"
 	"net/http"
-	"net/http/httptest"
 	"net/url"
 	"runtime"
-	"sort"
-	"strings"
 	"testing"
 	"time"
 
@@ -31,96 +27,6 @@ func Example() {
 	b, _ := fs.ReadFile(fsys, "mykey")
 
 	fmt.Printf("the secret is %s\n", string(b))
-}
-
-func fakeConsul(t *testing.T, handler http.Handler) *api.Config {
-	srv := httptest.NewServer(handler)
-	t.Cleanup(srv.Close)
-
-	tr := &http.Transport{
-		Proxy: func(_ *http.Request) (*url.URL, error) {
-			return url.Parse(srv.URL)
-		},
-	}
-
-	return &api.Config{Address: srv.URL, Transport: tr}
-}
-
-//nolint:funlen
-func fakeConsulServer(t *testing.T) *api.Config {
-	t.Helper()
-
-	files := map[string]struct {
-		Value string   `json:"value,omitempty"`
-		Keys  []string `json:"keys,omitempty"`
-	}{
-		"/v1/kv/dir/":               {Keys: []string{"dir/foo", "dir/bar", "dir/sub/"}},
-		"/v1/kv/dir/foo":            {Value: "foo"},
-		"/v1/kv/dir/bar":            {Value: "foo"},
-		"/v1/kv/dir/sub/":           {Keys: []string{"dir/sub/foo", "dir/sub/bar", "dir/sub/bazDir/"}},
-		"/v1/kv/dir/sub/foo":        {Value: "foo"},
-		"/v1/kv/dir/sub/bar":        {Value: "foo"},
-		"/v1/kv/dir/sub/bazDir/":    {Keys: []string{"dir/sub/bazDir/qux"}},
-		"/v1/kv/dir/sub/bazDir/qux": {Value: "qux"},
-	}
-
-	return fakeConsul(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		t.Helper()
-
-		t.Logf("req to path %+v", r.URL.Path)
-
-		data, ok := files[r.URL.Path]
-		if !ok {
-			w.WriteHeader(http.StatusNotFound)
-
-			return
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-		enc := json.NewEncoder(w)
-
-		q := r.URL.Query()
-		if q.Has("keys") {
-			t.Logf("returning keys %+v", data.Keys)
-
-			_ = enc.Encode(data.Keys)
-
-			return
-		}
-
-		pairs := []*api.KVPair{}
-		if !q.Has("recurse") {
-			pairs = []*api.KVPair{
-				{
-					Key:   r.URL.Path[len("/v1/kv/"):],
-					Value: []byte(data.Value),
-				},
-			}
-
-			assert.NotEmpty(t, data.Value, r.URL)
-		} else {
-			for k, v := range files {
-				if k == r.URL.Path {
-					continue
-				}
-
-				if strings.HasPrefix(k, r.URL.Path) {
-					pairs = append(pairs, &api.KVPair{
-						Key:   k[len("/v1/kv/"):],
-						Value: []byte(v.Value),
-					})
-				}
-			}
-
-			sort.Slice(pairs, func(i, j int) bool {
-				return pairs[i].Key < pairs[j].Key
-			})
-		}
-
-		t.Logf("returning pairs %+v", pairs)
-
-		_ = enc.Encode(pairs)
-	}))
 }
 
 func TestGetAddress(t *testing.T) {
@@ -397,6 +303,39 @@ func TestStat(t *testing.T) {
 	fi, err = fs.Stat(fsys, "sub")
 	require.NoError(t, err)
 	assert.Equal(t, internal.DirInfo("sub", time.Time{}), fi)
+
+	fi, err = fs.Stat(fsys, ".")
+	require.NoError(t, err)
+	assert.Equal(t, internal.DirInfo(".", time.Time{}), fi)
+}
+
+func TestRootLevelOperations(t *testing.T) {
+	config := fakeConsulServer(t)
+
+	fsys, err := New(tests.MustURL("consul:///"))
+	require.NoError(t, err)
+
+	fsys = WithConfigFS(config, fsys)
+
+	// Stat root directory
+	fi, err := fs.Stat(fsys, ".")
+	require.NoError(t, err)
+	assert.True(t, fi.IsDir())
+	assert.Equal(t, ".", fi.Name())
+
+	// List root directory
+	entries, err := fs.ReadDir(fsys, ".")
+	require.NoError(t, err)
+	assert.Len(t, entries, 3)
+
+	// Verify entries are sorted: bar, dir, foo
+	names := []string{entries[0].Name(), entries[1].Name(), entries[2].Name()}
+	assert.Equal(t, []string{"bar", "dir", "foo"}, names)
+
+	// Read a root-level file
+	content, err := fs.ReadFile(fsys, "foo")
+	require.NoError(t, err)
+	assert.Equal(t, "foo value", string(content))
 }
 
 func TestOnlyChildren(t *testing.T) {
