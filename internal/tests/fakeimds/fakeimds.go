@@ -1,10 +1,11 @@
-package awsimdsfs
+package fakeimds
 
 import (
 	"io"
 	"maps"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"strings"
 	"testing"
 	"testing/fstest"
@@ -12,8 +13,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// Server returns a fake IMDS server that can be used for testing.
+//
 //nolint:funlen
-func fakeIMDSServer(t *testing.T) *httptest.Server {
+func Server(t *testing.T) (*httptest.Server, *url.URL) {
 	t.Helper()
 
 	imdsfsys := fstest.MapFS{
@@ -393,5 +396,9 @@ eP9n/rGEGGm0cGEbbeB=`),
 	srv := httptest.NewServer(permRedirectMW(mux))
 	t.Cleanup(srv.Close)
 
-	return srv
+	u, _ := url.Parse(srv.URL)
+	u.Scheme = "aws+imds"
+	u.Path = ""
+
+	return srv, u
 }
