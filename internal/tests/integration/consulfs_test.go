@@ -4,6 +4,7 @@ package integration
 
 import (
 	"io"
+	"io/fs"
 	"strconv"
 	"testing"
 	"testing/fstest"
@@ -202,6 +203,52 @@ func TestConsulFS(t *testing.T) {
 		"dir/subdir/six",
 	)
 	assert.NoError(t, err)
+}
+
+func TestConsulFS_RootLevelOperations(t *testing.T) {
+	tcfg := setupConsulFSTest(t)
+
+	kv := tcfg.adminClient.KV()
+
+	t.Cleanup(func() {
+		_, _ = kv.DeleteTree("", nil)
+	})
+
+	// Put some keys at the root level
+	_, _ = kv.Put(&api.KVPair{Key: "foo", Value: []byte("foo value")}, nil)
+	_, _ = kv.Put(&api.KVPair{Key: "bar", Value: []byte("bar value")}, nil)
+	_, _ = kv.Put(&api.KVPair{Key: "subdir/baz", Value: []byte("baz value")}, nil)
+
+	// Test with filesystem rooted at "/"
+	fsys, err := consulfs.New(tests.MustURL("consul+http://" + tcfg.consulAddr + "/"))
+	require.NoError(t, err)
+
+	fsys = consulfs.WithConfigFS(tcfg.testConfig, fsys)
+
+	// This is the case from the gomplate issue: opening "." on a root-level filesystem
+	// Should be able to stat the root
+	f, err := fsys.Open(".")
+	require.NoError(t, err)
+	defer f.Close()
+
+	fi, err := f.Stat()
+	require.NoError(t, err)
+	assert.True(t, fi.IsDir(), "root should be a directory")
+	assert.Equal(t, ".", fi.Name())
+
+	// Use ReadDir to list root entries - consulfs doesn't implement fs.ReadDirFS
+	// so we need to use the file's ReadDir
+	dirFile, ok := f.(fs.ReadDirFile)
+	require.True(t, ok, "file should implement ReadDirFile")
+
+	dirEntries, err := dirFile.ReadDir(-1)
+	require.NoError(t, err)
+	require.Len(t, dirEntries, 3, "should have 3 entries at root: foo, bar, subdir/")
+
+	// Verify we can read root-level files
+	content, err := fs.ReadFile(fsys, "foo")
+	require.NoError(t, err)
+	assert.Equal(t, "foo value", string(content))
 }
 
 func TestConsulFS_WithVaultAuth(t *testing.T) {

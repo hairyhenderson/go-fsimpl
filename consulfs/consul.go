@@ -364,6 +364,21 @@ func (f *consulFile) Stat() (fs.FileInfo, error) {
 		return f.fi, nil
 	}
 
+	key := strings.TrimPrefix(f.u.Path, "/")
+
+	// If key is empty, we're at root - it's always a directory, skip get()
+	// because Consul KV API doesn't accept empty key names for GET
+	if key == "" {
+		_, err := f.list()
+		if err != nil {
+			return nil, &fs.PathError{Op: "stat", Path: f.name, Err: err}
+		}
+
+		f.fi = internal.DirInfo(path.Base(f.name), time.Time{})
+
+		return f.fi, nil
+	}
+
 	err := f.get()
 	if err == nil {
 		return f.fi, nil
