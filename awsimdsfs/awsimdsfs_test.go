@@ -3,11 +3,11 @@ package awsimdsfs
 import (
 	"io"
 	"io/fs"
-	"net/url"
 	"testing"
 	"testing/fstest"
 
 	"github.com/hairyhenderson/go-fsimpl/internal/tests"
+	"github.com/hairyhenderson/go-fsimpl/internal/tests/fakeimds"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -15,10 +15,7 @@ import (
 func setupAWSIMDSFsys(t *testing.T, dir string) fs.FS {
 	t.Helper()
 
-	srv := fakeIMDSServer(t)
-
-	u, _ := url.Parse(srv.URL)
-	u.Scheme = "aws+imds"
+	_, u := fakeimds.Server(t)
 	u.Path = dir
 
 	fsys, err := New(u)
