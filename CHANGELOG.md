@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.3.4](https://github.com/hairyhenderson/go-fsimpl/compare/v0.3.3...v0.3.4) (2026-02-05)
+
+
+### Dependencies
+
+* **actions:** Bump github/codeql-action from 4.31.10 to 4.32.1 ([#1181](https://github.com/hairyhenderson/go-fsimpl/issues/1181)) ([de757b5](https://github.com/hairyhenderson/go-fsimpl/commit/de757b5dc8807e97ab5b0cf0876a228964db416c))
+* **actions:** Bump the actions group across 1 directory with 2 updates ([#1180](https://github.com/hairyhenderson/go-fsimpl/issues/1180)) ([3bf51ca](https://github.com/hairyhenderson/go-fsimpl/commit/3bf51ca31b3d8b6b7372ef5473afd089a37b2fd6))
+* **actions:** Bump webiny/action-conventional-commits ([#1174](https://github.com/hairyhenderson/go-fsimpl/issues/1174)) ([0be3067](https://github.com/hairyhenderson/go-fsimpl/commit/0be3067239f251e5c105ac38df5f588c35345c53))
+* **go:** Bump github.com/aws/aws-sdk-go-v2/service/s3 ([#1179](https://github.com/hairyhenderson/go-fsimpl/issues/1179)) ([f220ec4](https://github.com/hairyhenderson/go-fsimpl/commit/f220ec4bd4ab9626252db0f3aa984ee35ff20604))
+* **go:** Bump github.com/fsouza/fake-gcs-server from 1.52.3 to 1.53.1 ([#1184](https://github.com/hairyhenderson/go-fsimpl/issues/1184)) ([00bc5fe](https://github.com/hairyhenderson/go-fsimpl/commit/00bc5fec048984c7c8afc2da50912a76b8066acf))
+* **go:** Bump the otel group with 5 updates ([#1182](https://github.com/hairyhenderson/go-fsimpl/issues/1182)) ([9eedf95](https://github.com/hairyhenderson/go-fsimpl/commit/9eedf95d724d6b37dcd05317151ed0e1453fc762))
+
 ## [0.3.3](https://github.com/hairyhenderson/go-fsimpl/compare/v0.3.2...v0.3.3) (2026-01-17)
 
 
