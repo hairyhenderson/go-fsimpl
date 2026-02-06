@@ -59,6 +59,7 @@ Here's the list of filesystems & URL schemes supported by this module:
 | [consulfs] | `consul`, `consul+http`, `consul+https` | [HashiCorp Consul][] |
 | [filefs]   | `file` | local filesystem |
 | [gcpmetafs] | `gcp+meta` | [GCP Metadata][] |
+| [gcpsmfs]   | `gcp+sm`   | [Google Secret Manager] |
 | [gitfs]    | `git`, `git+file`, `git+http`, `git+https`, `git+ssh` | local/remote git repository |
 | [httpfs]   | `http`, `https` | HTTP server |
 | [tracefs]  | n/a | a filesystem that instruments other filesystems for tracing with [OpenTelemetry][] |
@@ -151,6 +152,7 @@ Copyright (c) 2021-2024 Dave Henderson
 [HashiCorp Vault]: https://vaultproject.io
 [Amazon S3]: https://aws.amazon.com/s3/
 [Google Cloud Storage]: https://cloud.google.com/storage/
+[Google Secret Manager]: https://cloud.google.com/security/products/secret-manager
 [Azure Blob Storage]: https://azure.microsoft.com/en-us/services/storage/blobs/
 [OpenTelemetry]: https://opentelemetry.io
 [GCP Metadata]: https://cloud.google.com/compute/docs/metadata/overview

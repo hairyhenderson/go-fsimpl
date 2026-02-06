@@ -292,6 +292,25 @@ password-protected key, use the SSH Agent.
 - `git+ssh://git@github.com/hairyhenderson/go-which.git` - filesystem rooted
     at the root of the repo, using the SSH agent for authentication
 
+### `gcp+sm`
+
+The _scheme_ and _path_ components are used by this filesystem.
+
+- _scheme_ must be `gcp+sm`
+- _path_ is used optionally to specify the project (must start with `/projects/`)
+
+#### Examples
+
+- `gcp+sm:///projects/my-project` - filesystem rooted at the `my-project` project. Files are accessed by their secret name (e.g. `my-secret`).
+- `gcp+sm:///` - filesystem with no project context. Files must be accessed by their full resource name (e.g. `projects/my-project/secrets/my-secret`).
+
+#### Authentication
+
+Most `gcp+sm` usage needs credentials, provided by the `GOOGLE_APPLICATION_CREDENTIALS` environment variable. This should point to an authentication configuration JSON file.
+
+See Google Cloud's [Getting Started with Authentication](https://cloud.google.com/docs/authentication/getting-started) 
+documentation for details.
+
 ### `gs`
 
 The _scheme_, _authority_, _path_, and _query_ components are used by this
