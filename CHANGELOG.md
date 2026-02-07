@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.5](https://github.com/hairyhenderson/go-fsimpl/compare/v0.3.4...v0.3.5) (2026-02-07)
+
+
+### Dependencies
+
+* **actions:** Bump github/codeql-action from 4.32.1 to 4.32.2 ([#1186](https://github.com/hairyhenderson/go-fsimpl/issues/1186)) ([3eec3ac](https://github.com/hairyhenderson/go-fsimpl/commit/3eec3ac29134cda0bf396be5ff9c83eeec696a64))
+
 ## [0.3.4](https://github.com/hairyhenderson/go-fsimpl/compare/v0.3.3...v0.3.4) (2026-02-05)
 
 
