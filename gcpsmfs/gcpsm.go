@@ -227,15 +227,7 @@ func (f *gcpsmFS) ReadDir(name string) ([]fs.DirEntry, error) {
 	project := f.project
 
 	if project == "" {
-		parts := strings.Split(name, "/")
-		if len(parts) != 4 {
-			return nil, errors.New("expected file in the form projects/<project>/secrets/<secret>")
-		}
-
-		project = parts[1]
-		if project == "" {
-			return nil, errors.New("project ID is required in URL (e.g. gcp+sm://projects/<project>/secrets/<secret>)")
-		}
+		return nil, errors.New("listing secrets requires a project in the URL (e.g. gcp+sm:///projects/<project>/secrets)")
 	}
 
 	dir := &gcpsmFile{
