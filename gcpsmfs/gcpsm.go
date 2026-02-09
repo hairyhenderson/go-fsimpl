@@ -178,13 +178,13 @@ func (f *gcpsmFS) Open(name string) (fs.File, error) {
 
 	if project == "" {
 		parts := strings.Split(name, "/")
-		if len(parts) != 4 {
-			return nil, errors.New("expected file in the form projects/<project>/secrets/<secret>")
+		if len(parts) != 4 || parts[0] != "projects" || parts[2] != "secrets" {
+			return nil, &fs.PathError{Op: "open", Path: name, Err: fs.ErrInvalid}
 		}
 
 		project = parts[1]
 		if project == "" {
-			return nil, errors.New("project ID is required in URL (e.g. gcp+sm:///projects/<project>/secrets/<secret>)")
+			return nil, &fs.PathError{Op: "open", Path: name, Err: fs.ErrInvalid}
 		}
 
 		fileName = strings.TrimPrefix(path.Base(parts[3]), ".")
