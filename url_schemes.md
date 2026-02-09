@@ -306,9 +306,17 @@ The _scheme_ and _path_ components are used by this filesystem.
 
 #### Authentication
 
-Most `gcp+sm` usage needs credentials, provided by the `GOOGLE_APPLICATION_CREDENTIALS` environment variable. This should point to an authentication configuration JSON file.
+The `gcp+sm` filesystem uses Google Cloud [Application Default Credentials (ADC)](https://cloud.google.com/docs/authentication/provide-credentials-adc) to find credentials. ADC can obtain credentials from several sources, including:
 
-See Google Cloud's [Getting Started with Authentication](https://cloud.google.com/docs/authentication/getting-started) 
+- User credentials configured with the `gcloud` CLI
+- Service account credentials from the metadata server on GCP (GCE, GKE, Cloud Run, etc.)
+- Workload Identity / Workload Identity Federation
+- A service account key file referenced by the `GOOGLE_APPLICATION_CREDENTIALS` environment variable
+
+To use the last option, set `GOOGLE_APPLICATION_CREDENTIALS` to the path of a service account JSON credentials file.
+
+See Google Cloud's [Getting Started with Authentication](https://cloud.google.com/docs/authentication/getting-started)
+and [Provide credentials for Application Default Credentials](https://cloud.google.com/docs/authentication/provide-credentials-adc)
 documentation for details.
 
 ### `gs`
