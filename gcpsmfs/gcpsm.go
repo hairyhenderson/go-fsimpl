@@ -71,11 +71,28 @@ func New(u *url.URL) (fs.FS, error) {
 		base: u,
 	}
 
-	if strings.HasPrefix(u.Path, "/projects/") {
-		f.project = strings.TrimPrefix(u.Path, "/projects/")
+	// Normalize the path and validate it matches one of the supported forms:
+	//   - "/" for no project context
+	//   - "/projects/<project-id>" (optionally with a trailing slash)
+	cleanPath := path.Clean(u.Path)
+	// path.Clean("") returns ".", so treat that as no project context as well.
+	if cleanPath == "." || cleanPath == "/" {
+		// No project context.
+		return f, nil
 	}
 
-	return f, nil
+	if strings.HasPrefix(cleanPath, "/projects/") {
+		project := strings.TrimPrefix(cleanPath, "/projects/")
+		// Reject paths with extra segments like "/projects/p/secrets/foo".
+		if project == "" || strings.Contains(project, "/") {
+			return nil, fmt.Errorf("invalid gcp+sm URL path %q: expected /projects/<project-id> or /", u.Path)
+		}
+
+		f.project = project
+		return f, nil
+	}
+
+	return nil, fmt.Errorf("invalid gcp+sm URL path %q: expected /projects/<project-id> or /", u.Path)
 }
 
 // FS is used to register this filesystem with an fsimpl.FSMux
