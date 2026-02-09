@@ -83,6 +83,16 @@ func New(u *url.URL) (fs.FS, error) {
 //nolint:gochecknoglobals
 var FS = fsimpl.FSProviderFunc(New, "gcp+sm")
 
+var (
+	_ fs.FS                     = (*gcpsmFS)(nil)
+	_ fs.ReadFileFS             = (*gcpsmFS)(nil)
+	_ fs.ReadDirFS              = (*gcpsmFS)(nil)
+	_ fs.SubFS                  = (*gcpsmFS)(nil)
+	_ internal.WithContexter    = (*gcpsmFS)(nil)
+	_ internal.WithHTTPClienter = (*gcpsmFS)(nil)
+	_ withSMClienter            = (*gcpsmFS)(nil)
+)
+
 func (f gcpsmFS) URL() string {
 	return f.base.String()
 }
