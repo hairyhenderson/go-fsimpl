@@ -233,7 +233,7 @@ func (f *gcpsmFS) ReadDir(name string) ([]fs.DirEntry, error) {
 	dir := &gcpsmFile{
 		ctx:     f.ctx,
 		name:    name,
-		project: f.project,
+		project: project,
 		client:  client,
 		fi:      internal.DirInfo(name, time.Time{}),
 	}
