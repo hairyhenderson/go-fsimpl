@@ -16,8 +16,11 @@ endif
 
 ifeq ("$(CI)","true")
 LINT_PROCS ?= 1
+# don't write coverage profile in CI - allows Go's test result cache to work
+TEST_COVER_ARGS=
 else
 LINT_PROCS ?= $(shell nproc)
+TEST_COVER_ARGS=-coverprofile=c.out
 endif
 
 # test with race detector on supported platforms
@@ -31,7 +34,7 @@ TEST_ARGS=-race
 endif
 
 test:
-	go test $(TEST_ARGS) -coverprofile=c.out ./...
+	go test $(TEST_ARGS) $(TEST_COVER_ARGS) ./...
 
 bench.txt:
 	go test -benchmem -run=xxx -bench . ./... | tee $@
