@@ -306,9 +306,25 @@ func (f *gcpsmFile) Close() error {
 
 func (f *gcpsmFile) Read(p []byte) (int, error) {
 	if f.body == nil {
-		if err := f.fetch(); err != nil {
-			return 0, &fs.PathError{Op: "read", Path: f.name, Err: err}
+		if !internal.ValidPath(f.name) {
+			return 0, &fs.PathError{Op: "read", Path: f.name, Err: fs.ErrInvalid}
 		}
+
+		resourceName := f.name + "/versions/latest"
+		if f.project != "" {
+			resourceName = fmt.Sprintf("projects/%s/secrets/%s/versions/latest", f.project, f.name)
+		}
+
+		req := &secretmanagerpb.AccessSecretVersionRequest{
+			Name: resourceName,
+		}
+
+		resp, err := f.client.AccessSecretVersion(f.ctx, req)
+		if err != nil {
+			return 0, &fs.PathError{Op: "read", Path: f.name, Err: convertGCPError(err)}
+		}
+
+		f.body = bytes.NewReader(resp.Payload.Data)
 	}
 
 	return f.body.Read(p)
