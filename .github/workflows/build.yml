@@ -32,6 +32,13 @@ jobs:
       - uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6.3.0
         with:
           go-version-file: 'go.mod'
+          cache: true
+      - name: Cache Go build cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/go-build
+          key: go-build-linux-${{ matrix.goarch }}-${{ hashFiles('go.sum') }}
+          restore-keys: go-build-linux-${{ matrix.goarch }}-
       - run: make test GOARCH=${{ matrix.goarch }}
   fscli-build:
     runs-on: ubuntu-latest
@@ -47,6 +54,13 @@ jobs:
       - uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6.3.0
         with:
           go-version-file: 'go.mod'
+          cache: true
+      - name: Cache Go build cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/go-build
+          key: go-build-fscli-${{ matrix.platform }}-${{ hashFiles('go.sum') }}
+          restore-keys: go-build-fscli-${{ matrix.platform }}-
       - name: Build fscli
         run: |
           make bin/fscli_${{ matrix.platform }}
@@ -65,4 +79,5 @@ jobs:
       - uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6.3.0
         with:
           go-version-file: 'go.mod'
+          cache: true
       - run: make test
