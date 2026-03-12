@@ -88,6 +88,7 @@ func New(u *url.URL) (fs.FS, error) {
 		}
 
 		f.project = project
+
 		return f, nil
 	}
 
@@ -328,6 +329,7 @@ func (f *gcpsmFile) Stat() (fs.FileInfo, error) {
 	getReq := &secretmanagerpb.GetSecretVersionRequest{
 		Name: resourceName,
 	}
+
 	getResp, err := f.client.GetSecretVersion(f.ctx, getReq)
 	if err != nil {
 		return nil, &fs.PathError{Op: "stat", Path: f.name, Err: convertGCPError(err)}
@@ -355,6 +357,7 @@ func (f *gcpsmFile) fetch() error {
 	req := &secretmanagerpb.AccessSecretVersionRequest{
 		Name: resourceName,
 	}
+
 	resp, err := f.client.AccessSecretVersion(f.ctx, req)
 	if err != nil {
 		return &fs.PathError{Op: "fetch", Path: f.name, Err: convertGCPError(err)}
