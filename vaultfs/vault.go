@@ -266,7 +266,7 @@ type vaultFile struct {
 	children []string
 	diridx   int
 
-	closed int32
+	closed atomic.Int32
 }
 
 type mountInfo struct {
@@ -380,12 +380,12 @@ func (f *vaultFile) newRequest(method string) (*api.Request, error) {
 // call and logs out of vault when the ref count reaches zero.
 func (f *vaultFile) Close() error {
 	// important to know the state of the file so that we don't
-	if atomic.LoadInt32(&f.closed) == 1 {
+	if f.closed.Load() == 1 {
 		return &fs.PathError{Op: "close", Path: f.name, Err: fs.ErrClosed}
 	}
 
 	// mark closed
-	atomic.StoreInt32(&f.closed, 1)
+	f.closed.Store(1)
 
 	f.client.RemoveRef()
 
