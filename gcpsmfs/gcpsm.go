@@ -233,7 +233,7 @@ func (f *gcpsmFS) ReadDir(name string) ([]fs.DirEntry, error) {
 	}
 
 	if name != "." {
-		return nil, &fs.PathError{Op: "readdir", Path: name, Err: errors.New("not a directory")}
+		return nil, &fs.PathError{Op: "readdir", Path: name, Err: fs.ErrNotExist}
 	}
 
 	client, err := f.getClient()
