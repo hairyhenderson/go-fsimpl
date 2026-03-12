@@ -18,7 +18,6 @@ import (
 	"cloud.google.com/go/secretmanager/apiv1/secretmanagerpb"
 	"github.com/hairyhenderson/go-fsimpl"
 	"github.com/hairyhenderson/go-fsimpl/internal"
-	"golang.org/x/sync/errgroup"
 	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
 	"google.golang.org/grpc/codes"
@@ -104,7 +103,6 @@ var (
 	_ fs.FS                     = (*gcpsmFS)(nil)
 	_ fs.ReadFileFS             = (*gcpsmFS)(nil)
 	_ fs.ReadDirFS              = (*gcpsmFS)(nil)
-	_ fs.SubFS                  = (*gcpsmFS)(nil)
 	_ internal.WithContexter    = (*gcpsmFS)(nil)
 	_ internal.WithHTTPClienter = (*gcpsmFS)(nil)
 	_ withSMClienter            = (*gcpsmFS)(nil)
@@ -165,19 +163,6 @@ func (f *gcpsmFS) getClient() (SecretManagerClient, error) {
 	f.smclient = &clientAdapter{c}
 
 	return f.smclient, nil
-}
-
-func (f *gcpsmFS) Sub(name string) (fs.FS, error) {
-	// Since we are flat, Sub implies we can't go deeper unless name is "."
-	if !internal.ValidPath(name) {
-		return nil, &fs.PathError{Op: "sub", Path: name, Err: fs.ErrInvalid}
-	}
-
-	if name == "." || name == "" {
-		return f, nil
-	}
-
-	return nil, &fs.PathError{Op: "sub", Path: name, Err: errors.New("subdirectories not supported in gcpsmfs")}
 }
 
 func (f *gcpsmFS) Open(name string) (fs.File, error) {
@@ -330,9 +315,27 @@ func (f *gcpsmFile) Read(p []byte) (int, error) {
 	return f.body.Read(p)
 }
 
+func (f *gcpsmFile) getResourceName() string {
+	return fmt.Sprintf("projects/%s/secrets/%s/versions/latest", f.project, f.name)
+}
+
 func (f *gcpsmFile) Stat() (fs.FileInfo, error) {
 	if f.fi != nil {
 		return f.fi, nil
+	}
+
+	resourceName := f.getResourceName()
+	getReq := &secretmanagerpb.GetSecretVersionRequest{
+		Name: resourceName,
+	}
+	getResp, err := f.client.GetSecretVersion(f.ctx, getReq)
+	if err != nil {
+		return nil, &fs.PathError{Op: "stat", Path: f.name, Err: convertGCPError(err)}
+	}
+
+	modTime := time.Time{}
+	if getResp != nil && getResp.GetCreateTime() != nil {
+		modTime = getResp.GetCreateTime().AsTime()
 	}
 
 	if err := f.fetch(); err != nil {
@@ -341,54 +344,26 @@ func (f *gcpsmFile) Stat() (fs.FileInfo, error) {
 		return nil, &fs.PathError{Op: "stat", Path: f.name, Err: err}
 	}
 
+	f.fi = internal.FileInfo(f.name, f.fi.Size(), 0o444, modTime, "")
+
 	return f.fi, nil
 }
 
 func (f *gcpsmFile) fetch() error {
-	resourceName := fmt.Sprintf("projects/%s/secrets/%s/versions/latest", f.project, f.name)
+	resourceName := f.getResourceName()
 
-	var (
-		getResp *secretmanagerpb.SecretVersion
-		resp    *secretmanagerpb.AccessSecretVersionResponse
-	)
-
-	g, ctx := errgroup.WithContext(f.ctx)
-
-	g.Go(func() error {
-		var err error
-
-		getReq := &secretmanagerpb.GetSecretVersionRequest{
-			Name: resourceName,
-		}
-		getResp, err = f.client.GetSecretVersion(ctx, getReq)
-
-		return convertGCPError(err)
-	})
-
-	g.Go(func() error {
-		var err error
-
-		req := &secretmanagerpb.AccessSecretVersionRequest{
-			Name: resourceName,
-		}
-		resp, err = f.client.AccessSecretVersion(ctx, req)
-
-		return convertGCPError(err)
-	})
-
-	if err := g.Wait(); err != nil {
-		return err
+	req := &secretmanagerpb.AccessSecretVersionRequest{
+		Name: resourceName,
 	}
-
-	modTime := time.Time{}
-	if getResp != nil && getResp.GetCreateTime() != nil {
-		modTime = getResp.GetCreateTime().AsTime()
+	resp, err := f.client.AccessSecretVersion(f.ctx, req)
+	if err != nil {
+		return &fs.PathError{Op: "fetch", Path: f.name, Err: convertGCPError(err)}
 	}
 
 	f.body = bytes.NewReader(resp.Payload.Data)
 	size := int64(len(resp.Payload.Data))
 
-	f.fi = internal.FileInfo(f.name, size, 0o444, modTime, "")
+	f.fi = internal.FileInfo(f.name, size, 0o444, time.Time{}, "")
 
 	return nil
 }
