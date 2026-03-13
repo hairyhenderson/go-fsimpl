@@ -242,19 +242,19 @@ type consulFile struct {
 	children []string
 	diridx   int
 
-	closed int32
+	closed atomic.Int32
 }
 
 var _ fs.ReadDirFile = (*consulFile)(nil)
 
 // Close the file. Will error on second call.
 func (f *consulFile) Close() error {
-	if atomic.LoadInt32(&f.closed) == 1 {
+	if f.closed.Load() == 1 {
 		return &fs.PathError{Op: "close", Path: f.name, Err: fs.ErrClosed}
 	}
 
 	// mark closed
-	atomic.StoreInt32(&f.closed, 1)
+	f.closed.Store(1)
 
 	if f.body == nil {
 		return nil
