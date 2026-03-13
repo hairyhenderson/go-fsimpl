@@ -80,8 +80,7 @@ func New(u *url.URL) (fs.FS, error) {
 		return f, nil
 	}
 
-	if strings.HasPrefix(cleanPath, "/projects/") {
-		project := strings.TrimPrefix(cleanPath, "/projects/")
+	if project, found := strings.CutPrefix(cleanPath, "/projects/"); found {
 		// Reject paths with extra segments like "/projects/p/secrets/foo".
 		if project == "" || strings.Contains(project, "/") {
 			return nil, fmt.Errorf("invalid gcp+sm URL path %q: expected /projects/<project-id> or /", u.Path)
