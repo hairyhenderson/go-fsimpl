@@ -175,9 +175,11 @@ func (f *gcpsmFS) Open(name string) (fs.File, error) {
 		return nil, err
 	}
 
+	// First, assume that the project is in the FS definition, not the path name
 	project := f.project
 	fileName := name
 
+	// If no project is given by the FS, it must be in the file name, and must be extracted
 	if project == "" {
 		parts := strings.Split(name, "/")
 		if len(parts) != 4 || parts[0] != "projects" || parts[2] != "secrets" {
@@ -253,8 +255,14 @@ func (f *gcpsmFS) ReadFile(name string) ([]byte, error) {
 		return nil, err
 	}
 
-	resourceName := name + "/versions/latest"
-	if f.project != "" {
+	// First, assume that the project is in the FS definition, not the path name
+	project := f.project
+	resourceName := ""
+
+	// If no project is given by the FS, it must be in the file name, so the construction for the version is simple
+	if project == "" {
+		resourceName = name + "/versions/latest"
+	} else {
 		resourceName = fmt.Sprintf("projects/%s/secrets/%s/versions/latest", f.project, name)
 	}
 
