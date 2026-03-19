@@ -165,6 +165,29 @@ func (f *gcpsmFS) getClient() (SecretManagerClient, error) {
 	return f.smclient, nil
 }
 
+func (f *gcpsmFS) getProjectAndFileName(name string) (string, string, error) {
+	// First, assume that the project is in the FS definition, not the path name
+	project := f.project
+	fileName := name
+
+	// If no project is given by the FS, it must be in the file name, and must be extracted
+	if project == "" {
+		parts := strings.Split(name, "/")
+		if len(parts) != 4 || parts[0] != "projects" || parts[2] != "secrets" {
+			return "", "", &fs.PathError{Op: "getProjectAndFileName", Path: name, Err: fs.ErrInvalid}
+		}
+
+		project = parts[1]
+		if project == "" {
+			return "", "", &fs.PathError{Op: "getProjectAndFileName", Path: name, Err: fs.ErrInvalid}
+		}
+
+		fileName = strings.TrimPrefix(path.Base(parts[3]), ".")
+	}
+
+	return project, fileName, nil
+}
+
 func (f *gcpsmFS) Open(name string) (fs.File, error) {
 	if !internal.ValidPath(name) {
 		return nil, &fs.PathError{Op: "open", Path: name, Err: fs.ErrInvalid}
@@ -175,23 +198,9 @@ func (f *gcpsmFS) Open(name string) (fs.File, error) {
 		return nil, err
 	}
 
-	// First, assume that the project is in the FS definition, not the path name
-	project := f.project
-	fileName := name
-
-	// If no project is given by the FS, it must be in the file name, and must be extracted
-	if project == "" {
-		parts := strings.Split(name, "/")
-		if len(parts) != 4 || parts[0] != "projects" || parts[2] != "secrets" {
-			return nil, &fs.PathError{Op: "open", Path: name, Err: fs.ErrInvalid}
-		}
-
-		project = parts[1]
-		if project == "" {
-			return nil, &fs.PathError{Op: "open", Path: name, Err: fs.ErrInvalid}
-		}
-
-		fileName = strings.TrimPrefix(path.Base(parts[3]), ".")
+	project, fileName, err := f.getProjectAndFileName(name)
+	if err != nil {
+		return nil, err
 	}
 
 	file := &gcpsmFile{
@@ -255,16 +264,12 @@ func (f *gcpsmFS) ReadFile(name string) ([]byte, error) {
 		return nil, err
 	}
 
-	// First, assume that the project is in the FS definition, not the path name
-	project := f.project
-	resourceName := ""
-
-	// If no project is given by the FS, it must be in the file name, so the construction for the version is simple
-	if project == "" {
-		resourceName = name + "/versions/latest"
-	} else {
-		resourceName = fmt.Sprintf("projects/%s/secrets/%s/versions/latest", f.project, name)
+	project, fileName, err := f.getProjectAndFileName(name)
+	if err != nil {
+		return nil, err
 	}
+
+	resourceName := fmt.Sprintf("projects/%s/secrets/%s/versions/latest", project, fileName)
 
 	req := &secretmanagerpb.AccessSecretVersionRequest{
 		Name: resourceName,
