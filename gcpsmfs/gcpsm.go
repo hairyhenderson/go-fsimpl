@@ -255,6 +255,7 @@ func (f *gcpsmFS) ReadDir(name string) ([]fs.DirEntry, error) {
 	if err != nil {
 		return nil, &fs.PathError{Op: "readdir", Path: name, Err: err}
 	}
+
 	return entries, nil
 }
 
@@ -277,10 +278,11 @@ type gcpsmFile struct {
 	fi      fs.FileInfo
 	body    io.Reader
 	content []byte
-	fetched bool
 
 	children []gcpsmFile
 	diroff   int
+
+	fetched bool
 }
 
 var _ fs.ReadDirFile = (*gcpsmFile)(nil)
