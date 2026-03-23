@@ -292,6 +292,33 @@ password-protected key, use the SSH Agent.
 - `git+ssh://git@github.com/hairyhenderson/go-which.git` - filesystem rooted
     at the root of the repo, using the SSH agent for authentication
 
+### `gcp+sm`
+
+The _scheme_ and _path_ components are used by this filesystem.
+
+- _scheme_ must be `gcp+sm`
+- _path_ is used optionally to specify the project (must start with `/projects/`)
+
+#### Examples
+
+- `gcp+sm:///projects/my-project` - filesystem rooted at the `my-project` project. Files are accessed by their secret name (e.g. `my-secret`).
+- `gcp+sm:///` - filesystem with no project context. Files must be accessed by their full resource name (e.g. `projects/my-project/secrets/my-secret`).
+
+#### Authentication
+
+The `gcp+sm` filesystem uses Google Cloud [Application Default Credentials (ADC)](https://cloud.google.com/docs/authentication/provide-credentials-adc) to find credentials. ADC can obtain credentials from several sources, including:
+
+- User credentials configured with the `gcloud` CLI
+- Service account credentials from the metadata server on GCP (GCE, GKE, Cloud Run, etc.)
+- Workload Identity / Workload Identity Federation
+- A service account key file referenced by the `GOOGLE_APPLICATION_CREDENTIALS` environment variable
+
+To use the last option, set `GOOGLE_APPLICATION_CREDENTIALS` to the path of a service account JSON credentials file.
+
+See Google Cloud's [Getting Started with Authentication](https://cloud.google.com/docs/authentication/getting-started)
+and [Provide credentials for Application Default Credentials](https://cloud.google.com/docs/authentication/provide-credentials-adc)
+documentation for details.
+
 ### `gs`
 
 The _scheme_, _authority_, _path_, and _query_ components are used by this
