@@ -240,7 +240,7 @@ func (f *gcpsmFS) ReadDir(name string) ([]fs.DirEntry, error) {
 	project := f.project
 
 	if project == "" {
-		return nil, errors.New("listing secrets requires a project in the URL (e.g. gcp+sm:///projects/<project>/secrets)")
+		return nil, errors.New("listing secrets requires a project in the URL (e.g. gcp+sm:///projects/<project-id>)")
 	}
 
 	dir := &gcpsmFile{
