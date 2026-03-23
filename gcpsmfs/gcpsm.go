@@ -259,32 +259,13 @@ func (f *gcpsmFS) ReadDir(name string) ([]fs.DirEntry, error) {
 }
 
 func (f *gcpsmFS) ReadFile(name string) ([]byte, error) {
-	if !internal.ValidPath(name) {
-		return nil, &fs.PathError{Op: "readFile", Path: name, Err: fs.ErrInvalid}
-	}
-
-	client, err := f.getClient()
+	file, err := f.Open(name)
 	if err != nil {
 		return nil, err
 	}
+	defer file.Close()
 
-	project, fileName, err := f.getProjectAndFileName(name)
-	if err != nil {
-		return nil, err
-	}
-
-	resourceName := fmt.Sprintf("projects/%s/secrets/%s/versions/latest", project, fileName)
-
-	req := &secretmanagerpb.AccessSecretVersionRequest{
-		Name: resourceName,
-	}
-
-	resp, err := client.AccessSecretVersion(f.ctx, req)
-	if err != nil {
-		return nil, &fs.PathError{Op: "readFile", Path: name, Err: convertGCPError(err)}
-	}
-
-	return resp.Payload.Data, nil
+	return io.ReadAll(file)
 }
 
 type gcpsmFile struct {
@@ -293,8 +274,10 @@ type gcpsmFile struct {
 	project string
 	client  SecretManagerClient
 
-	fi   fs.FileInfo
-	body io.Reader
+	fi      fs.FileInfo
+	body    io.Reader
+	content []byte
+	fetched bool
 
 	children []gcpsmFile
 	diroff   int
@@ -307,26 +290,8 @@ func (f *gcpsmFile) Close() error {
 }
 
 func (f *gcpsmFile) Read(p []byte) (int, error) {
-	if f.body == nil {
-		if !internal.ValidPath(f.name) {
-			return 0, &fs.PathError{Op: "read", Path: f.name, Err: fs.ErrInvalid}
-		}
-
-		resourceName := f.name + "/versions/latest"
-		if f.project != "" {
-			resourceName = fmt.Sprintf("projects/%s/secrets/%s/versions/latest", f.project, f.name)
-		}
-
-		req := &secretmanagerpb.AccessSecretVersionRequest{
-			Name: resourceName,
-		}
-
-		resp, err := f.client.AccessSecretVersion(f.ctx, req)
-		if err != nil {
-			return 0, &fs.PathError{Op: "read", Path: f.name, Err: convertGCPError(err)}
-		}
-
-		f.body = bytes.NewReader(resp.Payload.Data)
+	if err := f.fetch(); err != nil {
+		return 0, &fs.PathError{Op: "read", Path: f.name, Err: err}
 	}
 
 	return f.body.Read(p)
@@ -357,17 +322,19 @@ func (f *gcpsmFile) Stat() (fs.FileInfo, error) {
 	}
 
 	if err := f.fetch(); err != nil {
-		// If fetch fails, we might still be a directory (if we were opened as "." but logic is tricky here)
-		// But Open(".") sets fi, so we are good.
 		return nil, &fs.PathError{Op: "stat", Path: f.name, Err: err}
 	}
 
-	f.fi = internal.FileInfo(f.name, f.fi.Size(), 0o444, modTime, "")
+	f.fi = internal.FileInfo(f.name, int64(len(f.content)), 0o444, modTime, "")
 
 	return f.fi, nil
 }
 
 func (f *gcpsmFile) fetch() error {
+	if f.fetched {
+		return nil
+	}
+
 	resourceName := f.getResourceName()
 
 	req := &secretmanagerpb.AccessSecretVersionRequest{
@@ -376,13 +343,13 @@ func (f *gcpsmFile) fetch() error {
 
 	resp, err := f.client.AccessSecretVersion(f.ctx, req)
 	if err != nil {
-		return &fs.PathError{Op: "fetch", Path: f.name, Err: convertGCPError(err)}
+		return convertGCPError(err)
 	}
 
-	f.body = bytes.NewReader(resp.Payload.Data)
-	size := int64(len(resp.Payload.Data))
-
-	f.fi = internal.FileInfo(f.name, size, 0o444, time.Time{}, "")
+	f.content = resp.Payload.Data
+	f.body = bytes.NewReader(f.content)
+	f.fi = internal.FileInfo(f.name, int64(len(f.content)), 0o444, time.Time{}, "")
+	f.fetched = true
 
 	return nil
 }
