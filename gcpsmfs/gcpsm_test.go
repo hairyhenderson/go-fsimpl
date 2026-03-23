@@ -160,7 +160,7 @@ func TestEmptyProject_ReadFile(t *testing.T) {
 		assert.Equal(t, []byte("secret-data"), b)
 	})
 
-	t.Run("readfile with relative path reutnrs invalid", func(t *testing.T) {
+	t.Run("readfile with relative path returns invalid", func(t *testing.T) {
 		_, err := fs.ReadFile(fsys, "foo")
 		require.Error(t, err)
 		assert.ErrorIs(t, err, fs.ErrInvalid)
