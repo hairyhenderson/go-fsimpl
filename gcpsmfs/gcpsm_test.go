@@ -28,6 +28,35 @@ func TestNew(t *testing.T) {
 	assert.NotNil(t, fsys)
 }
 
+func TestOpen(t *testing.T) {
+	mc := &mockClient{
+		secrets: map[string][]byte{
+			"projects/p/secrets/foo/versions/latest": []byte("bar"),
+		},
+	}
+
+	t.Run("simple name with project in URL succeeds", func(t *testing.T) {
+		u, _ := url.Parse("gcp+sm:///projects/p")
+		fsys, _ := New(u)
+		fsys = WithSMClientFS(mc, fsys)
+
+		f, err := fsys.Open("foo")
+		require.NoError(t, err)
+		require.NotNil(t, f)
+		_ = f.Close()
+	})
+
+	t.Run("slash in file name returns invalid", func(t *testing.T) {
+		u, _ := url.Parse("gcp+sm:///projects/p")
+		fsys, _ := New(u)
+		fsys = WithSMClientFS(mc, fsys)
+
+		_, err := fsys.Open("foo/bar")
+		require.Error(t, err)
+		assert.ErrorIs(t, err, fs.ErrInvalid)
+	})
+}
+
 func TestReadFile(t *testing.T) {
 	mc := &mockClient{
 		secrets: map[string][]byte{
@@ -35,16 +64,34 @@ func TestReadFile(t *testing.T) {
 		},
 	}
 
-	u, _ := url.Parse("gcp+sm://")
-	fsys, _ := New(u)
-	fsys = WithSMClientFS(mc, fsys)
+	t.Run("full path with no project in URL succeeds", func(t *testing.T) {
+		u, _ := url.Parse("gcp+sm://")
+		fsys, _ := New(u)
+		fsys = WithSMClientFS(mc, fsys)
 
-	b, err := fs.ReadFile(fsys, "projects/p/secrets/foo")
-	require.NoError(t, err)
-	assert.Equal(t, []byte("bar"), b)
+		b, err := fs.ReadFile(fsys, "projects/p/secrets/foo")
+		require.NoError(t, err)
+		assert.Equal(t, []byte("bar"), b)
+	})
 
-	_, err = fs.ReadFile(fsys, "projects/p/secrets/baz")
-	assert.ErrorIs(t, err, fs.ErrNotExist)
+	t.Run("missing secret returns not exist", func(t *testing.T) {
+		u, _ := url.Parse("gcp+sm://")
+		fsys, _ := New(u)
+		fsys = WithSMClientFS(mc, fsys)
+
+		_, err := fs.ReadFile(fsys, "projects/p/secrets/baz")
+		assert.ErrorIs(t, err, fs.ErrNotExist)
+	})
+
+	t.Run("slash in file name returns invalid", func(t *testing.T) {
+		u, _ := url.Parse("gcp+sm:///projects/p")
+		fsys, _ := New(u)
+		fsys = WithSMClientFS(mc, fsys)
+
+		_, err := fs.ReadFile(fsys, "foo/bar")
+		require.Error(t, err)
+		assert.ErrorIs(t, err, fs.ErrInvalid)
+	})
 }
 
 func TestReadDir(t *testing.T) {

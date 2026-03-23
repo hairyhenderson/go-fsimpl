@@ -185,6 +185,10 @@ func (f *gcpsmFS) getProjectAndFileName(name string) (string, string, error) {
 		fileName = strings.TrimPrefix(path.Base(parts[3]), ".")
 	}
 
+	if strings.Contains(fileName, "/") {
+		return "", "", &fs.PathError{Op: "getProjectAndFileName", Path: name, Err: fs.ErrInvalid}
+	}
+
 	return project, fileName, nil
 }
 
@@ -214,10 +218,6 @@ func (f *gcpsmFS) Open(name string) (fs.File, error) {
 		file.fi = internal.DirInfo(file.name, time.Time{})
 
 		return file, nil
-	}
-
-	if strings.Contains(fileName, "/") {
-		return nil, &fs.PathError{Op: "open", Path: name, Err: fs.ErrNotExist}
 	}
 
 	return file, nil
@@ -251,7 +251,11 @@ func (f *gcpsmFS) ReadDir(name string) ([]fs.DirEntry, error) {
 		fi:      internal.DirInfo(name, time.Time{}),
 	}
 
-	return dir.ReadDir(-1)
+	entries, err := dir.ReadDir(-1)
+	if err != nil {
+		return nil, &fs.PathError{Op: "readdir", Path: name, Err: err}
+	}
+	return entries, nil
 }
 
 func (f *gcpsmFS) ReadFile(name string) ([]byte, error) {
