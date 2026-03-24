@@ -87,6 +87,7 @@ func putFile(backend gofakes3.Backend, file, mime, content string) error {
 		map[string]string{"Content-Type": mime},
 		bytes.NewBufferString(content),
 		int64(len(content)),
+		nil,
 	)
 
 	return err
