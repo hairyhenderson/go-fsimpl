@@ -215,8 +215,6 @@ func (f *gcpsmFS) Open(name string) (fs.File, error) {
 	}
 
 	if fileName == "." {
-		file.fi = internal.DirInfo(file.name, time.Time{})
-
 		return file, nil
 	}
 
@@ -248,7 +246,6 @@ func (f *gcpsmFS) ReadDir(name string) ([]fs.DirEntry, error) {
 		name:    name,
 		project: project,
 		client:  client,
-		fi:      internal.DirInfo(name, time.Time{}),
 	}
 
 	entries, err := dir.ReadDir(-1)
@@ -275,14 +272,13 @@ type gcpsmFile struct {
 	project string
 	client  SecretManagerClient
 
-	fi      fs.FileInfo
+	// modTime is set by ensureModTime after GetSecretVersion; nil means not loaded yet.
+	modTime *time.Time
 	body    io.Reader
 	content []byte
 
 	children []gcpsmFile
 	diroff   int
-
-	fetched bool
 }
 
 var _ fs.ReadDirFile = (*gcpsmFile)(nil)
@@ -292,7 +288,7 @@ func (f *gcpsmFile) Close() error {
 }
 
 func (f *gcpsmFile) Read(p []byte) (int, error) {
-	if err := f.fetch(); err != nil {
+	if err := f.loadContent(); err != nil {
 		return 0, &fs.PathError{Op: "read", Path: f.name, Err: err}
 	}
 
@@ -303,37 +299,40 @@ func (f *gcpsmFile) getResourceName() string {
 	return fmt.Sprintf("projects/%s/secrets/%s/versions/latest", f.project, f.name)
 }
 
+// fileInfo returns metadata for this handle. Directories (name ".") need no fetch;
+// secret files must have loaded content and modTime (see loadContent / ensureModTime).
+func (f *gcpsmFile) fileInfo() fs.FileInfo {
+	if f.name == "." {
+		return internal.DirInfo(f.name, time.Time{})
+	}
+
+	mt := time.Time{}
+	if f.modTime != nil {
+		mt = *f.modTime
+	}
+
+	return internal.FileInfo(f.name, int64(len(f.content)), 0o444, mt, "")
+}
+
 func (f *gcpsmFile) Stat() (fs.FileInfo, error) {
-	if f.fi != nil {
-		return f.fi, nil
+	if f.name == "." {
+		return f.fileInfo(), nil
 	}
 
-	resourceName := f.getResourceName()
-	getReq := &secretmanagerpb.GetSecretVersionRequest{
-		Name: resourceName,
-	}
-
-	getResp, err := f.client.GetSecretVersion(f.ctx, getReq)
-	if err != nil {
-		return nil, &fs.PathError{Op: "stat", Path: f.name, Err: convertGCPError(err)}
-	}
-
-	modTime := time.Time{}
-	if getResp != nil && getResp.GetCreateTime() != nil {
-		modTime = getResp.GetCreateTime().AsTime()
-	}
-
-	if err := f.fetch(); err != nil {
+	if err := f.loadContent(); err != nil {
 		return nil, &fs.PathError{Op: "stat", Path: f.name, Err: err}
 	}
 
-	f.fi = internal.FileInfo(f.name, int64(len(f.content)), 0o444, modTime, "")
+	if err := f.ensureModTime(); err != nil {
+		return nil, &fs.PathError{Op: "stat", Path: f.name, Err: err}
+	}
 
-	return f.fi, nil
+	return f.fileInfo(), nil
 }
 
-func (f *gcpsmFile) fetch() error {
-	if f.fetched {
+// loadContent fetches the secret payload via AccessSecretVersion (one RPC when not cached).
+func (f *gcpsmFile) loadContent() error {
+	if f.content != nil {
 		return nil
 	}
 
@@ -348,10 +347,44 @@ func (f *gcpsmFile) fetch() error {
 		return convertGCPError(err)
 	}
 
-	f.content = resp.Payload.Data
+	var payload []byte
+	if resp.Payload != nil {
+		payload = resp.Payload.Data
+	}
+
+	if payload == nil {
+		payload = []byte{}
+	}
+
+	f.content = payload
 	f.body = bytes.NewReader(f.content)
-	f.fi = internal.FileInfo(f.name, int64(len(f.content)), 0o444, time.Time{}, "")
-	f.fetched = true
+
+	return nil
+}
+
+// ensureModTime loads version metadata via GetSecretVersion (one RPC when not cached).
+func (f *gcpsmFile) ensureModTime() error {
+	if f.modTime != nil {
+		return nil
+	}
+
+	resourceName := f.getResourceName()
+
+	getReq := &secretmanagerpb.GetSecretVersionRequest{
+		Name: resourceName,
+	}
+
+	getResp, err := f.client.GetSecretVersion(f.ctx, getReq)
+	if err != nil {
+		return convertGCPError(err)
+	}
+
+	t := time.Time{}
+	if getResp != nil && getResp.GetCreateTime() != nil {
+		t = getResp.GetCreateTime().AsTime()
+	}
+
+	f.modTime = &t
 
 	return nil
 }
@@ -377,7 +410,7 @@ func (f *gcpsmFile) ReadDir(n int) ([]fs.DirEntry, error) {
 
 	entries := make([]fs.DirEntry, high-low)
 	for i := low; i < high; i++ {
-		entries[i-low] = internal.FileInfoDirEntry(f.children[i].fi)
+		entries[i-low] = internal.FileInfoDirEntry(f.children[i].fileInfo())
 	}
 
 	f.diroff = high
@@ -415,8 +448,13 @@ func (f *gcpsmFile) list() error {
 			project: f.project,
 			client:  f.client,
 		}
-		// needed to get file info
-		err = child.fetch()
+
+		err = child.loadContent()
+		if err != nil {
+			return fmt.Errorf("while fetching secret %s: %w", name, err)
+		}
+
+		err = child.ensureModTime()
 		if err != nil {
 			return fmt.Errorf("while fetching secret %s: %w", name, err)
 		}

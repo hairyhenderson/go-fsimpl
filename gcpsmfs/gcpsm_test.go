@@ -1,6 +1,7 @@
 package gcpsmfs
 
 import (
+	"io"
 	"io/fs"
 	"net/url"
 	"testing"
@@ -128,16 +129,32 @@ func TestStat(t *testing.T) {
 	assert.NotNil(t, fsys)
 	fsys = WithSMClientFS(mc, fsys)
 
-	fi, err := fs.Stat(fsys, "foo")
-	require.NoError(t, err)
-	assert.Equal(t, "foo", fi.Name())
-	assert.Equal(t, int64(3), fi.Size())
-	assert.False(t, fi.IsDir())
+	t.Run("without read", func(t *testing.T) {
+		fi, err := fs.Stat(fsys, "foo")
+		require.NoError(t, err)
+		assert.Equal(t, "foo", fi.Name())
+		assert.Equal(t, int64(3), fi.Size())
+		assert.False(t, fi.IsDir())
+		assert.Equal(t, testSecretVersionModTime(), fi.ModTime().UTC())
 
-	fi, err = fs.Stat(fsys, ".")
-	require.NoError(t, err)
-	assert.Equal(t, ".", fi.Name())
-	assert.True(t, fi.IsDir())
+		fi, err = fs.Stat(fsys, ".")
+		require.NoError(t, err)
+		assert.Equal(t, ".", fi.Name())
+		assert.True(t, fi.IsDir())
+	})
+
+	t.Run("after read", func(t *testing.T) {
+		f, err := fsys.Open("foo")
+		require.NoError(t, err)
+		t.Cleanup(func() { _ = f.Close() })
+
+		_, err = io.ReadAll(f)
+		require.NoError(t, err)
+
+		fi, err := f.Stat()
+		require.NoError(t, err)
+		assert.Equal(t, testSecretVersionModTime(), fi.ModTime().UTC())
+	})
 }
 
 func TestFS(t *testing.T) {
