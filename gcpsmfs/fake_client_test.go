@@ -3,13 +3,19 @@ package gcpsmfs
 import (
 	"context"
 	"strings"
+	"time"
 
 	"cloud.google.com/go/secretmanager/apiv1/secretmanagerpb"
 	"github.com/googleapis/gax-go/v2"
 	"google.golang.org/api/iterator"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
+
+func testSecretVersionModTime() time.Time {
+	return time.Date(2024, 1, 2, 3, 4, 5, 0, time.UTC)
+}
 
 type mockClient struct {
 	secrets map[string][]byte
@@ -40,10 +46,22 @@ func (m *mockClient) AccessSecretVersion(
 
 func (m *mockClient) GetSecretVersion(
 	_ context.Context,
-	_ *secretmanagerpb.GetSecretVersionRequest,
+	req *secretmanagerpb.GetSecretVersionRequest,
 	_ ...gax.CallOption,
 ) (*secretmanagerpb.SecretVersion, error) {
-	return nil, nil
+	if m.err != nil {
+		return nil, m.err
+	}
+
+	_, ok := m.secrets[req.Name]
+	if !ok {
+		return nil, status.Error(codes.NotFound, "secret version not found")
+	}
+
+	return &secretmanagerpb.SecretVersion{
+		Name:       req.Name,
+		CreateTime: timestamppb.New(testSecretVersionModTime()),
+	}, nil
 }
 
 func (m *mockClient) ListSecrets(
