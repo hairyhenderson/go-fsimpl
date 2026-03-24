@@ -19,8 +19,8 @@ require (
 	github.com/googleapis/gax-go/v2 v2.19.0
 	github.com/hashicorp/consul/api v1.33.5
 	github.com/hashicorp/vault/api v1.23.0
-	github.com/hashicorp/vault/api/auth/approle v0.11.0
-	github.com/hashicorp/vault/api/auth/userpass v0.11.0
+	github.com/hashicorp/vault/api/auth/approle v0.12.0
+	github.com/hashicorp/vault/api/auth/userpass v0.12.0
 	github.com/johannesboyne/gofakes3 v0.0.0-20250106100439-5c39aecd6999
 	github.com/stretchr/testify v1.11.1
 	go.opentelemetry.io/contrib/propagators/autoprop v0.67.0
