@@ -2,6 +2,8 @@ module github.com/hairyhenderson/go-fsimpl
 
 go 1.25.8
 
+toolchain go1.26.2
+
 require (
 	cloud.google.com/go/compute/metadata v0.9.0
 	cloud.google.com/go/secretmanager v1.19.0
