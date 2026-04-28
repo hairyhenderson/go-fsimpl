@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.2](https://github.com/hairyhenderson/go-fsimpl/compare/v0.4.1...v0.4.2) (2026-04-28)
+
+
+### Bug Fixes
+
+* **httpfs:** Fall back to GET when HEAD is 401 Unauthorized ([#1245](https://github.com/hairyhenderson/go-fsimpl/issues/1245)) ([640299c](https://github.com/hairyhenderson/go-fsimpl/commit/640299c5bb4b13654c8ab67232f50b05a9f9913a))
+
 ## [0.4.1](https://github.com/hairyhenderson/go-fsimpl/compare/v0.4.0...v0.4.1) (2026-04-24)
 
 
