@@ -8,6 +8,7 @@ import (
 	"io/fs"
 	"net/http"
 	"net/url"
+	"slices"
 	"time"
 
 	"github.com/hairyhenderson/go-fsimpl"
@@ -220,11 +221,13 @@ func (f *httpFile) Stat() (fs.FileInfo, error) {
 	}
 
 	var he httpErr
-	if !errors.As(err, &he) || he.StatusCode() != http.StatusMethodNotAllowed {
+
+	fallbackCodes := []int{http.StatusMethodNotAllowed, http.StatusUnauthorized}
+	if !errors.As(err, &he) || !slices.Contains(fallbackCodes, he.StatusCode()) {
 		return nil, err
 	}
 
-	// fall back to GET if HEAD returns 405
+	// fall back to GET if HEAD returned one of fallback codes
 	body, err = f.request(http.MethodGet)
 	if err != nil {
 		return nil, err

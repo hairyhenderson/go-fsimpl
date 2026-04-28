@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"strconv"
 	"testing"
 	"time"
 
@@ -50,19 +51,21 @@ func setupHTTP(t *testing.T) *httptest.Server {
 		}
 	})
 
-	// a path where HEAD gets a 405, to ensure Stat can handle it
-	mux.HandleFunc("HEAD /nohead.json", func(w http.ResponseWriter, _ *http.Request) {
-		w.WriteHeader(http.StatusMethodNotAllowed)
+	// a path where HEAD gets a {status} code, to ensure Stat can handle it
+	mux.HandleFunc("HEAD /nohead/{status}", func(w http.ResponseWriter, r *http.Request) {
+		status := r.PathValue("status")
+
+		code, err := strconv.Atoi(status)
+		if err != nil {
+			t.Fatal("Request should specify a status code to respond with")
+		}
+
+		w.WriteHeader(code)
 	})
-	mux.HandleFunc("GET /nohead.json", func(w http.ResponseWriter, _ *http.Request) {
+
+	mux.HandleFunc("GET /nohead/{status}", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = w.Write([]byte(`{"msg": "hi there"}`))
-	})
-	mux.HandleFunc("HEAD /notfound.json", func(w http.ResponseWriter, _ *http.Request) {
-		w.WriteHeader(http.StatusNotFound)
-	})
-	mux.HandleFunc("GET /notfound.json", func(_ http.ResponseWriter, _ *http.Request) {
-		t.Fatal("GET should not be called when HEAD returns 404")
 	})
 
 	srv := httptest.NewServer(mux)
@@ -137,10 +140,16 @@ func TestHttpFS_Stat_NoHead(t *testing.T) {
 	fsys, _ := New(tests.MustURL(srv.URL))
 	fsys = fsimpl.WithContextFS(ctx, fsys)
 
-	fi, err := fs.Stat(fsys, "nohead.json")
+	fi, err := fs.Stat(fsys, "nohead/401")
 	require.NoError(t, err)
 	assert.Equal(t, int64(19), fi.Size())
-	assert.Equal(t, "nohead.json", fi.Name())
+	assert.Equal(t, "nohead/401", fi.Name())
+	assert.Equal(t, "application/json", fsimpl.ContentType(fi))
+
+	fi, err = fs.Stat(fsys, "nohead/405")
+	require.NoError(t, err)
+	assert.Equal(t, int64(19), fi.Size())
+	assert.Equal(t, "nohead/405", fi.Name())
 	assert.Equal(t, "application/json", fsimpl.ContentType(fi))
 }
 
@@ -152,7 +161,7 @@ func TestHttpFS_Stat_NoFallbackForOtherErrors(t *testing.T) {
 	fsys, _ := New(tests.MustURL(srv.URL))
 	fsys = fsimpl.WithContextFS(ctx, fsys)
 
-	_, err := fs.Stat(fsys, "notfound.json")
+	_, err := fs.Stat(fsys, "nohead/404")
 	require.Error(t, err)
 
 	var he httpErr
