@@ -16,7 +16,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/ssm v1.68.5
 	github.com/aws/smithy-go v1.25.1
 	github.com/fsouza/fake-gcs-server v1.54.0
-	github.com/go-git/go-billy/v5 v5.8.0
+	github.com/go-git/go-billy/v5 v5.9.0
 	github.com/go-git/go-git/v5 v5.18.0
 	github.com/googleapis/gax-go/v2 v2.22.0
 	github.com/hashicorp/consul/api v1.34.2
@@ -79,7 +79,7 @@ require (
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/cloudflare/circl v1.6.3 // indirect
 	github.com/cncf/xds/go v0.0.0-20251210132809-ee656c7534f5 // indirect
-	github.com/cyphar/filepath-securejoin v0.4.1 // indirect
+	github.com/cyphar/filepath-securejoin v0.6.1 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/envoyproxy/go-control-plane/envoy v1.36.0 // indirect
@@ -149,14 +149,14 @@ require (
 	go.opentelemetry.io/proto/otlp v1.10.0 // indirect
 	go.shabbyrobe.org/gocovmerge v0.0.0-20230507111327-fa4f82cfbf4d // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	golang.org/x/exp v0.0.0-20260218203240-3dfff04db8fa // indirect
-	golang.org/x/net v0.52.0 // indirect
+	golang.org/x/exp v0.0.0-20260410095643-746e56fc9e2f // indirect
+	golang.org/x/net v0.53.0 // indirect
 	golang.org/x/oauth2 v0.36.0 // indirect
 	golang.org/x/sync v0.20.0 // indirect
 	golang.org/x/sys v0.43.0 // indirect
 	golang.org/x/text v0.36.0 // indirect
 	golang.org/x/time v0.15.0 // indirect
-	golang.org/x/tools v0.43.0 // indirect
+	golang.org/x/tools v0.44.0 // indirect
 	golang.org/x/xerrors v0.0.0-20240903120638-7835f813f4da // indirect
 	google.golang.org/genproto v0.0.0-20260319201613-d00831a3d3e7 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20260401024825-9d38bb4040a9 // indirect
