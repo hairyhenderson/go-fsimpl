@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.4.3](https://github.com/hairyhenderson/go-fsimpl/compare/v0.4.2...v0.4.3) (2026-05-16)
+
+
+### Bug Fixes
+
+* **deps:** update aws-sdk-go-v2 monorepo ([#1268](https://github.com/hairyhenderson/go-fsimpl/issues/1268)) ([59779ba](https://github.com/hairyhenderson/go-fsimpl/commit/59779ba97bea2b5d6bd3aa54bb0b9b21878788b4))
+* **deps:** update module cloud.google.com/go/secretmanager to v1.20.0 ([#1271](https://github.com/hairyhenderson/go-fsimpl/issues/1271)) ([84505ed](https://github.com/hairyhenderson/go-fsimpl/commit/84505ed38e47bee12bbdf80aaed0e300b701a350))
+* **deps:** update module github.com/azure/azure-sdk-for-go/sdk/storage/azblob to v1.7.0 ([#1292](https://github.com/hairyhenderson/go-fsimpl/issues/1292)) ([cff36d1](https://github.com/hairyhenderson/go-fsimpl/commit/cff36d16f165b1fbeed359259fc3380aba5b6533))
+* **deps:** update module github.com/go-git/go-git/v5 to v5.19.0 [security] ([#1285](https://github.com/hairyhenderson/go-fsimpl/issues/1285)) ([674e570](https://github.com/hairyhenderson/go-fsimpl/commit/674e570ecd25442b2015ba81b9692699dd9b2074))
+* **deps:** update module golang.org/x/crypto to v0.51.0 ([#1284](https://github.com/hairyhenderson/go-fsimpl/issues/1284)) ([b21dea6](https://github.com/hairyhenderson/go-fsimpl/commit/b21dea6cc32bb356f9934f04b5f9d1a203abbdde))
+* **deps:** update module google.golang.org/api to v0.279.0 ([#1269](https://github.com/hairyhenderson/go-fsimpl/issues/1269)) ([ff2b98a](https://github.com/hairyhenderson/go-fsimpl/commit/ff2b98ae57b31b8cb900719fe4eb8c6c9a52db9d))
+* **deps:** update module google.golang.org/grpc to v1.81.1 ([#1273](https://github.com/hairyhenderson/go-fsimpl/issues/1273)) ([8217102](https://github.com/hairyhenderson/go-fsimpl/commit/8217102b9c2f1472c62f735ef0f346fb1e42c48f))
+
 ## [0.4.2](https://github.com/hairyhenderson/go-fsimpl/compare/v0.4.1...v0.4.2) (2026-04-28)
 
 
