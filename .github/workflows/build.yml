@@ -21,7 +21,7 @@ jobs:
       matrix:
         goarch: [ '386', 'amd64' ]
     container:
-      image: ghcr.io/hairyhenderson/gomplate-ci-build
+      image: ghcr.io/hairyhenderson/gomplate-ci-build@sha256:b8e9296fabff59a80fe346c961eda2eb8c2d7561b8707f804641de77e003593e
     steps:
       - run: |
           git config --global user.email "bogus@example.com"
@@ -34,7 +34,7 @@ jobs:
           go-version-file: 'go.mod'
           cache: true
       - name: Cache Go build cache
-        uses: actions/cache@v5
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
         with:
           path: ~/.cache/go-build
           key: go-build-linux-${{ matrix.goarch }}-${{ hashFiles('go.sum') }}
@@ -46,7 +46,7 @@ jobs:
       matrix:
         platform: [ linux-amd64, linux-arm-v7, linux-arm64, linux-ppc64le, darwin-amd64, darwin-arm64, windows-amd64.exe ]
     container:
-      image: ghcr.io/hairyhenderson/gomplate-ci-build:latest
+      image: ghcr.io/hairyhenderson/gomplate-ci-build:latest@sha256:b8e9296fabff59a80fe346c961eda2eb8c2d7561b8707f804641de77e003593e
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
@@ -56,7 +56,7 @@ jobs:
           go-version-file: 'go.mod'
           cache: true
       - name: Cache Go build cache
-        uses: actions/cache@v5
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
         with:
           path: ~/.cache/go-build
           key: go-build-fscli-${{ matrix.platform }}-${{ hashFiles('go.sum') }}
