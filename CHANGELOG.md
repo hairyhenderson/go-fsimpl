@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.4.4](https://github.com/hairyhenderson/go-fsimpl/compare/v0.4.3...v0.4.4) (2026-05-23)
+
+
+### Bug Fixes
+
+* **deps:** update module github.com/aws/aws-sdk-go-v2/config to v1.32.18 ([#1309](https://github.com/hairyhenderson/go-fsimpl/issues/1309)) ([87d69d6](https://github.com/hairyhenderson/go-fsimpl/commit/87d69d660318ba8089dd11d0e97b4d3337d25517))
+* **deps:** update module github.com/go-git/go-git/v5 to v5.19.1 [security] ([#1296](https://github.com/hairyhenderson/go-fsimpl/issues/1296)) ([2480c92](https://github.com/hairyhenderson/go-fsimpl/commit/2480c92445e161827f9a211a6c1b88531e9d5cde))
+* **deps:** update module github.com/hashicorp/consul/api to v1.34.3 ([#1301](https://github.com/hairyhenderson/go-fsimpl/issues/1301)) ([d3a20ca](https://github.com/hairyhenderson/go-fsimpl/commit/d3a20ca982ca41f0ec35374fc7907c2f90d66f79))
+* **deps:** update module github.com/hashicorp/consul/api to v2 ([#1299](https://github.com/hairyhenderson/go-fsimpl/issues/1299)) ([e331a18](https://github.com/hairyhenderson/go-fsimpl/commit/e331a18235759415323c93aca7609ff769cceab8))
+* **deps:** update module golang.org/x/crypto to v0.52.0 ([#1305](https://github.com/hairyhenderson/go-fsimpl/issues/1305)) ([32d920a](https://github.com/hairyhenderson/go-fsimpl/commit/32d920a41b9536a8a1ecd29611bb24e1168a0f6a))
+* **deps:** update module google.golang.org/api to v0.280.0 ([#1297](https://github.com/hairyhenderson/go-fsimpl/issues/1297)) ([da50f56](https://github.com/hairyhenderson/go-fsimpl/commit/da50f566bbb3bb2814a2e1b0af5cd9181d441c0c))
+
+
+### Dependencies
+
+* **config:** migrate config renovate.json ([#1316](https://github.com/hairyhenderson/go-fsimpl/issues/1316)) ([ab8b890](https://github.com/hairyhenderson/go-fsimpl/commit/ab8b890baf07b130394123e707ecf2f6c2870982))
+* **go:** bump golang.org/x/net to v0.55.0 ([#1317](https://github.com/hairyhenderson/go-fsimpl/issues/1317)) ([c7df223](https://github.com/hairyhenderson/go-fsimpl/commit/c7df2230f08279b1add33ebb3d4b950e0dc57086))
+* **renovate:** Fix commit prefix ([#1313](https://github.com/hairyhenderson/go-fsimpl/issues/1313)) ([233c817](https://github.com/hairyhenderson/go-fsimpl/commit/233c817221d31d584030583ddf9a9b61424355cb))
+* **renovate:** use best-practices prefix and update transitives ([#1314](https://github.com/hairyhenderson/go-fsimpl/issues/1314)) ([95c5131](https://github.com/hairyhenderson/go-fsimpl/commit/95c5131636a15bacf8307d3bcbe480a19684be6a))
+
 ## [0.4.3](https://github.com/hairyhenderson/go-fsimpl/compare/v0.4.2...v0.4.3) (2026-05-16)
 
 
