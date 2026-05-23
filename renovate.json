@@ -1,8 +1,10 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:recommended"
+    "config:best-practices"
   ],
+  "osvVulnerabilityAlerts": true,
+  "transitiveRemediation": true,
   "semanticCommits": "enabled",
   "semanticCommitType": "deps",
   "semanticCommitScope": "{{manager}}"
