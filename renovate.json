@@ -4,7 +4,6 @@
     "config:best-practices"
   ],
   "osvVulnerabilityAlerts": true,
-  "transitiveRemediation": true,
   "semanticCommits": "enabled",
   "semanticCommitType": "deps",
   "semanticCommitScope": "{{manager}}"
