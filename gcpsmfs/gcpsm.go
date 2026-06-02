@@ -28,6 +28,14 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+// secretCache holds fetched secret payloads and version metadata, keyed by
+// "project/name". Two separate sync.Maps allow loadContent and ensureModTime
+// to operate concurrently without contention.
+type secretCache struct {
+	content sync.Map // key: "project/name" → []byte
+	modTime sync.Map // key: "project/name" → time.Time
+}
+
 // withSMClienter is an fs.FS that can be configured to use the given Secrets
 // Manager client.
 type withSMClienter interface {
@@ -72,6 +80,7 @@ type gcpsmFS struct {
 	httpclient     *http.Client
 	project        string
 	maxConcurrency int
+	cache          *secretCache
 }
 
 // New provides a filesystem (an fs.FS) backed by the GCP Secret Manager,
@@ -103,6 +112,7 @@ func New(u *url.URL) (fs.FS, error) {
 		ctx:            context.Background(),
 		base:           u,
 		maxConcurrency: defaultMaxConcurrency(),
+		cache:          &secretCache{},
 	}
 
 	// Normalize the path and validate it matches one of the supported forms:
@@ -266,6 +276,7 @@ func (f *gcpsmFS) Open(name string) (fs.File, error) {
 		project:        project,
 		client:         client,
 		maxConcurrency: f.maxConcurrency,
+		cache:          f.cache,
 	}
 
 	if fileName == "." {
@@ -304,6 +315,7 @@ func (f *gcpsmFS) ReadDir(name string) ([]fs.DirEntry, error) {
 		project:        project,
 		client:         client,
 		maxConcurrency: f.maxConcurrency,
+		cache:          f.cache,
 	}
 
 	entries, err := dir.ReadDir(-1)
@@ -330,6 +342,7 @@ type gcpsmFile struct {
 	project        string
 	client         SecretManagerClient
 	maxConcurrency int
+	cache          *secretCache
 
 	// modTime is set by ensureModTime after GetSecretVersion; nil means not loaded yet.
 	modTime *time.Time
@@ -395,6 +408,18 @@ func (f *gcpsmFile) loadContent() error {
 		return nil
 	}
 
+	key := f.project + "/" + f.name
+
+	if f.cache != nil {
+		if v, ok := f.cache.content.Load(key); ok {
+			payload := v.([]byte)
+			f.content = payload
+			f.body = bytes.NewReader(payload)
+
+			return nil
+		}
+	}
+
 	resourceName := f.getResourceName()
 
 	req := &secretmanagerpb.AccessSecretVersionRequest{
@@ -418,6 +443,10 @@ func (f *gcpsmFile) loadContent() error {
 	f.content = payload
 	f.body = bytes.NewReader(f.content)
 
+	if f.cache != nil {
+		f.cache.content.Store(key, f.content)
+	}
+
 	return nil
 }
 
@@ -425,6 +454,17 @@ func (f *gcpsmFile) loadContent() error {
 func (f *gcpsmFile) ensureModTime() error {
 	if f.modTime != nil {
 		return nil
+	}
+
+	key := f.project + "/" + f.name
+
+	if f.cache != nil {
+		if v, ok := f.cache.modTime.Load(key); ok {
+			t := v.(time.Time)
+			f.modTime = &t
+
+			return nil
+		}
 	}
 
 	resourceName := f.getResourceName()
@@ -444,6 +484,10 @@ func (f *gcpsmFile) ensureModTime() error {
 	}
 
 	f.modTime = &t
+
+	if f.cache != nil {
+		f.cache.modTime.Store(key, t)
+	}
 
 	return nil
 }
@@ -527,6 +571,7 @@ func (f *gcpsmFile) list() error {
 				name:    name,
 				project: f.project,
 				client:  f.client,
+				cache:   f.cache,
 			}
 
 			inner, _ := errgroup.WithContext(ctx)

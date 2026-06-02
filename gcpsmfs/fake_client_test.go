@@ -3,6 +3,7 @@ package gcpsmfs
 import (
 	"context"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"cloud.google.com/go/secretmanager/apiv1/secretmanagerpb"
@@ -22,6 +23,9 @@ type mockClient struct {
 	noVersionSecrets       []string // listed by ListSecrets but have no version (AccessSecretVersion returns NOT_FOUND)
 	disabledVersionSecrets []string // listed by ListSecrets but version is DISABLED (AccessSecretVersion returns FAILED_PRECONDITION)
 	err                    error
+
+	accessCalls atomic.Int32 // counts AccessSecretVersion invocations
+	getCalls    atomic.Int32 // counts GetSecretVersion invocations
 }
 
 func (m *mockClient) AccessSecretVersion(
@@ -29,6 +33,8 @@ func (m *mockClient) AccessSecretVersion(
 	req *secretmanagerpb.AccessSecretVersionRequest,
 	_ ...gax.CallOption,
 ) (*secretmanagerpb.AccessSecretVersionResponse, error) {
+	m.accessCalls.Add(1)
+
 	if m.err != nil {
 		return nil, m.err
 	}
@@ -60,6 +66,8 @@ func (m *mockClient) GetSecretVersion(
 	req *secretmanagerpb.GetSecretVersionRequest,
 	_ ...gax.CallOption,
 ) (*secretmanagerpb.SecretVersion, error) {
+	m.getCalls.Add(1)
+
 	if m.err != nil {
 		return nil, m.err
 	}

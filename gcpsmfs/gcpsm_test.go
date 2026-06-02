@@ -149,6 +149,57 @@ func TestDefaultMaxConcurrencyEnvVar_Invalid(t *testing.T) {
 	assert.Equal(t, 1, gcpFS.maxConcurrency)
 }
 
+func TestCache_ReadDirDeduplicatesRPCs(t *testing.T) {
+	mc := &mockClient{
+		secrets: map[string][]byte{
+			"projects/p/secrets/foo/versions/latest": []byte("bar"),
+			"projects/p/secrets/baz/versions/latest": []byte("qux"),
+		},
+	}
+
+	u, _ := url.Parse("gcp+sm:///projects/p")
+	fsys, _ := New(u)
+	fsys = WithSMClientFS(mc, fsys)
+
+	// First listing — populates cache; expect 1 AccessSecretVersion + 1 GetSecretVersion per secret.
+	entries, err := fs.ReadDir(fsys, ".")
+	require.NoError(t, err)
+	require.Len(t, entries, 2)
+	assert.Equal(t, int32(2), mc.accessCalls.Load(), "first ReadDir: expected 2 AccessSecretVersion calls")
+	assert.Equal(t, int32(2), mc.getCalls.Load(), "first ReadDir: expected 2 GetSecretVersion calls")
+
+	// Second listing — all data is in cache; no additional RPCs should be made.
+	entries, err = fs.ReadDir(fsys, ".")
+	require.NoError(t, err)
+	require.Len(t, entries, 2)
+	assert.Equal(t, int32(2), mc.accessCalls.Load(), "second ReadDir: AccessSecretVersion count must not increase")
+	assert.Equal(t, int32(2), mc.getCalls.Load(), "second ReadDir: GetSecretVersion count must not increase")
+}
+
+func TestCache_OpenAndReadDeduplicatesRPCs(t *testing.T) {
+	mc := &mockClient{
+		secrets: map[string][]byte{
+			"projects/p/secrets/foo/versions/latest": []byte("bar"),
+		},
+	}
+
+	u, _ := url.Parse("gcp+sm:///projects/p")
+	fsys, _ := New(u)
+	fsys = WithSMClientFS(mc, fsys)
+
+	// First read — fetches from GCP.
+	b, err := fs.ReadFile(fsys, "foo")
+	require.NoError(t, err)
+	assert.Equal(t, []byte("bar"), b)
+	assert.Equal(t, int32(1), mc.accessCalls.Load())
+
+	// Second read — served from cache; no additional RPC.
+	b, err = fs.ReadFile(fsys, "foo")
+	require.NoError(t, err)
+	assert.Equal(t, []byte("bar"), b)
+	assert.Equal(t, int32(1), mc.accessCalls.Load(), "second ReadFile: AccessSecretVersion count must not increase")
+}
+
 func TestReadDir(t *testing.T) {
 	mc := &mockClient{
 		secrets: map[string][]byte{
