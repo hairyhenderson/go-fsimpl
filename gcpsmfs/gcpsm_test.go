@@ -352,6 +352,7 @@ func TestEmptyProject_Open(t *testing.T) {
 		fi, err := file.Stat()
 		require.NoError(t, err)
 		assert.True(t, fi.IsDir())
+
 		_ = file.Close()
 	})
 }

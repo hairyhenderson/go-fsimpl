@@ -2,6 +2,7 @@ package gcpsmfs
 
 import (
 	"context"
+	"slices"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -41,11 +42,11 @@ func (m *mockClient) AccessSecretVersion(
 
 	// Check if this is a disabled version (key stored without /versions/latest suffix).
 	secretBase := strings.TrimSuffix(req.Name, "/versions/latest")
+
 	secretShortName := secretBase[strings.LastIndex(secretBase, "/")+1:]
-	for _, name := range m.disabledVersionSecrets {
-		if name == secretShortName {
-			return nil, status.Error(codes.FailedPrecondition, "secret version is DISABLED")
-		}
+
+	if slices.Contains(m.disabledVersionSecrets, secretShortName) {
+		return nil, status.Error(codes.FailedPrecondition, "secret version is DISABLED")
 	}
 
 	val, ok := m.secrets[req.Name]

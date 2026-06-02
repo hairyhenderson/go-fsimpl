@@ -563,8 +563,6 @@ func (f *gcpsmFile) list() error {
 	g.SetLimit(limit)
 
 	for _, name := range secretNames {
-		name := name
-
 		g.Go(func() error {
 			child := gcpsmFile{
 				ctx:     ctx,
@@ -587,6 +585,7 @@ func (f *gcpsmFile) list() error {
 			}
 
 			mu.Lock()
+
 			entries = append(entries, child)
 			mu.Unlock()
 
