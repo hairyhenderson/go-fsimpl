@@ -116,6 +116,42 @@ func TestReadDir(t *testing.T) {
 	assert.Equal(t, "foo", entries[1].Name())
 }
 
+func TestReadDir_SkipsDisabledVersionSecrets(t *testing.T) {
+	mc := &mockClient{
+		secrets: map[string][]byte{
+			"projects/p/secrets/foo/versions/latest": []byte("bar"),
+		},
+		disabledVersionSecrets: []string{"disabledsecret"},
+	}
+
+	u, _ := url.Parse("gcp+sm:///projects/p")
+	fsys, _ := New(u)
+	fsys = WithSMClientFS(mc, fsys)
+
+	entries, err := fs.ReadDir(fsys, ".")
+	require.NoError(t, err)
+	require.Len(t, entries, 1)
+	assert.Equal(t, "foo", entries[0].Name())
+}
+
+func TestReadDir_SkipsVersionlessSecrets(t *testing.T) {
+	mc := &mockClient{
+		secrets: map[string][]byte{
+			"projects/p/secrets/foo/versions/latest": []byte("bar"),
+		},
+		noVersionSecrets: []string{"noversionsecret"},
+	}
+
+	u, _ := url.Parse("gcp+sm:///projects/p")
+	fsys, _ := New(u)
+	fsys = WithSMClientFS(mc, fsys)
+
+	entries, err := fs.ReadDir(fsys, ".")
+	require.NoError(t, err)
+	require.Len(t, entries, 1)
+	assert.Equal(t, "foo", entries[0].Name())
+}
+
 func TestStat(t *testing.T) {
 	mc := &mockClient{
 		secrets: map[string][]byte{
@@ -204,6 +240,15 @@ func TestEmptyProject_Open(t *testing.T) {
 		require.Error(t, err)
 		assert.ErrorIs(t, err, fs.ErrInvalid)
 	})
+
+	t.Run("open project-only path returns directory", func(t *testing.T) {
+		file, err := fsys.Open("projects/myproj")
+		require.NoError(t, err)
+		fi, err := file.Stat()
+		require.NoError(t, err)
+		assert.True(t, fi.IsDir())
+		_ = file.Close()
+	})
 }
 
 // TestEmptyProject_ReadFile verifies ReadFile behavior when the FS has no project in the URL.
@@ -243,15 +288,15 @@ func TestEmptyProject_ReadDir(t *testing.T) {
 	fsys, _ := New(u)
 	fsys = WithSMClientFS(mc, fsys)
 
-	t.Run("readdir requires project in URL", func(t *testing.T) {
+	t.Run("readdir root with no project returns invalid", func(t *testing.T) {
 		_, err := fs.ReadDir(fsys, ".")
 		require.Error(t, err)
-		assert.Contains(t, err.Error(), "listing secrets requires a project in the URL")
+		assert.ErrorIs(t, err, fs.ErrInvalid)
 	})
 
-	t.Run("readdir on non-root returns not exist", func(t *testing.T) {
+	t.Run("readdir on non-root returns invalid", func(t *testing.T) {
 		_, err := fs.ReadDir(fsys, "projects/p/secrets")
 		require.Error(t, err)
-		assert.ErrorIs(t, err, fs.ErrNotExist)
+		assert.ErrorIs(t, err, fs.ErrInvalid)
 	})
 }

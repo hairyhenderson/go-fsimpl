@@ -18,6 +18,7 @@ import (
 	"cloud.google.com/go/secretmanager/apiv1/secretmanagerpb"
 	"github.com/hairyhenderson/go-fsimpl"
 	"github.com/hairyhenderson/go-fsimpl/internal"
+	"golang.org/x/sync/errgroup"
 	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
 	"google.golang.org/grpc/codes"
@@ -173,6 +174,12 @@ func (f *gcpsmFS) getProjectAndFileName(name string) (string, string, error) {
 	// If no project is given by the FS, it must be in the file name, and must be extracted
 	if project == "" {
 		parts := strings.Split(name, "/")
+
+		// A bare "projects/<id>" path represents the project directory itself.
+		if len(parts) == 2 && parts[0] == "projects" && parts[1] != "" {
+			return parts[1], ".", nil
+		}
+
 		if len(parts) != 4 || parts[0] != "projects" || parts[2] != "secrets" {
 			return "", "", &fs.PathError{Op: "getProjectAndFileName", Path: name, Err: fs.ErrInvalid}
 		}
@@ -226,7 +233,12 @@ func (f *gcpsmFS) ReadDir(name string) ([]fs.DirEntry, error) {
 		return nil, &fs.PathError{Op: "readdir", Path: name, Err: fs.ErrInvalid}
 	}
 
-	if name != "." {
+	project, fileName, err := f.getProjectAndFileName(name)
+	if err != nil {
+		return nil, err
+	}
+
+	if fileName != "." {
 		return nil, &fs.PathError{Op: "readdir", Path: name, Err: fs.ErrNotExist}
 	}
 
@@ -234,8 +246,6 @@ func (f *gcpsmFS) ReadDir(name string) ([]fs.DirEntry, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	project := f.project
 
 	if project == "" {
 		return nil, errors.New("listing secrets requires a project in the URL (e.g. gcp+sm:///projects/<project-id>)")
@@ -319,11 +329,11 @@ func (f *gcpsmFile) Stat() (fs.FileInfo, error) {
 		return f.fileInfo(), nil
 	}
 
-	if err := f.loadContent(); err != nil {
-		return nil, &fs.PathError{Op: "stat", Path: f.name, Err: err}
-	}
+	g, _ := errgroup.WithContext(f.ctx)
+	g.Go(f.loadContent)
+	g.Go(f.ensureModTime)
 
-	if err := f.ensureModTime(); err != nil {
+	if err := g.Wait(); err != nil {
 		return nil, &fs.PathError{Op: "stat", Path: f.name, Err: err}
 	}
 
@@ -449,13 +459,15 @@ func (f *gcpsmFile) list() error {
 			client:  f.client,
 		}
 
-		err = child.loadContent()
-		if err != nil {
-			return fmt.Errorf("while fetching secret %s: %w", name, err)
-		}
+		g, _ := errgroup.WithContext(f.ctx)
+		g.Go(child.loadContent)
+		g.Go(child.ensureModTime)
 
-		err = child.ensureModTime()
-		if err != nil {
+		if err = g.Wait(); err != nil {
+			if errors.Is(err, fs.ErrNotExist) {
+				continue
+			}
+
 			return fmt.Errorf("while fetching secret %s: %w", name, err)
 		}
 
@@ -480,6 +492,9 @@ func convertGCPError(err error) error {
 
 	switch st.Code() { //nolint:exhaustive
 	case codes.NotFound:
+		return fmt.Errorf("%w: %s", fs.ErrNotExist, st.Message())
+	case codes.FailedPrecondition:
+		// A version in DISABLED or DESTROYED state triggers this code.
 		return fmt.Errorf("%w: %s", fs.ErrNotExist, st.Message())
 	case codes.PermissionDenied:
 		return fmt.Errorf("%w: %s", fs.ErrPermission, st.Message())

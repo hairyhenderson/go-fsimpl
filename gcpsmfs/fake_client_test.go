@@ -18,8 +18,10 @@ func testSecretVersionModTime() time.Time {
 }
 
 type mockClient struct {
-	secrets map[string][]byte
-	err     error
+	secrets                map[string][]byte
+	noVersionSecrets       []string // listed by ListSecrets but have no version (AccessSecretVersion returns NOT_FOUND)
+	disabledVersionSecrets []string // listed by ListSecrets but version is DISABLED (AccessSecretVersion returns FAILED_PRECONDITION)
+	err                    error
 }
 
 func (m *mockClient) AccessSecretVersion(
@@ -29,6 +31,15 @@ func (m *mockClient) AccessSecretVersion(
 ) (*secretmanagerpb.AccessSecretVersionResponse, error) {
 	if m.err != nil {
 		return nil, m.err
+	}
+
+	// Check if this is a disabled version (key stored without /versions/latest suffix).
+	secretBase := strings.TrimSuffix(req.Name, "/versions/latest")
+	secretShortName := secretBase[strings.LastIndex(secretBase, "/")+1:]
+	for _, name := range m.disabledVersionSecrets {
+		if name == secretShortName {
+			return nil, status.Error(codes.FailedPrecondition, "secret version is DISABLED")
+		}
 	}
 
 	val, ok := m.secrets[req.Name]
@@ -95,6 +106,22 @@ func (m *mockClient) ListSecrets(
 					seen[secretName] = true
 				}
 			}
+		}
+	}
+
+	for _, name := range m.noVersionSecrets {
+		fullName := req.Parent + "/secrets/" + name
+		if !seen[fullName] {
+			secrets = append(secrets, &secretmanagerpb.Secret{Name: fullName})
+			seen[fullName] = true
+		}
+	}
+
+	for _, name := range m.disabledVersionSecrets {
+		fullName := req.Parent + "/secrets/" + name
+		if !seen[fullName] {
+			secrets = append(secrets, &secretmanagerpb.Secret{Name: fullName})
+			seen[fullName] = true
 		}
 	}
 
