@@ -1,6 +1,7 @@
 package gcpsmfs
 
 import (
+	"fmt"
 	"io"
 	"io/fs"
 	"net/url"
@@ -93,6 +94,59 @@ func TestReadFile(t *testing.T) {
 		require.Error(t, err)
 		assert.ErrorIs(t, err, fs.ErrInvalid)
 	})
+}
+
+func TestWithMaxConcurrencyFS(t *testing.T) {
+	mc := &mockClient{
+		secrets: map[string][]byte{
+			"projects/p/secrets/alpha/versions/latest": []byte("a"),
+			"projects/p/secrets/beta/versions/latest":  []byte("b"),
+			"projects/p/secrets/gamma/versions/latest": []byte("c"),
+		},
+	}
+
+	u, _ := url.Parse("gcp+sm:///projects/p")
+
+	for _, concurrency := range []int{1, 2, 5} {
+		t.Run(fmt.Sprintf("concurrency=%d", concurrency), func(t *testing.T) {
+			fsys, _ := New(u)
+			fsys = WithSMClientFS(mc, fsys)
+			fsys = WithMaxConcurrencyFS(concurrency, fsys)
+
+			entries, err := fs.ReadDir(fsys, ".")
+			require.NoError(t, err)
+			require.Len(t, entries, 3)
+
+			// Results must always be sorted regardless of fetch order.
+			assert.Equal(t, "alpha", entries[0].Name())
+			assert.Equal(t, "beta", entries[1].Name())
+			assert.Equal(t, "gamma", entries[2].Name())
+		})
+	}
+}
+
+func TestDefaultMaxConcurrencyEnvVar(t *testing.T) {
+	t.Setenv("GCP_SM_MAX_CONCURRENCY", "7")
+
+	u, _ := url.Parse("gcp+sm:///projects/p")
+	fsys, err := New(u)
+	require.NoError(t, err)
+
+	gcpFS, ok := fsys.(*gcpsmFS)
+	require.True(t, ok)
+	assert.Equal(t, 7, gcpFS.maxConcurrency)
+}
+
+func TestDefaultMaxConcurrencyEnvVar_Invalid(t *testing.T) {
+	t.Setenv("GCP_SM_MAX_CONCURRENCY", "notanumber")
+
+	u, _ := url.Parse("gcp+sm:///projects/p")
+	fsys, err := New(u)
+	require.NoError(t, err)
+
+	gcpFS, ok := fsys.(*gcpsmFS)
+	require.True(t, ok)
+	assert.Equal(t, 1, gcpFS.maxConcurrency)
 }
 
 func TestReadDir(t *testing.T) {

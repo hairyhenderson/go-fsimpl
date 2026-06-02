@@ -9,9 +9,12 @@ import (
 	"io/fs"
 	"net/http"
 	"net/url"
+	"os"
 	"path"
 	"sort"
+	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	secretmanager "cloud.google.com/go/secretmanager/apiv1"
@@ -45,12 +48,30 @@ func WithSMClientFS(smclient SecretManagerClient, fsys fs.FS) fs.FS {
 	return fsys
 }
 
+// withMaxConcurrencyer is an fs.FS that can be configured with a concurrency limit.
+type withMaxConcurrencyer interface {
+	WithMaxConcurrency(n int) fs.FS
+}
+
+// WithMaxConcurrencyFS sets the maximum number of secrets fetched concurrently
+// during a directory listing, if the filesystem supports it. Values <= 0 are
+// ignored. The default is controlled by the GCP_SM_MAX_CONCURRENCY environment
+// variable, falling back to 1 (serial) if unset.
+func WithMaxConcurrencyFS(n int, fsys fs.FS) fs.FS {
+	if fsys, ok := fsys.(withMaxConcurrencyer); ok {
+		return fsys.WithMaxConcurrency(n)
+	}
+
+	return fsys
+}
+
 type gcpsmFS struct {
-	ctx        context.Context
-	smclient   SecretManagerClient
-	base       *url.URL
-	httpclient *http.Client
-	project    string
+	ctx            context.Context
+	smclient       SecretManagerClient
+	base           *url.URL
+	httpclient     *http.Client
+	project        string
+	maxConcurrency int
 }
 
 // New provides a filesystem (an fs.FS) backed by the GCP Secret Manager,
@@ -61,14 +82,27 @@ type gcpsmFS struct {
 //   - "gcp+sm:///" for no project context
 //
 // A context can be given by using WithContextFS.
+// defaultMaxConcurrency reads GCP_SM_MAX_CONCURRENCY from the environment,
+// returning 1 if unset or invalid.
+func defaultMaxConcurrency() int {
+	if s := os.Getenv("GCP_SM_MAX_CONCURRENCY"); s != "" {
+		if n, err := strconv.Atoi(s); err == nil && n > 0 {
+			return n
+		}
+	}
+
+	return 1
+}
+
 func New(u *url.URL) (fs.FS, error) {
 	if u.Scheme != "gcp+sm" {
 		return nil, fmt.Errorf("invalid URL scheme %q", u.Scheme)
 	}
 
 	f := &gcpsmFS{
-		ctx:  context.Background(),
-		base: u,
+		ctx:            context.Background(),
+		base:           u,
+		maxConcurrency: defaultMaxConcurrency(),
 	}
 
 	// Normalize the path and validate it matches one of the supported forms:
@@ -107,6 +141,7 @@ var (
 	_ internal.WithContexter    = (*gcpsmFS)(nil)
 	_ internal.WithHTTPClienter = (*gcpsmFS)(nil)
 	_ withSMClienter            = (*gcpsmFS)(nil)
+	_ withMaxConcurrencyer      = (*gcpsmFS)(nil)
 )
 
 func (f gcpsmFS) URL() string {
@@ -142,6 +177,17 @@ func (f *gcpsmFS) WithSMClient(smclient SecretManagerClient) fs.FS {
 
 	fsys := *f
 	fsys.smclient = smclient
+
+	return &fsys
+}
+
+func (f *gcpsmFS) WithMaxConcurrency(n int) fs.FS {
+	if n <= 0 {
+		return f
+	}
+
+	fsys := *f
+	fsys.maxConcurrency = n
 
 	return &fsys
 }
@@ -215,10 +261,11 @@ func (f *gcpsmFS) Open(name string) (fs.File, error) {
 	}
 
 	file := &gcpsmFile{
-		ctx:     f.ctx,
-		name:    fileName,
-		project: project,
-		client:  client,
+		ctx:            f.ctx,
+		name:           fileName,
+		project:        project,
+		client:         client,
+		maxConcurrency: f.maxConcurrency,
 	}
 
 	if fileName == "." {
@@ -252,10 +299,11 @@ func (f *gcpsmFS) ReadDir(name string) ([]fs.DirEntry, error) {
 	}
 
 	dir := &gcpsmFile{
-		ctx:     f.ctx,
-		name:    name,
-		project: project,
-		client:  client,
+		ctx:            f.ctx,
+		name:           name,
+		project:        project,
+		client:         client,
+		maxConcurrency: f.maxConcurrency,
 	}
 
 	entries, err := dir.ReadDir(-1)
@@ -277,10 +325,11 @@ func (f *gcpsmFS) ReadFile(name string) ([]byte, error) {
 }
 
 type gcpsmFile struct {
-	ctx     context.Context
-	name    string
-	project string
-	client  SecretManagerClient
+	ctx            context.Context
+	name           string
+	project        string
+	client         SecretManagerClient
+	maxConcurrency int
 
 	// modTime is set by ensureModTime after GetSecretVersion; nil means not loaded yet.
 	modTime *time.Time
@@ -436,7 +485,8 @@ func (f *gcpsmFile) list() error {
 
 	it := f.client.ListSecrets(f.ctx, req)
 
-	var entries []gcpsmFile
+	// Phase 1: drain the iterator serially — GCP iterators are not goroutine-safe.
+	var secretNames []string
 
 	for {
 		secret, err := it.Next()
@@ -450,28 +500,57 @@ func (f *gcpsmFile) list() error {
 
 		// Name is full resource name: projects/{project}/secrets/{name}
 		parts := strings.Split(secret.Name, "/")
-		name := parts[len(parts)-1]
+		secretNames = append(secretNames, parts[len(parts)-1])
+	}
 
-		child := gcpsmFile{
-			ctx:     f.ctx,
-			name:    name,
-			project: f.project,
-			client:  f.client,
-		}
+	// Phase 2: fetch content and mod-time for each secret concurrently, bounded
+	// by maxConcurrency (errgroup.SetLimit(-1) means unlimited).
+	var (
+		mu      sync.Mutex
+		entries []gcpsmFile
+	)
 
-		g, _ := errgroup.WithContext(f.ctx)
-		g.Go(child.loadContent)
-		g.Go(child.ensureModTime)
+	limit := f.maxConcurrency
+	if limit <= 0 {
+		limit = 1
+	}
 
-		if err = g.Wait(); err != nil {
-			if errors.Is(err, fs.ErrNotExist) {
-				continue
+	g, ctx := errgroup.WithContext(f.ctx)
+	g.SetLimit(limit)
+
+	for _, name := range secretNames {
+		name := name
+
+		g.Go(func() error {
+			child := gcpsmFile{
+				ctx:     ctx,
+				name:    name,
+				project: f.project,
+				client:  f.client,
 			}
 
-			return fmt.Errorf("while fetching secret %s: %w", name, err)
-		}
+			inner, _ := errgroup.WithContext(ctx)
+			inner.Go(child.loadContent)
+			inner.Go(child.ensureModTime)
 
-		entries = append(entries, child)
+			if err := inner.Wait(); err != nil {
+				if errors.Is(err, fs.ErrNotExist) {
+					return nil
+				}
+
+				return fmt.Errorf("while fetching secret %s: %w", name, err)
+			}
+
+			mu.Lock()
+			entries = append(entries, child)
+			mu.Unlock()
+
+			return nil
+		})
+	}
+
+	if err := g.Wait(); err != nil {
+		return err
 	}
 
 	sort.Slice(entries, func(i, j int) bool { return entries[i].name < entries[j].name })
