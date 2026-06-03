@@ -277,6 +277,13 @@ type mountInfo struct {
 
 var _ fs.ReadDirFile = (*vaultFile)(nil)
 
+// isKVv2Mount reports whether mi describes a KV version 2 mount.
+// Vault has used both "kv" (current) and "generic" (legacy, pre-0.9.0) as the
+// type name for the same engine; both are treated identically when version==2.
+func isKVv2Mount(mi *mountInfo) bool {
+	return (mi.Type == "kv" || mi.Type == "generic") && mi.Options["version"] == "2"
+}
+
 func (f *vaultFile) request() (*api.KVSecret, *api.Secret, error) {
 	mountInfo, err := f.getMountInfo(f.ctx)
 	if err != nil {
@@ -285,7 +292,7 @@ func (f *vaultFile) request() (*api.KVSecret, *api.Secret, error) {
 
 	// it's a KVv2 Get operation with the right type, version, and especially if
 	// the secret path is set - otherwise it might need to be a list operation
-	if mountInfo.secretPath != "" && mountInfo.Type == "kv" && mountInfo.Options["version"] == "2" {
+	if mountInfo.secretPath != "" && isKVv2Mount(mountInfo) {
 		var kv *api.KVSecret
 
 		kv, err = f.kv2request(f.ctx, mountInfo.name, mountInfo.secretPath)
@@ -504,7 +511,7 @@ func (f *vaultFile) list() ([]string, error) {
 	p := path.Join(mi.name, mi.secretPath)
 	// if it's a KVv2 mount, we must inject "metadata/" into the path, because
 	// the logical client expects raw paths
-	if mi.Type == "kv" && mi.Options["version"] == "2" {
+	if isKVv2Mount(mi) {
 		p = path.Join(mi.name, "metadata", mi.secretPath)
 	}
 
