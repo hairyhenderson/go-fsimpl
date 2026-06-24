@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.4.5](https://github.com/hairyhenderson/go-fsimpl/compare/v0.4.4...v0.4.5) (2026-06-24)
+
+
+### Bug Fixes
+
+* **gomod:** update aws-sdk-go-v2 monorepo ([#1326](https://github.com/hairyhenderson/go-fsimpl/issues/1326)) ([31afc18](https://github.com/hairyhenderson/go-fsimpl/commit/31afc184db6a397fa7dbaa716c8d56d2e60223d8))
+* **gomod:** update go-cloud monorepo to v0.46.0 ([#1341](https://github.com/hairyhenderson/go-fsimpl/issues/1341)) ([24aa541](https://github.com/hairyhenderson/go-fsimpl/commit/24aa541bae277d7d00b907265cc6ccd4792d96aa))
+* **gomod:** update module github.com/aws/smithy-go to v1.26.0 ([#1327](https://github.com/hairyhenderson/go-fsimpl/issues/1327)) ([fe0a465](https://github.com/hairyhenderson/go-fsimpl/commit/fe0a465f1d39dd92007319c5948e7b4c9e74e169))
+* **gomod:** update module go.opentelemetry.io/contrib/propagators/autoprop to v0.69.0 ([#1328](https://github.com/hairyhenderson/go-fsimpl/issues/1328)) ([a80e94b](https://github.com/hairyhenderson/go-fsimpl/commit/a80e94b56cc13ef1f02edfeb6a40663453a799c9))
+* **gomod:** update module google.golang.org/api to v0.282.0 ([#1320](https://github.com/hairyhenderson/go-fsimpl/issues/1320)) ([03c2441](https://github.com/hairyhenderson/go-fsimpl/commit/03c2441ed893b6cacd83d8200526eb46af5ce839))
+* **gomod:** update opentelemetry-go monorepo to v1.44.0 ([#1321](https://github.com/hairyhenderson/go-fsimpl/issues/1321)) ([259a978](https://github.com/hairyhenderson/go-fsimpl/commit/259a978a853a993381e44a95eadd75426f04ade4))
+
 ## [0.4.4](https://github.com/hairyhenderson/go-fsimpl/compare/v0.4.3...v0.4.4) (2026-05-23)
 
 
