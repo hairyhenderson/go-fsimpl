@@ -1,6 +1,7 @@
 package gcpsmfs
 
 import (
+	"fmt"
 	"io"
 	"io/fs"
 	"net/url"
@@ -95,6 +96,110 @@ func TestReadFile(t *testing.T) {
 	})
 }
 
+func TestWithMaxConcurrencyFS(t *testing.T) {
+	mc := &mockClient{
+		secrets: map[string][]byte{
+			"projects/p/secrets/alpha/versions/latest": []byte("a"),
+			"projects/p/secrets/beta/versions/latest":  []byte("b"),
+			"projects/p/secrets/gamma/versions/latest": []byte("c"),
+		},
+	}
+
+	u, _ := url.Parse("gcp+sm:///projects/p")
+
+	for _, concurrency := range []int{1, 2, 5} {
+		t.Run(fmt.Sprintf("concurrency=%d", concurrency), func(t *testing.T) {
+			fsys, _ := New(u)
+			fsys = WithSMClientFS(mc, fsys)
+			fsys = WithMaxConcurrencyFS(concurrency, fsys)
+
+			entries, err := fs.ReadDir(fsys, ".")
+			require.NoError(t, err)
+			require.Len(t, entries, 3)
+
+			// Results must always be sorted regardless of fetch order.
+			assert.Equal(t, "alpha", entries[0].Name())
+			assert.Equal(t, "beta", entries[1].Name())
+			assert.Equal(t, "gamma", entries[2].Name())
+		})
+	}
+}
+
+func TestDefaultMaxConcurrencyEnvVar(t *testing.T) {
+	t.Setenv("GCP_SM_MAX_CONCURRENCY", "7")
+
+	u, _ := url.Parse("gcp+sm:///projects/p")
+	fsys, err := New(u)
+	require.NoError(t, err)
+
+	gcpFS, ok := fsys.(*gcpsmFS)
+	require.True(t, ok)
+	assert.Equal(t, 7, gcpFS.maxConcurrency)
+}
+
+func TestDefaultMaxConcurrencyEnvVar_Invalid(t *testing.T) {
+	t.Setenv("GCP_SM_MAX_CONCURRENCY", "notanumber")
+
+	u, _ := url.Parse("gcp+sm:///projects/p")
+	fsys, err := New(u)
+	require.NoError(t, err)
+
+	gcpFS, ok := fsys.(*gcpsmFS)
+	require.True(t, ok)
+	assert.Equal(t, 1, gcpFS.maxConcurrency)
+}
+
+func TestCache_ReadDirDeduplicatesRPCs(t *testing.T) {
+	mc := &mockClient{
+		secrets: map[string][]byte{
+			"projects/p/secrets/foo/versions/latest": []byte("bar"),
+			"projects/p/secrets/baz/versions/latest": []byte("qux"),
+		},
+	}
+
+	u, _ := url.Parse("gcp+sm:///projects/p")
+	fsys, _ := New(u)
+	fsys = WithSMClientFS(mc, fsys)
+
+	// First listing — populates cache; expect 1 AccessSecretVersion + 1 GetSecretVersion per secret.
+	entries, err := fs.ReadDir(fsys, ".")
+	require.NoError(t, err)
+	require.Len(t, entries, 2)
+	assert.Equal(t, int32(2), mc.accessCalls.Load(), "first ReadDir: expected 2 AccessSecretVersion calls")
+	assert.Equal(t, int32(2), mc.getCalls.Load(), "first ReadDir: expected 2 GetSecretVersion calls")
+
+	// Second listing — all data is in cache; no additional RPCs should be made.
+	entries, err = fs.ReadDir(fsys, ".")
+	require.NoError(t, err)
+	require.Len(t, entries, 2)
+	assert.Equal(t, int32(2), mc.accessCalls.Load(), "second ReadDir: AccessSecretVersion count must not increase")
+	assert.Equal(t, int32(2), mc.getCalls.Load(), "second ReadDir: GetSecretVersion count must not increase")
+}
+
+func TestCache_OpenAndReadDeduplicatesRPCs(t *testing.T) {
+	mc := &mockClient{
+		secrets: map[string][]byte{
+			"projects/p/secrets/foo/versions/latest": []byte("bar"),
+		},
+	}
+
+	u, _ := url.Parse("gcp+sm:///projects/p")
+	fsys, _ := New(u)
+	fsys = WithSMClientFS(mc, fsys)
+
+	// First read — fetches from GCP.
+	b, err := fs.ReadFile(fsys, "foo")
+	require.NoError(t, err)
+	assert.Equal(t, []byte("bar"), b)
+	assert.Equal(t, int32(1), mc.accessCalls.Load())
+
+	// Second read — served from cache; no additional RPC.
+	b, err = fs.ReadFile(fsys, "foo")
+	require.NoError(t, err)
+	assert.Equal(t, []byte("bar"), b)
+	assert.Equal(t, int32(1), mc.accessCalls.Load(), "second ReadFile: AccessSecretVersion count must not increase")
+}
+
 func TestReadDir(t *testing.T) {
 	mc := &mockClient{
 		secrets: map[string][]byte{
@@ -114,6 +219,42 @@ func TestReadDir(t *testing.T) {
 	// Sorted order
 	assert.Equal(t, "baz", entries[0].Name())
 	assert.Equal(t, "foo", entries[1].Name())
+}
+
+func TestReadDir_SkipsDisabledVersionSecrets(t *testing.T) {
+	mc := &mockClient{
+		secrets: map[string][]byte{
+			"projects/p/secrets/foo/versions/latest": []byte("bar"),
+		},
+		disabledVersionSecrets: []string{"disabledsecret"},
+	}
+
+	u, _ := url.Parse("gcp+sm:///projects/p")
+	fsys, _ := New(u)
+	fsys = WithSMClientFS(mc, fsys)
+
+	entries, err := fs.ReadDir(fsys, ".")
+	require.NoError(t, err)
+	require.Len(t, entries, 1)
+	assert.Equal(t, "foo", entries[0].Name())
+}
+
+func TestReadDir_SkipsVersionlessSecrets(t *testing.T) {
+	mc := &mockClient{
+		secrets: map[string][]byte{
+			"projects/p/secrets/foo/versions/latest": []byte("bar"),
+		},
+		noVersionSecrets: []string{"noversionsecret"},
+	}
+
+	u, _ := url.Parse("gcp+sm:///projects/p")
+	fsys, _ := New(u)
+	fsys = WithSMClientFS(mc, fsys)
+
+	entries, err := fs.ReadDir(fsys, ".")
+	require.NoError(t, err)
+	require.Len(t, entries, 1)
+	assert.Equal(t, "foo", entries[0].Name())
 }
 
 func TestStat(t *testing.T) {
@@ -204,6 +345,16 @@ func TestEmptyProject_Open(t *testing.T) {
 		require.Error(t, err)
 		assert.ErrorIs(t, err, fs.ErrInvalid)
 	})
+
+	t.Run("open project-only path returns directory", func(t *testing.T) {
+		file, err := fsys.Open("projects/myproj")
+		require.NoError(t, err)
+		fi, err := file.Stat()
+		require.NoError(t, err)
+		assert.True(t, fi.IsDir())
+
+		_ = file.Close()
+	})
 }
 
 // TestEmptyProject_ReadFile verifies ReadFile behavior when the FS has no project in the URL.
@@ -243,15 +394,15 @@ func TestEmptyProject_ReadDir(t *testing.T) {
 	fsys, _ := New(u)
 	fsys = WithSMClientFS(mc, fsys)
 
-	t.Run("readdir requires project in URL", func(t *testing.T) {
+	t.Run("readdir root with no project returns invalid", func(t *testing.T) {
 		_, err := fs.ReadDir(fsys, ".")
 		require.Error(t, err)
-		assert.Contains(t, err.Error(), "listing secrets requires a project in the URL")
+		assert.ErrorIs(t, err, fs.ErrInvalid)
 	})
 
-	t.Run("readdir on non-root returns not exist", func(t *testing.T) {
+	t.Run("readdir on non-root returns invalid", func(t *testing.T) {
 		_, err := fs.ReadDir(fsys, "projects/p/secrets")
 		require.Error(t, err)
-		assert.ErrorIs(t, err, fs.ErrNotExist)
+		assert.ErrorIs(t, err, fs.ErrInvalid)
 	})
 }
