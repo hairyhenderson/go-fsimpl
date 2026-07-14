@@ -26,7 +26,7 @@ jobs:
       - run: |
           git config --global user.email "bogus@example.com"
           git config --global user.name "Someone"
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           persist-credentials: false
       - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
@@ -48,7 +48,7 @@ jobs:
     container:
       image: ghcr.io/hairyhenderson/gomplate-ci-build:latest@sha256:f4010c4bd093166a9cf7a253f25e9b55a5d34b3d5b3db033a968c34476a8c827
     steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           persist-credentials: false
       - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
@@ -73,7 +73,7 @@ jobs:
       - run: |
           git config --global user.email "bogus@example.com"
           git config --global user.name "Someone"
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           persist-credentials: false
       - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
