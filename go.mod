@@ -23,7 +23,7 @@ require (
 	github.com/hashicorp/vault/api v1.23.0
 	github.com/hashicorp/vault/api/auth/approle v0.12.0
 	github.com/hashicorp/vault/api/auth/userpass v0.12.0
-	github.com/johannesboyne/gofakes3 v0.0.0-20260208201424-4c385a1f6a73
+	github.com/johannesboyne/gofakes3 v1.2.0
 	github.com/stretchr/testify v1.11.1
 	go.opentelemetry.io/contrib/propagators/autoprop v0.69.0
 	go.opentelemetry.io/otel v1.44.0
