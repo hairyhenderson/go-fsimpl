@@ -277,11 +277,17 @@ type mountInfo struct {
 
 var _ fs.ReadDirFile = (*vaultFile)(nil)
 
+// Vault has used both mountTypeKV (current) and mountTypeGeneric (legacy,
+// pre-0.9.0) as the type name for the same engine; both are treated
+// identically when version==2.
+const (
+	mountTypeKV      = "kv"
+	mountTypeGeneric = "generic"
+)
+
 // isKVv2Mount reports whether mi describes a KV version 2 mount.
-// Vault has used both "kv" (current) and "generic" (legacy, pre-0.9.0) as the
-// type name for the same engine; both are treated identically when version==2.
 func isKVv2Mount(mi *mountInfo) bool {
-	return (mi.Type == "kv" || mi.Type == "generic") && mi.Options["version"] == "2"
+	return (mi.Type == mountTypeKV || mi.Type == mountTypeGeneric) && mi.Options["version"] == "2"
 }
 
 func (f *vaultFile) request() (*api.KVSecret, *api.Secret, error) {

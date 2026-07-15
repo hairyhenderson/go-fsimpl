@@ -422,13 +422,13 @@ func TestFindMountInfo(t *testing.T) {
 			// legacy "generic" type with version=2 (pre-Vault 0.9.0, same as kv+v2)
 			rawFilePath: "/v1/secret/a/b/c", mountName: "secret/",
 			mountOpts: map[string]any{
-				"type": "generic", "options": map[string]any{"version": "2"},
+				"type": mountTypeGeneric, "options": map[string]any{"version": "2"},
 			},
 			expected: &mountInfo{
 				secretPath: "/a/b/c",
 				name:       "secret/",
 				MountOutput: &api.MountOutput{
-					Type:    "generic",
+					Type:    mountTypeGeneric,
 					Options: map[string]string{"version": "2"},
 				},
 			},
@@ -448,8 +448,8 @@ func TestFindMountInfo(t *testing.T) {
 }
 
 // genericV2Server returns a fake Vault server whose mount type is "generic"
-// with options[version]="2", simulating a pre-0.9.0 Vault KV v2 setup.
-// Secrets are served under the KV v2 data/metadata path layout.
+// with options[version]="2", simulating a legacy mount that still reports the
+// pre-rename type name while using the KV v2 data/metadata path layout.
 func genericV2Server(t *testing.T) *api.Client {
 	t.Helper()
 
@@ -472,7 +472,7 @@ func genericV2Server(t *testing.T) *api.Client {
 	mountH := func(w http.ResponseWriter, _ *http.Request) {
 		mounts := map[string]any{
 			"secret/": map[string]any{
-				"type":    "generic",
+				"type":    mountTypeGeneric,
 				"options": map[string]any{"version": "2"},
 			},
 		}
@@ -489,6 +489,7 @@ func genericV2Server(t *testing.T) *api.Client {
 		data, ok := responses[p]
 		if !ok {
 			w.WriteHeader(http.StatusNotFound)
+
 			return
 		}
 
@@ -510,11 +511,11 @@ func TestReadFile_GenericV2Mount(t *testing.T) {
 
 	b, err := fs.ReadFile(fsys, "foo")
 	require.NoError(t, err)
-	assert.Equal(t, `{"value":"foo"}`, string(b))
+	assert.JSONEq(t, `{"value":"foo"}`, string(b))
 
 	b, err = fs.ReadFile(fsys, "bar/baz")
 	require.NoError(t, err)
-	assert.Equal(t, `{"value":"bar"}`, string(b))
+	assert.JSONEq(t, `{"value":"bar"}`, string(b))
 }
 
 func TestReadDirFS_GenericV2Mount(t *testing.T) {
@@ -530,6 +531,7 @@ func TestReadDirFS_GenericV2Mount(t *testing.T) {
 	for i, e := range de {
 		names[i] = e.Name()
 	}
+
 	assert.Equal(t, []string{"bar", "foo"}, names)
 }
 
