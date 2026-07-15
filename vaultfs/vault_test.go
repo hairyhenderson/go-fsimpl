@@ -433,6 +433,14 @@ func TestFindMountInfo(t *testing.T) {
 				},
 			},
 		},
+		{
+			// path-segment boundary: "kv/" must not match "/v1/kv2/..."
+			rawFilePath: "/v1/kv2/secret", mountName: "kv/",
+			mountOpts: map[string]any{
+				"type": "kv", "options": map[string]any{"version": "2"},
+			},
+			expected: nil,
+		},
 	}
 
 	for _, d := range testdata {
@@ -533,6 +541,65 @@ func TestReadDirFS_GenericV2Mount(t *testing.T) {
 	}
 
 	assert.Equal(t, []string{"bar", "foo"}, names)
+}
+
+func TestFindMountInfoWithAuthPrefix(t *testing.T) {
+	rawMounts := map[string]any{
+		"token/": map[string]any{
+			"type": "token",
+		},
+	}
+
+	actual, err := findMountInfoWithPrefix("/v1/auth/token/lookup-self", rawMounts, "/v1/auth")
+	require.NoError(t, err)
+	assert.Equal(t, &mountInfo{
+		secretPath: "/lookup-self",
+		name:       "token/",
+		MountOutput: &api.MountOutput{
+			Type: "token",
+		},
+	}, actual)
+}
+
+func TestFindMountInfoWithPrefix_ChoosesLongestMatch(t *testing.T) {
+	rawMounts := map[string]any{
+		"k/": map[string]any{
+			"type": "kv",
+		},
+		"k/v/": map[string]any{
+			"type": "kv",
+		},
+	}
+
+	actual, err := findMountInfoWithPrefix("/v1/k/v/secret", rawMounts, "/v1")
+	require.NoError(t, err)
+	assert.Equal(t, "k/v/", actual.name)
+	assert.Equal(t, "/secret", actual.secretPath)
+}
+
+func TestFindMountInfoFromData(t *testing.T) {
+	rawData := map[string]any{
+		"secret": map[string]any{
+			"secret/": map[string]any{
+				"type": "kv",
+			},
+		},
+		"auth": map[string]any{
+			"token/": map[string]any{
+				"type": "token",
+			},
+		},
+	}
+
+	actual, err := findMountInfoFromData("/v1/auth/token/lookup-self", rawData)
+	require.NoError(t, err)
+	assert.Equal(t, &mountInfo{
+		name:       "token/",
+		secretPath: "/lookup-self",
+		MountOutput: &api.MountOutput{
+			Type: "token",
+		},
+	}, actual)
 }
 
 func TestWithConfig(t *testing.T) {
