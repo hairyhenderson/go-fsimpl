@@ -13,6 +13,10 @@
       "matchUpdateTypes": ["minor", "patch"],
       "minimumReleaseAge": "7 days",
       "automerge": true
+    },
+    {
+      "matchUpdateTypes": ["digest"],
+      "automerge": true
     }
   ]
 }
