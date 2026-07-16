@@ -418,6 +418,21 @@ func TestFindMountInfo(t *testing.T) {
 				},
 			},
 		},
+		{
+			// legacy "generic" type with version=2 (pre-Vault 0.9.0, same as kv+v2)
+			rawFilePath: "/v1/secret/a/b/c", mountName: "secret/",
+			mountOpts: map[string]any{
+				"type": mountTypeGeneric, "options": map[string]any{"version": "2"},
+			},
+			expected: &mountInfo{
+				secretPath: "/a/b/c",
+				name:       "secret/",
+				MountOutput: &api.MountOutput{
+					Type:    mountTypeGeneric,
+					Options: map[string]string{"version": "2"},
+				},
+			},
+		},
 	}
 
 	for _, d := range testdata {
@@ -430,6 +445,94 @@ func TestFindMountInfo(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, d.expected, actual)
 	}
+}
+
+// genericV2Server returns a fake Vault server whose mount type is "generic"
+// with options[version]="2", simulating a legacy mount that still reports the
+// pre-rename type name while using the KV v2 data/metadata path layout.
+func genericV2Server(t *testing.T) *api.Client {
+	t.Helper()
+
+	// Map from request path to the JSON object returned inside {"data": ...}.
+	// LIST paths end with "/".
+	// Data paths use the KV v2 response layout: {"data": <payload>, "metadata": <meta>}.
+	responses := map[string]map[string]any{
+		"/v1/secret/metadata/":     {"keys": []string{"foo", "bar/"}},
+		"/v1/secret/metadata/bar/": {"keys": []string{"baz"}},
+		"/v1/secret/data/foo": {
+			"data":     map[string]any{"value": "foo"},
+			"metadata": map[string]any{"version": 1, "deletion_time": ""},
+		},
+		"/v1/secret/data/bar/baz": {
+			"data":     map[string]any{"value": "bar"},
+			"metadata": map[string]any{"version": 1, "deletion_time": ""},
+		},
+	}
+
+	mountH := func(w http.ResponseWriter, _ *http.Request) {
+		mounts := map[string]any{
+			"secret/": map[string]any{
+				"type":    mountTypeGeneric,
+				"options": map[string]any{"version": "2"},
+			},
+		}
+		resp := map[string]any{"data": map[string]any{"secret": mounts}}
+		_ = json.NewEncoder(w).Encode(resp)
+	}
+
+	secretH := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		p := r.URL.Path
+		if r.Method == "LIST" || (r.Method == http.MethodGet && r.URL.Query().Get("list") == "true") {
+			p += "/"
+		}
+
+		data, ok := responses[p]
+		if !ok {
+			w.WriteHeader(http.StatusNotFound)
+
+			return
+		}
+
+		_ = json.NewEncoder(w).Encode(map[string]any{"data": data})
+	})
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("/v1/sys/internal/ui/mounts", mountH)
+	mux.Handle("/", secretH)
+
+	return fakevault.FakeVault(t, mux)
+}
+
+func TestReadFile_GenericV2Mount(t *testing.T) {
+	v := newRefCountedClient(genericV2Server(t))
+
+	fsys := fs.FS(newWithVaultClient(tests.MustURL("vault:///secret/"), v))
+	fsys = WithAuthMethod(TokenAuthMethod("blargh"), fsys)
+
+	b, err := fs.ReadFile(fsys, "foo")
+	require.NoError(t, err)
+	assert.JSONEq(t, `{"value":"foo"}`, string(b))
+
+	b, err = fs.ReadFile(fsys, "bar/baz")
+	require.NoError(t, err)
+	assert.JSONEq(t, `{"value":"bar"}`, string(b))
+}
+
+func TestReadDirFS_GenericV2Mount(t *testing.T) {
+	v := newRefCountedClient(genericV2Server(t))
+
+	fsys := fs.FS(newWithVaultClient(tests.MustURL("vault:///secret/"), v))
+	fsys = WithAuthMethod(TokenAuthMethod("blargh"), fsys)
+
+	de, err := fs.ReadDir(fsys, ".")
+	require.NoError(t, err)
+
+	names := make([]string, len(de))
+	for i, e := range de {
+		names[i] = e.Name()
+	}
+
+	assert.Equal(t, []string{"bar", "foo"}, names)
 }
 
 func TestWithConfig(t *testing.T) {
