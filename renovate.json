@@ -17,6 +17,10 @@
     {
       "matchUpdateTypes": ["digest"],
       "automerge": true
+    },
+    {
+      "matchUpdateTypes": ["major"],
+      "minimumReleaseAge": "7 days"
     }
   ]
 }
