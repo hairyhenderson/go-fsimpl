@@ -31,6 +31,13 @@ import (
 // secretCache holds fetched secret payloads and version metadata, keyed by
 // "project/name". Two separate sync.Maps allow loadContent and ensureModTime
 // to operate concurrently without contention.
+//
+// The cache is unbounded and entries are never invalidated or expired for
+// the lifetime of the FS instance. Long-running processes that need to
+// observe secret rotations, or that access a very large number of distinct
+// secrets, should disable it via WithCacheFS(false, fsys) or by setting the
+// GCP_SM_DISABLE_CACHE environment variable (which controls the default used
+// by New).
 type secretCache struct {
 	content sync.Map // key: "project/name" → []byte
 	modTime sync.Map // key: "project/name" → time.Time
@@ -73,6 +80,28 @@ func WithMaxConcurrencyFS(n int, fsys fs.FS) fs.FS {
 	return fsys
 }
 
+// withCacheEnabler is an fs.FS that can be configured to enable or disable
+// its in-memory secret cache.
+type withCacheEnabler interface {
+	WithCache(enabled bool) fs.FS
+}
+
+// WithCacheFS enables or disables the in-memory secret cache used by fs, if
+// the filesystem supports it. The cache stores fetched secret payloads and
+// version metadata for the lifetime of the FS instance and never expires or
+// invalidates entries (see secretCache), so disable it if the process is
+// long-running and needs to observe secret rotations, or accesses a very
+// large number of distinct secrets. The default is controlled by the
+// GCP_SM_DISABLE_CACHE environment variable, falling back to enabled if unset
+// or invalid.
+func WithCacheFS(enabled bool, fsys fs.FS) fs.FS {
+	if fsys, ok := fsys.(withCacheEnabler); ok {
+		return fsys.WithCache(enabled)
+	}
+
+	return fsys
+}
+
 type gcpsmFS struct {
 	ctx            context.Context
 	smclient       SecretManagerClient
@@ -103,6 +132,19 @@ func defaultMaxConcurrency() int {
 	return 1
 }
 
+// defaultCacheEnabled reads GCP_SM_DISABLE_CACHE from the environment; any
+// truthy value (as parsed by strconv.ParseBool) disables the in-memory
+// secret cache. Returns true (enabled) if unset or invalid.
+func defaultCacheEnabled() bool {
+	if s := os.Getenv("GCP_SM_DISABLE_CACHE"); s != "" {
+		if disabled, err := strconv.ParseBool(s); err == nil {
+			return !disabled
+		}
+	}
+
+	return true
+}
+
 func New(u *url.URL) (fs.FS, error) {
 	if u.Scheme != "gcp+sm" {
 		return nil, fmt.Errorf("invalid URL scheme %q", u.Scheme)
@@ -112,7 +154,10 @@ func New(u *url.URL) (fs.FS, error) {
 		ctx:            context.Background(),
 		base:           u,
 		maxConcurrency: defaultMaxConcurrency(),
-		cache:          &secretCache{},
+	}
+
+	if defaultCacheEnabled() {
+		f.cache = &secretCache{}
 	}
 
 	// Normalize the path and validate it matches one of the supported forms:
@@ -152,6 +197,7 @@ var (
 	_ internal.WithHTTPClienter = (*gcpsmFS)(nil)
 	_ withSMClienter            = (*gcpsmFS)(nil)
 	_ withMaxConcurrencyer      = (*gcpsmFS)(nil)
+	_ withCacheEnabler          = (*gcpsmFS)(nil)
 )
 
 func (f gcpsmFS) URL() string {
@@ -198,6 +244,20 @@ func (f *gcpsmFS) WithMaxConcurrency(n int) fs.FS {
 
 	fsys := *f
 	fsys.maxConcurrency = n
+
+	return &fsys
+}
+
+func (f *gcpsmFS) WithCache(enabled bool) fs.FS {
+	fsys := *f
+
+	if enabled {
+		if fsys.cache == nil {
+			fsys.cache = &secretCache{}
+		}
+	} else {
+		fsys.cache = nil
+	}
 
 	return &fsys
 }
@@ -576,14 +636,19 @@ func (f *gcpsmFile) list() error {
 	for _, name := range secretNames {
 		g.Go(func() error {
 			child := gcpsmFile{
-				ctx:     ctx,
 				name:    name,
 				project: f.project,
 				client:  f.client,
 				cache:   f.cache,
 			}
 
-			var inner errgroup.Group
+			// child is a disposable, per-goroutine value (never reused for
+			// further RPCs once list() returns), so it's safe to rebind its
+			// ctx to a derived, per-secret context: if either RPC fails, the
+			// other is cancelled early instead of waiting out its full RPC.
+			inner, innerCtx := errgroup.WithContext(ctx)
+			child.ctx = innerCtx
+
 			inner.Go(child.loadContent)
 			inner.Go(child.ensureModTime)
 

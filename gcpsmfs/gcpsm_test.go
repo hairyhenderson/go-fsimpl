@@ -149,6 +149,42 @@ func TestDefaultMaxConcurrencyEnvVar_Invalid(t *testing.T) {
 	assert.Equal(t, 1, gcpFS.maxConcurrency)
 }
 
+func TestDefaultCacheEnvVar(t *testing.T) {
+	t.Run("unset defaults to enabled", func(t *testing.T) {
+		u, _ := url.Parse("gcp+sm:///projects/p")
+		fsys, err := New(u)
+		require.NoError(t, err)
+
+		gcpFS, ok := fsys.(*gcpsmFS)
+		require.True(t, ok)
+		assert.NotNil(t, gcpFS.cache)
+	})
+
+	t.Run("truthy value disables cache", func(t *testing.T) {
+		t.Setenv("GCP_SM_DISABLE_CACHE", "1")
+
+		u, _ := url.Parse("gcp+sm:///projects/p")
+		fsys, err := New(u)
+		require.NoError(t, err)
+
+		gcpFS, ok := fsys.(*gcpsmFS)
+		require.True(t, ok)
+		assert.Nil(t, gcpFS.cache)
+	})
+
+	t.Run("invalid value defaults to enabled", func(t *testing.T) {
+		t.Setenv("GCP_SM_DISABLE_CACHE", "notabool")
+
+		u, _ := url.Parse("gcp+sm:///projects/p")
+		fsys, err := New(u)
+		require.NoError(t, err)
+
+		gcpFS, ok := fsys.(*gcpsmFS)
+		require.True(t, ok)
+		assert.NotNil(t, gcpFS.cache)
+	})
+}
+
 func TestCache_ReadDirDeduplicatesRPCs(t *testing.T) {
 	mc := &mockClient{
 		secrets: map[string][]byte{
@@ -198,6 +234,46 @@ func TestCache_OpenAndReadDeduplicatesRPCs(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, []byte("bar"), b)
 	assert.Equal(t, int32(1), mc.accessCalls.Load(), "second ReadFile: AccessSecretVersion count must not increase")
+}
+
+func TestWithCacheFS_Disabled(t *testing.T) {
+	mc := &mockClient{
+		secrets: map[string][]byte{
+			"projects/p/secrets/foo/versions/latest": []byte("bar"),
+		},
+	}
+
+	u, _ := url.Parse("gcp+sm:///projects/p")
+	fsys, _ := New(u)
+	fsys = WithSMClientFS(mc, fsys)
+	fsys = WithCacheFS(false, fsys)
+
+	gcpFS, ok := fsys.(*gcpsmFS)
+	require.True(t, ok)
+	assert.Nil(t, gcpFS.cache)
+
+	// First read — fetches from GCP.
+	b, err := fs.ReadFile(fsys, "foo")
+	require.NoError(t, err)
+	assert.Equal(t, []byte("bar"), b)
+	assert.Equal(t, int32(1), mc.accessCalls.Load())
+
+	// Second read — cache is disabled, so the RPC is repeated.
+	b, err = fs.ReadFile(fsys, "foo")
+	require.NoError(t, err)
+	assert.Equal(t, []byte("bar"), b)
+	assert.Equal(t, int32(2), mc.accessCalls.Load(), "second ReadFile: AccessSecretVersion count should increase with cache disabled")
+}
+
+func TestWithCacheFS_ReEnable(t *testing.T) {
+	u, _ := url.Parse("gcp+sm:///projects/p")
+	fsys, _ := New(u)
+	fsys = WithCacheFS(false, fsys)
+	fsys = WithCacheFS(true, fsys)
+
+	gcpFS, ok := fsys.(*gcpsmFS)
+	require.True(t, ok)
+	assert.NotNil(t, gcpFS.cache)
 }
 
 func TestReadDir(t *testing.T) {
@@ -404,5 +480,12 @@ func TestEmptyProject_ReadDir(t *testing.T) {
 		_, err := fs.ReadDir(fsys, "projects/p/secrets")
 		require.Error(t, err)
 		assert.ErrorIs(t, err, fs.ErrInvalid)
+	})
+
+	t.Run("readdir project-only path succeeds", func(t *testing.T) {
+		entries, err := fs.ReadDir(fsys, "projects/p")
+		require.NoError(t, err)
+		require.Len(t, entries, 1)
+		assert.Equal(t, "foo", entries[0].Name())
 	})
 }
