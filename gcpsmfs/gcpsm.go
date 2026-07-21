@@ -291,9 +291,20 @@ func (f *gcpsmFS) ReadDir(name string) ([]fs.DirEntry, error) {
 		return nil, &fs.PathError{Op: "readdir", Path: name, Err: fs.ErrInvalid}
 	}
 
-	project, fileName, err := f.getProjectAndFileName(name)
-	if err != nil {
-		return nil, err
+	// Root listings resolve directly to the FS's configured project (which may
+	// be empty). Route through getProjectAndFileName only for non-root paths,
+	// so an unscoped FS still gets the descriptive "requires a project" error
+	// below instead of the generic fs.ErrInvalid that getProjectAndFileName
+	// would otherwise return for ".".
+	project, fileName := f.project, name
+
+	if name != "." {
+		var err error
+
+		project, fileName, err = f.getProjectAndFileName(name)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if fileName != "." {
@@ -391,7 +402,7 @@ func (f *gcpsmFile) Stat() (fs.FileInfo, error) {
 		return f.fileInfo(), nil
 	}
 
-	g, _ := errgroup.WithContext(f.ctx)
+	var g errgroup.Group
 	g.Go(f.loadContent)
 	g.Go(f.ensureModTime)
 
@@ -548,7 +559,7 @@ func (f *gcpsmFile) list() error {
 	}
 
 	// Phase 2: fetch content and mod-time for each secret concurrently, bounded
-	// by maxConcurrency (errgroup.SetLimit(-1) means unlimited).
+	// by maxConcurrency; values <= 0 default to 1 (serial).
 	var (
 		mu      sync.Mutex
 		entries []gcpsmFile
@@ -572,7 +583,7 @@ func (f *gcpsmFile) list() error {
 				cache:   f.cache,
 			}
 
-			inner, _ := errgroup.WithContext(ctx)
+			var inner errgroup.Group
 			inner.Go(child.loadContent)
 			inner.Go(child.ensureModTime)
 

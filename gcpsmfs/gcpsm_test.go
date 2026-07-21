@@ -394,10 +394,10 @@ func TestEmptyProject_ReadDir(t *testing.T) {
 	fsys, _ := New(u)
 	fsys = WithSMClientFS(mc, fsys)
 
-	t.Run("readdir root with no project returns invalid", func(t *testing.T) {
+	t.Run("readdir root with no project returns descriptive error", func(t *testing.T) {
 		_, err := fs.ReadDir(fsys, ".")
 		require.Error(t, err)
-		assert.ErrorIs(t, err, fs.ErrInvalid)
+		assert.Contains(t, err.Error(), "requires a project")
 	})
 
 	t.Run("readdir on non-root returns invalid", func(t *testing.T) {
