@@ -324,14 +324,14 @@ func (f *gcpsmFS) Open(name string) (fs.File, error) {
 		return nil, &fs.PathError{Op: "open", Path: name, Err: fs.ErrInvalid}
 	}
 
-	client, err := f.getClient()
-	if err != nil {
-		return nil, err
-	}
-
 	project, fileName, err := f.getProjectAndFileName(name)
 	if err != nil {
 		return nil, &fs.PathError{Op: "open", Path: name, Err: err}
+	}
+
+	client, err := f.getClient()
+	if err != nil {
+		return nil, err
 	}
 
 	file := &gcpsmFile{
@@ -378,13 +378,13 @@ func (f *gcpsmFS) ReadDir(name string) ([]fs.DirEntry, error) {
 		return nil, &fs.PathError{Op: opReaddir, Path: name, Err: fs.ErrNotExist}
 	}
 
+	if project == "" {
+		return nil, errors.New("listing secrets requires a project in the URL (e.g. gcp+sm:///projects/<project-id>)")
+	}
+
 	client, err := f.getClient()
 	if err != nil {
 		return nil, err
-	}
-
-	if project == "" {
-		return nil, errors.New("listing secrets requires a project in the URL (e.g. gcp+sm:///projects/<project-id>)")
 	}
 
 	dir := &gcpsmFile{

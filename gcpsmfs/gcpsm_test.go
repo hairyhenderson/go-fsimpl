@@ -515,3 +515,26 @@ func TestEmptyProject_ReadDir(t *testing.T) {
 		assert.Equal(t, "foo", entries[0].Name())
 	})
 }
+
+// TestOpen_ValidatesBeforeClientConstruction verifies that Open rejects invalid
+// paths without ever constructing a Secret Manager client (no network call).
+func TestOpen_ValidatesBeforeClientConstruction(t *testing.T) {
+	u, _ := url.Parse("gcp+sm:///projects/p")
+	fsys, _ := New(u) // no smclient configured — getClient() would try real ADC
+
+	_, err := fsys.Open("foo/bar")
+	require.Error(t, err)
+	require.ErrorIs(t, err, fs.ErrInvalid)
+}
+
+// TestReadDir_ChecksProjectBeforeClientConstruction verifies that ReadDir on an
+// unscoped FS returns the descriptive error without constructing a Secret Manager
+// client (no network call).
+func TestReadDir_ChecksProjectBeforeClientConstruction(t *testing.T) {
+	u, _ := url.Parse("gcp+sm:///") // no project, no smclient configured
+	fsys, _ := New(u)
+
+	_, err := fs.ReadDir(fsys, ".")
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "requires a project")
+}
