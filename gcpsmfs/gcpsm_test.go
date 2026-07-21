@@ -55,7 +55,28 @@ func TestOpen(t *testing.T) {
 
 		_, err := fsys.Open("foo/bar")
 		require.Error(t, err)
-		assert.ErrorIs(t, err, fs.ErrInvalid)
+		require.ErrorIs(t, err, fs.ErrInvalid)
+
+		var pathErr *fs.PathError
+
+		require.ErrorAs(t, err, &pathErr)
+		assert.Equal(t, "open", pathErr.Op)
+	})
+
+	t.Run("reading a directory handle returns is-a-directory error without an RPC", func(t *testing.T) {
+		u, _ := url.Parse("gcp+sm:///")
+		fsys, _ := New(u)
+		fsys = WithSMClientFS(mc, fsys)
+
+		f, err := fsys.Open("projects/p")
+		require.NoError(t, err)
+
+		_, err = f.Read(make([]byte, 1))
+		require.Error(t, err)
+		require.ErrorIs(t, err, errIsDirectory)
+		assert.Equal(t, int32(0), mc.accessCalls.Load(), "reading a directory handle must not trigger an RPC")
+
+		_ = f.Close()
 	})
 }
 
@@ -479,7 +500,12 @@ func TestEmptyProject_ReadDir(t *testing.T) {
 	t.Run("readdir on non-root returns invalid", func(t *testing.T) {
 		_, err := fs.ReadDir(fsys, "projects/p/secrets")
 		require.Error(t, err)
-		assert.ErrorIs(t, err, fs.ErrInvalid)
+		require.ErrorIs(t, err, fs.ErrInvalid)
+
+		var pathErr *fs.PathError
+
+		require.ErrorAs(t, err, &pathErr)
+		assert.Equal(t, "readdir", pathErr.Op, "error Op should be readdir, not the internal getProjectAndFileName helper name")
 	})
 
 	t.Run("readdir project-only path succeeds", func(t *testing.T) {

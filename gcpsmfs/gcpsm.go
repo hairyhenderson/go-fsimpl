@@ -282,6 +282,10 @@ func (f *gcpsmFS) getClient() (SecretManagerClient, error) {
 	return f.smclient, nil
 }
 
+// getProjectAndFileName parses the project and file name out of name, given
+// the FS's configured project (which may be empty). On error, it returns a
+// plain fs.ErrInvalid (not wrapped in a *fs.PathError) so that callers can
+// wrap it with their own operation name (e.g. "open", "readdir").
 func (f *gcpsmFS) getProjectAndFileName(name string) (string, string, error) {
 	// First, assume that the project is in the FS definition, not the path name
 	project := f.project
@@ -297,19 +301,19 @@ func (f *gcpsmFS) getProjectAndFileName(name string) (string, string, error) {
 		}
 
 		if len(parts) != 4 || parts[0] != "projects" || parts[2] != "secrets" {
-			return "", "", &fs.PathError{Op: "getProjectAndFileName", Path: name, Err: fs.ErrInvalid}
+			return "", "", fs.ErrInvalid
 		}
 
 		project = parts[1]
 		if project == "" {
-			return "", "", &fs.PathError{Op: "getProjectAndFileName", Path: name, Err: fs.ErrInvalid}
+			return "", "", fs.ErrInvalid
 		}
 
 		fileName = strings.TrimPrefix(path.Base(parts[3]), ".")
 	}
 
 	if strings.Contains(fileName, "/") {
-		return "", "", &fs.PathError{Op: "getProjectAndFileName", Path: name, Err: fs.ErrInvalid}
+		return "", "", fs.ErrInvalid
 	}
 
 	return project, fileName, nil
@@ -327,7 +331,7 @@ func (f *gcpsmFS) Open(name string) (fs.File, error) {
 
 	project, fileName, err := f.getProjectAndFileName(name)
 	if err != nil {
-		return nil, err
+		return nil, &fs.PathError{Op: "open", Path: name, Err: err}
 	}
 
 	file := &gcpsmFile{
@@ -346,9 +350,12 @@ func (f *gcpsmFS) Open(name string) (fs.File, error) {
 	return file, nil
 }
 
+// opReaddir is the fs.PathError.Op used for all ReadDir-related errors below.
+const opReaddir = "readdir"
+
 func (f *gcpsmFS) ReadDir(name string) ([]fs.DirEntry, error) {
 	if !internal.ValidPath(name) {
-		return nil, &fs.PathError{Op: "readdir", Path: name, Err: fs.ErrInvalid}
+		return nil, &fs.PathError{Op: opReaddir, Path: name, Err: fs.ErrInvalid}
 	}
 
 	// Root listings resolve directly to the FS's configured project (which may
@@ -363,12 +370,12 @@ func (f *gcpsmFS) ReadDir(name string) ([]fs.DirEntry, error) {
 
 		project, fileName, err = f.getProjectAndFileName(name)
 		if err != nil {
-			return nil, err
+			return nil, &fs.PathError{Op: opReaddir, Path: name, Err: err}
 		}
 	}
 
 	if fileName != "." {
-		return nil, &fs.PathError{Op: "readdir", Path: name, Err: fs.ErrNotExist}
+		return nil, &fs.PathError{Op: opReaddir, Path: name, Err: fs.ErrNotExist}
 	}
 
 	client, err := f.getClient()
@@ -391,7 +398,7 @@ func (f *gcpsmFS) ReadDir(name string) ([]fs.DirEntry, error) {
 
 	entries, err := dir.ReadDir(-1)
 	if err != nil {
-		return nil, &fs.PathError{Op: "readdir", Path: name, Err: err}
+		return nil, &fs.PathError{Op: opReaddir, Path: name, Err: err}
 	}
 
 	return entries, nil
@@ -406,6 +413,9 @@ func (f *gcpsmFS) ReadFile(name string) ([]byte, error) {
 
 	return io.ReadAll(file)
 }
+
+// errIsDirectory is a copy of EISDIR for our purposes
+var errIsDirectory = errors.New("is a directory")
 
 type gcpsmFile struct {
 	ctx            context.Context
@@ -431,6 +441,10 @@ func (f *gcpsmFile) Close() error {
 }
 
 func (f *gcpsmFile) Read(p []byte) (int, error) {
+	if f.name == "." {
+		return 0, fmt.Errorf("%w: %s", errIsDirectory, f.name)
+	}
+
 	if err := f.loadContent(); err != nil {
 		return 0, &fs.PathError{Op: "read", Path: f.name, Err: err}
 	}
