@@ -2,7 +2,9 @@ package gcpsmfs
 
 import (
 	"context"
+	"slices"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"cloud.google.com/go/secretmanager/apiv1/secretmanagerpb"
@@ -18,8 +20,13 @@ func testSecretVersionModTime() time.Time {
 }
 
 type mockClient struct {
-	secrets map[string][]byte
-	err     error
+	secrets                map[string][]byte
+	noVersionSecrets       []string // listed by ListSecrets but have no version (AccessSecretVersion returns NOT_FOUND)
+	disabledVersionSecrets []string // listed by ListSecrets but version is DISABLED (AccessSecretVersion returns FAILED_PRECONDITION)
+	err                    error
+
+	accessCalls atomic.Int32 // counts AccessSecretVersion invocations
+	getCalls    atomic.Int32 // counts GetSecretVersion invocations
 }
 
 func (m *mockClient) AccessSecretVersion(
@@ -27,8 +34,19 @@ func (m *mockClient) AccessSecretVersion(
 	req *secretmanagerpb.AccessSecretVersionRequest,
 	_ ...gax.CallOption,
 ) (*secretmanagerpb.AccessSecretVersionResponse, error) {
+	m.accessCalls.Add(1)
+
 	if m.err != nil {
 		return nil, m.err
+	}
+
+	// Check if this is a disabled version (key stored without /versions/latest suffix).
+	secretBase := strings.TrimSuffix(req.Name, "/versions/latest")
+
+	secretShortName := secretBase[strings.LastIndex(secretBase, "/")+1:]
+
+	if slices.Contains(m.disabledVersionSecrets, secretShortName) {
+		return nil, status.Error(codes.FailedPrecondition, "secret version is DISABLED")
 	}
 
 	val, ok := m.secrets[req.Name]
@@ -49,6 +67,8 @@ func (m *mockClient) GetSecretVersion(
 	req *secretmanagerpb.GetSecretVersionRequest,
 	_ ...gax.CallOption,
 ) (*secretmanagerpb.SecretVersion, error) {
+	m.getCalls.Add(1)
+
 	if m.err != nil {
 		return nil, m.err
 	}
@@ -95,6 +115,22 @@ func (m *mockClient) ListSecrets(
 					seen[secretName] = true
 				}
 			}
+		}
+	}
+
+	for _, name := range m.noVersionSecrets {
+		fullName := req.Parent + "/secrets/" + name
+		if !seen[fullName] {
+			secrets = append(secrets, &secretmanagerpb.Secret{Name: fullName})
+			seen[fullName] = true
+		}
+	}
+
+	for _, name := range m.disabledVersionSecrets {
+		fullName := req.Parent + "/secrets/" + name
+		if !seen[fullName] {
+			secrets = append(secrets, &secretmanagerpb.Secret{Name: fullName})
+			seen[fullName] = true
 		}
 	}
 
