@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.4.5](https://github.com/hairyhenderson/go-fsimpl/compare/v0.4.4...v0.4.5) (2026-07-24)
+
+
+### Bug Fixes
+
+* **gomod:** update aws-sdk-go-v2 monorepo ([#1326](https://github.com/hairyhenderson/go-fsimpl/issues/1326)) ([31afc18](https://github.com/hairyhenderson/go-fsimpl/commit/31afc184db6a397fa7dbaa716c8d56d2e60223d8))
+* **gomod:** update aws-sdk-go-v2 monorepo ([#1339](https://github.com/hairyhenderson/go-fsimpl/issues/1339)) ([de0696c](https://github.com/hairyhenderson/go-fsimpl/commit/de0696c9d275d9086e5645f2dba803eb81b04daa))
+* **gomod:** update go-cloud monorepo to v0.46.0 ([#1341](https://github.com/hairyhenderson/go-fsimpl/issues/1341)) ([24aa541](https://github.com/hairyhenderson/go-fsimpl/commit/24aa541bae277d7d00b907265cc6ccd4792d96aa))
+* **gomod:** update module github.com/aws/aws-sdk-go-v2/service/s3 to v1.105.2 ([#1400](https://github.com/hairyhenderson/go-fsimpl/issues/1400)) ([07f3750](https://github.com/hairyhenderson/go-fsimpl/commit/07f3750bc13bef28e772c7f89e8856e2eb7ca351))
+* **gomod:** update module github.com/aws/aws-sdk-go-v2/service/ssm to v1.72.0 ([#1398](https://github.com/hairyhenderson/go-fsimpl/issues/1398)) ([7540fe1](https://github.com/hairyhenderson/go-fsimpl/commit/7540fe1d5c459ccf977470eca29aef954bdd9539))
+* **gomod:** update module github.com/aws/smithy-go to v1.26.0 ([#1327](https://github.com/hairyhenderson/go-fsimpl/issues/1327)) ([fe0a465](https://github.com/hairyhenderson/go-fsimpl/commit/fe0a465f1d39dd92007319c5948e7b4c9e74e169))
+* **gomod:** update module github.com/aws/smithy-go to v1.27.4 ([#1401](https://github.com/hairyhenderson/go-fsimpl/issues/1401)) ([76f4f04](https://github.com/hairyhenderson/go-fsimpl/commit/76f4f049ba13635e70a1ddb1c8deec1e701d2ae8))
+* **gomod:** update module github.com/azure/azure-sdk-for-go/sdk/storage/azblob to v1.8.0 ([#1354](https://github.com/hairyhenderson/go-fsimpl/issues/1354)) ([70cd977](https://github.com/hairyhenderson/go-fsimpl/commit/70cd977e2952d5142fcf0a02bc62043b77e3dc9a))
+* **gomod:** update module github.com/fsouza/fake-gcs-server to v1.55.0 ([#1403](https://github.com/hairyhenderson/go-fsimpl/issues/1403)) ([047449f](https://github.com/hairyhenderson/go-fsimpl/commit/047449f111add8b70a086be26471d1654585e0da))
+* **gomod:** update module github.com/googleapis/gax-go/v2 to v2.23.0 ([#1379](https://github.com/hairyhenderson/go-fsimpl/issues/1379)) ([ed8057d](https://github.com/hairyhenderson/go-fsimpl/commit/ed8057d7213ed29ad205646728ffeb79ccd728ee))
+* **gomod:** update module github.com/johannesboyne/gofakes3 to v1 ([#1383](https://github.com/hairyhenderson/go-fsimpl/issues/1383)) ([ae8c9b1](https://github.com/hairyhenderson/go-fsimpl/commit/ae8c9b15eec1cff9263f9e5f7094d3032c07ae4e))
+* **gomod:** update module go.opentelemetry.io/contrib/propagators/autoprop to v0.69.0 ([#1328](https://github.com/hairyhenderson/go-fsimpl/issues/1328)) ([a80e94b](https://github.com/hairyhenderson/go-fsimpl/commit/a80e94b56cc13ef1f02edfeb6a40663453a799c9))
+* **gomod:** update module golang.org/x/crypto to v0.54.0 ([#1351](https://github.com/hairyhenderson/go-fsimpl/issues/1351)) ([d4dc090](https://github.com/hairyhenderson/go-fsimpl/commit/d4dc090d4ac095c06035e6c0f3c651285ff5c35c))
+* **gomod:** update module google.golang.org/api to v0.282.0 ([#1320](https://github.com/hairyhenderson/go-fsimpl/issues/1320)) ([03c2441](https://github.com/hairyhenderson/go-fsimpl/commit/03c2441ed893b6cacd83d8200526eb46af5ce839))
+* **gomod:** update module google.golang.org/api to v0.288.0 ([#1332](https://github.com/hairyhenderson/go-fsimpl/issues/1332)) ([79fcdea](https://github.com/hairyhenderson/go-fsimpl/commit/79fcdea04cd538dd10383dcc8b2c9fda21dad5da))
+* **gomod:** update module google.golang.org/api to v0.289.0 ([#1402](https://github.com/hairyhenderson/go-fsimpl/issues/1402)) ([a6748cc](https://github.com/hairyhenderson/go-fsimpl/commit/a6748cc038a3d909974325ddfdeec94a04e13a1a))
+* **gomod:** update module google.golang.org/grpc to v1.82.1 [security] ([#1399](https://github.com/hairyhenderson/go-fsimpl/issues/1399)) ([6e80192](https://github.com/hairyhenderson/go-fsimpl/commit/6e801925bbd4e498cf16b2bafab7aae98896a4bb))
+* **gomod:** update opentelemetry-go monorepo to v1.44.0 ([#1321](https://github.com/hairyhenderson/go-fsimpl/issues/1321)) ([259a978](https://github.com/hairyhenderson/go-fsimpl/commit/259a978a853a993381e44a95eadd75426f04ade4))
+* **vault:** properly treat kv2 mounts with legacy `generic` type as kv2 ([#1348](https://github.com/hairyhenderson/go-fsimpl/issues/1348)) ([c68f852](https://github.com/hairyhenderson/go-fsimpl/commit/c68f852e73cd743ec42bc3059594c7cdc2bae0d0))
+
 ## [0.4.4](https://github.com/hairyhenderson/go-fsimpl/compare/v0.4.3...v0.4.4) (2026-05-23)
 
 
