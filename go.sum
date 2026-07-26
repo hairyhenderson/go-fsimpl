@@ -278,6 +278,8 @@ github.com/fsouza/fake-gcs-server v1.54.0 h1:DGO4EkFVbtP/A5Ha+CAHHx+Xa6O6LeskMB4
 github.com/fsouza/fake-gcs-server v1.54.0/go.mod h1:ryXYE4debQs8GjOxwaOAwFRwM4Cvs6S+NKPPgdVJe6g=
 github.com/fsouza/fake-gcs-server v1.55.0 h1:3lawEZZfhFotaDh+UVi+xgl0n/wiNQh/dEF5hNJEJ5U=
 github.com/fsouza/fake-gcs-server v1.55.0/go.mod h1:5XZDg/ZKtY/ciEwJcFRaVz/YQ0FqffGAVTXyyaZZAuA=
+github.com/fsouza/fake-gcs-server v1.55.1 h1:8IsUkVFYQnS/QLyci2ORdpn7pkmqs+6hnJ8w51bN7Gg=
+github.com/fsouza/fake-gcs-server v1.55.1/go.mod h1:5XZDg/ZKtY/ciEwJcFRaVz/YQ0FqffGAVTXyyaZZAuA=
 github.com/gliderlabs/ssh v0.3.8 h1:a4YXD1V7xMF9g5nTkdfnja3Sxy1PVDCj1Zg4Wb8vY6c=
 github.com/gliderlabs/ssh v0.3.8/go.mod h1:xYoytBv1sV0aL3CavoDuJIQNURXkkfPA/wxQ1pL1fAU=
 github.com/go-git/gcfg v1.5.1-0.20230307220236-3a3c6141e376 h1:+zs/tPmkDkHx3U66DAb0lQFJrpS6731Oaa12ikc+DiI=
