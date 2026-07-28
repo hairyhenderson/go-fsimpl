@@ -682,9 +682,14 @@ func findMountInfoWithPrefix(rawFilePath string, rawMounts map[string]any, prefi
 }
 
 type mountGroup struct {
-	prefix string
 	mounts map[string]any
+	prefix string
 }
+
+// mountGroupAuth is the "sys/internal/ui/mounts" response key for auth
+// mounts, addressed as /v1/auth/<mount> (as opposed to secret mounts, which
+// are addressed as /v1/<mount>).
+const mountGroupAuth = "auth"
 
 func findMountInfoFromData(rawFilePath string, rawData map[string]any) (*mountInfo, error) {
 	groups := make([]mountGroup, 0, 2)
@@ -694,7 +699,7 @@ func findMountInfoFromData(rawFilePath string, rawData map[string]any) (*mountIn
 		prefix string
 	}{
 		{key: "secret", prefix: "/v1"},
-		{key: "auth", prefix: "/v1/auth"},
+		{key: mountGroupAuth, prefix: "/v1/auth"},
 	} {
 		rawMounts, ok := rawData[g.key]
 		if !ok {
@@ -733,32 +738,10 @@ func findMountInfoInGroups(rawFilePath string, groups []mountGroup) (*mountInfo,
 				continue
 			}
 
-			v, ok := mountOpts.(map[string]any)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mount info format for %q: %#v", mountName, mountOpts)
+			match, err := buildMountInfo(mountName, mountOpts, rawFilePath, mountPrefix)
+			if err != nil {
+				return nil, err
 			}
-
-			mountType, ok := v["type"].(string)
-			if !ok {
-				return nil, fmt.Errorf("unexpected type field for mount %q: %T", mountName, v["type"])
-			}
-
-			mount := &api.MountOutput{Type: mountType}
-
-			opts, ok := v["options"].(map[string]any)
-			if ok {
-				mount.Options = make(map[string]string, len(opts))
-				for k, ov := range opts {
-					sv, ok := ov.(string)
-					if !ok {
-						return nil, fmt.Errorf("unexpected option value type for mount %q key %q: %T", mountName, k, ov)
-					}
-					mount.Options[k] = sv
-				}
-			}
-
-			spath := strings.TrimPrefix(rawFilePath, mountPrefix)
-			match := &mountInfo{name: mountName, secretPath: spath, MountOutput: mount}
 
 			if len(mountPrefix) > bestPrefixLen {
 				bestMatch = match
@@ -768,6 +751,38 @@ func findMountInfoInGroups(rawFilePath string, groups []mountGroup) (*mountInfo,
 	}
 
 	return bestMatch, nil
+}
+
+func buildMountInfo(mountName string, mountOpts any, rawFilePath, mountPrefix string) (*mountInfo, error) {
+	v, ok := mountOpts.(map[string]any)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mount info format for %q: %#v", mountName, mountOpts)
+	}
+
+	mountType, ok := v["type"].(string)
+	if !ok {
+		return nil, fmt.Errorf("unexpected type field for mount %q: %T", mountName, v["type"])
+	}
+
+	mount := &api.MountOutput{Type: mountType}
+
+	opts, ok := v["options"].(map[string]any)
+	if ok {
+		mount.Options = make(map[string]string, len(opts))
+
+		for k, ov := range opts {
+			sv, ok := ov.(string)
+			if !ok {
+				return nil, fmt.Errorf("unexpected option value type for mount %q key %q: %T", mountName, k, ov)
+			}
+
+			mount.Options[k] = sv
+		}
+	}
+
+	spath := strings.TrimPrefix(rawFilePath, mountPrefix)
+
+	return &mountInfo{name: mountName, secretPath: spath, MountOutput: mount}, nil
 }
 
 func createdTimeFromData(kvsec *api.KVSecret) time.Time {
