@@ -46,7 +46,7 @@ jobs:
       matrix:
         platform: [ linux-amd64, linux-arm-v7, linux-arm64, linux-ppc64le, darwin-amd64, darwin-arm64, windows-amd64.exe ]
     container:
-      image: ghcr.io/hairyhenderson/gomplate-ci-build:latest@sha256:f5102b40d73c8111338ef31cec2a0dd98e364e6ba794f7f3bd08c916d5ecf450
+      image: ghcr.io/hairyhenderson/gomplate-ci-build:latest@sha256:d4ee6ce5943e21929899ce66e2cd105686097a6c14dbd5466ac4ae9e8895512e
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
