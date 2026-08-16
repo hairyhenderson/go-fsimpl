@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.4.6](https://github.com/hairyhenderson/go-fsimpl/compare/v0.4.5...v0.4.6) (2026-08-14)
+
+
+### Bug Fixes
+
+* **gomod:** update aws-sdk-go-v2 monorepo ([#1417](https://github.com/hairyhenderson/go-fsimpl/issues/1417)) ([c416ede](https://github.com/hairyhenderson/go-fsimpl/commit/c416ede53c10c633064482253f1fdfbe1fda5b5b))
+* **gomod:** update aws-sdk-go-v2 monorepo ([#1420](https://github.com/hairyhenderson/go-fsimpl/issues/1420)) ([5156eb2](https://github.com/hairyhenderson/go-fsimpl/commit/5156eb2b2a3e5245c3d524087612da2b71870934))
+* **gomod:** update aws-sdk-go-v2 monorepo ([#1423](https://github.com/hairyhenderson/go-fsimpl/issues/1423)) ([5d2dfaf](https://github.com/hairyhenderson/go-fsimpl/commit/5d2dfaf785613309fbd667f29ca70c4a64b2c4f0))
+* **gomod:** update aws-sdk-go-v2 monorepo ([#1430](https://github.com/hairyhenderson/go-fsimpl/issues/1430)) ([fd67b78](https://github.com/hairyhenderson/go-fsimpl/commit/fd67b78709f225320fc8c3662874396fed0a909f))
+* **gomod:** update module github.com/aws/aws-sdk-go-v2/service/s3 to v1.106.4 ([#1424](https://github.com/hairyhenderson/go-fsimpl/issues/1424)) ([18e0589](https://github.com/hairyhenderson/go-fsimpl/commit/18e0589c0d24b942be9ca1051bd7da3a109f7355))
+* **gomod:** update module github.com/aws/aws-sdk-go-v2/service/s3 to v1.107.0 ([#1431](https://github.com/hairyhenderson/go-fsimpl/issues/1431)) ([3c2abfa](https://github.com/hairyhenderson/go-fsimpl/commit/3c2abfa8f8a0efdacf341a052bd476566231e153))
+* **gomod:** update module github.com/aws/smithy-go to v1.27.5 ([#1413](https://github.com/hairyhenderson/go-fsimpl/issues/1413)) ([b555a8a](https://github.com/hairyhenderson/go-fsimpl/commit/b555a8a862515be039acb8dd2825e7c5753ed073))
+* **gomod:** update module github.com/aws/smithy-go to v1.27.6 ([#1422](https://github.com/hairyhenderson/go-fsimpl/issues/1422)) ([09bad30](https://github.com/hairyhenderson/go-fsimpl/commit/09bad30893f861e27e1c893b9fcb9d56146d65c7))
+* **gomod:** update module github.com/aws/smithy-go to v1.27.7 ([#1433](https://github.com/hairyhenderson/go-fsimpl/issues/1433)) ([21fde2e](https://github.com/hairyhenderson/go-fsimpl/commit/21fde2ed348176cd36f2e1dba877c6b649fc92a4))
+* **gomod:** update module github.com/go-git/go-billy/v5 to v5.9.1 ([#1410](https://github.com/hairyhenderson/go-fsimpl/issues/1410)) ([62cd653](https://github.com/hairyhenderson/go-fsimpl/commit/62cd653da02d1b6758310d1fdb0c4095035b66d7))
+* **gomod:** update module github.com/go-git/go-git/v5 to v5.19.2 ([#1419](https://github.com/hairyhenderson/go-fsimpl/issues/1419)) ([f95e42c](https://github.com/hairyhenderson/go-fsimpl/commit/f95e42cacccff1456ee8308a94fd05289d69a9e4))
+* **gomod:** update module go.opentelemetry.io/contrib/propagators/autoprop to v0.70.0 ([#1428](https://github.com/hairyhenderson/go-fsimpl/issues/1428)) ([399ce94](https://github.com/hairyhenderson/go-fsimpl/commit/399ce94e2964a6c2f56f35a57bc9c4fbbc40c950))
+* **gomod:** update module google.golang.org/api to v0.290.0 ([#1412](https://github.com/hairyhenderson/go-fsimpl/issues/1412)) ([2237b0f](https://github.com/hairyhenderson/go-fsimpl/commit/2237b0f10a116d07215a34d888915d9acc293aa2))
+* **gomod:** update module google.golang.org/api to v0.291.0 ([#1418](https://github.com/hairyhenderson/go-fsimpl/issues/1418)) ([05b9141](https://github.com/hairyhenderson/go-fsimpl/commit/05b91410a61a2ef9a330f22497bb56b454cafafd))
+* **gomod:** update module google.golang.org/api to v0.292.0 ([#1429](https://github.com/hairyhenderson/go-fsimpl/issues/1429)) ([d88d133](https://github.com/hairyhenderson/go-fsimpl/commit/d88d1335617ee4a7d3436576d2d1e6c93dc00796))
+* **gomod:** update module google.golang.org/grpc to v1.83.0 ([#1421](https://github.com/hairyhenderson/go-fsimpl/issues/1421)) ([d16a6af](https://github.com/hairyhenderson/go-fsimpl/commit/d16a6af71d57d1aaba8ff02551923c278959ea21))
+* **gomod:** update opentelemetry-go monorepo to v1.45.0 ([#1425](https://github.com/hairyhenderson/go-fsimpl/issues/1425)) ([5944919](https://github.com/hairyhenderson/go-fsimpl/commit/59449192d56de928770035e9f212c753dd4ca796))
+
 ## [0.4.5](https://github.com/hairyhenderson/go-fsimpl/compare/v0.4.4...v0.4.5) (2026-07-28)
 
 
