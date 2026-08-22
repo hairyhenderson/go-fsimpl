@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.4.7](https://github.com/hairyhenderson/go-fsimpl/compare/v0.4.6...v0.4.7) (2026-08-22)
+
+
+### Bug Fixes
+
+* **gomod:** update aws-sdk-go-v2 monorepo ([#1439](https://github.com/hairyhenderson/go-fsimpl/issues/1439)) ([8fcd054](https://github.com/hairyhenderson/go-fsimpl/commit/8fcd05434e6127401c1c62d6d18983c46797022f))
+* **gomod:** update aws-sdk-go-v2 monorepo ([#1443](https://github.com/hairyhenderson/go-fsimpl/issues/1443)) ([81b7f60](https://github.com/hairyhenderson/go-fsimpl/commit/81b7f607982099da9b5a43ea920b6be5b3ac80b8))
+* **gomod:** update module github.com/aws/aws-sdk-go-v2/config to v1.32.37 ([#1444](https://github.com/hairyhenderson/go-fsimpl/issues/1444)) ([270b2c1](https://github.com/hairyhenderson/go-fsimpl/commit/270b2c1ac9d4a211737a0e979f2220815d840017))
+* **gomod:** update module github.com/aws/smithy-go to v1.27.8 ([#1442](https://github.com/hairyhenderson/go-fsimpl/issues/1442)) ([77716c3](https://github.com/hairyhenderson/go-fsimpl/commit/77716c35ab230367d3fd5a7e2c88bbbe664670cd))
+* **gomod:** update module github.com/stretchr/testify to v1.12.0 ([#1434](https://github.com/hairyhenderson/go-fsimpl/issues/1434)) ([f236869](https://github.com/hairyhenderson/go-fsimpl/commit/f236869e1e8f3350558cfb588ee90853f8e4a302))
+* **gomod:** update module golang.org/x/crypto to v0.55.0 ([#1438](https://github.com/hairyhenderson/go-fsimpl/issues/1438)) ([742828b](https://github.com/hairyhenderson/go-fsimpl/commit/742828b44327d6fea98da650335d9fb2a64bcdce))
+* **gomod:** update module google.golang.org/api to v0.293.0 ([#1441](https://github.com/hairyhenderson/go-fsimpl/issues/1441)) ([c940c4a](https://github.com/hairyhenderson/go-fsimpl/commit/c940c4a90ba02dc633c7197e68d4097a1b648e61))
+* **gomod:** update module google.golang.org/protobuf to v1.36.12 ([#1440](https://github.com/hairyhenderson/go-fsimpl/issues/1440)) ([a229e4e](https://github.com/hairyhenderson/go-fsimpl/commit/a229e4e9a4fdebf738b4739b23bc425438b2c88b))
+
 ## [0.4.6](https://github.com/hairyhenderson/go-fsimpl/compare/v0.4.5...v0.4.6) (2026-08-14)
 
 
