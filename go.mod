@@ -24,7 +24,7 @@ require (
 	github.com/hashicorp/vault/api/auth/approle v0.12.0
 	github.com/hashicorp/vault/api/auth/userpass v0.12.0
 	github.com/johannesboyne/gofakes3 v1.2.0
-	github.com/stretchr/testify v1.12.0
+	github.com/stretchr/testify v1.12.1
 	go.opentelemetry.io/contrib/propagators/autoprop v0.70.0
 	go.opentelemetry.io/otel v1.45.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.45.0
@@ -152,6 +152,7 @@ require (
 	go.opentelemetry.io/proto/otlp v1.11.0 // indirect
 	go.shabbyrobe.org/gocovmerge v0.0.0-20230507111327-fa4f82cfbf4d // indirect
 	go.uber.org/multierr v1.11.0 // indirect
+	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/exp v0.0.0-20260410095643-746e56fc9e2f // indirect
 	golang.org/x/net v0.57.0 // indirect
 	golang.org/x/oauth2 v0.36.0 // indirect
