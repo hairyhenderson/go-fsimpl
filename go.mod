@@ -15,7 +15,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.44.7
 	github.com/aws/aws-sdk-go-v2/service/ssm v1.73.7
 	github.com/aws/smithy-go v1.27.9
-	github.com/fsouza/fake-gcs-server v1.56.0
+	github.com/fsouza/fake-gcs-server v1.56.1
 	github.com/go-git/go-billy/v5 v5.9.1
 	github.com/go-git/go-git/v5 v5.19.2
 	github.com/googleapis/gax-go/v2 v2.24.0
@@ -46,8 +46,8 @@ require (
 	cloud.google.com/go/auth/oauth2adapt v0.2.8 // indirect
 	cloud.google.com/go/iam v1.12.0 // indirect
 	cloud.google.com/go/monitoring v1.30.0 // indirect
-	cloud.google.com/go/pubsub/v2 v2.6.1 // indirect
-	cloud.google.com/go/storage v1.64.0 // indirect
+	cloud.google.com/go/pubsub/v2 v2.6.2 // indirect
+	cloud.google.com/go/storage v1.65.0 // indirect
 	dario.cat/mergo v1.0.1 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.22.0 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.13.1 // indirect
