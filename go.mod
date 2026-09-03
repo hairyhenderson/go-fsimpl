@@ -1,6 +1,6 @@
 module github.com/hairyhenderson/go-fsimpl
 
-go 1.26
+go 1.26.0
 
 toolchain go1.27.0
 
@@ -31,7 +31,7 @@ require (
 	go.opentelemetry.io/otel/sdk v1.46.0
 	go.opentelemetry.io/otel/trace v1.46.0
 	gocloud.dev v0.46.0
-	golang.org/x/crypto v0.55.0
+	golang.org/x/crypto v0.56.0
 	golang.org/x/sync v0.22.0
 	google.golang.org/api v0.294.0
 	google.golang.org/grpc v1.83.2
