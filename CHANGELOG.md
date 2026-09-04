@@ -1,5 +1,40 @@
 # Changelog
 
+## [0.4.7](https://github.com/hairyhenderson/go-fsimpl/compare/v0.4.6...v0.4.7) (2026-09-04)
+
+
+### Bug Fixes
+
+* **gomod:** update aws-sdk-go-v2 monorepo ([#1439](https://github.com/hairyhenderson/go-fsimpl/issues/1439)) ([8fcd054](https://github.com/hairyhenderson/go-fsimpl/commit/8fcd05434e6127401c1c62d6d18983c46797022f))
+* **gomod:** update aws-sdk-go-v2 monorepo ([#1443](https://github.com/hairyhenderson/go-fsimpl/issues/1443)) ([81b7f60](https://github.com/hairyhenderson/go-fsimpl/commit/81b7f607982099da9b5a43ea920b6be5b3ac80b8))
+* **gomod:** update aws-sdk-go-v2 monorepo ([#1450](https://github.com/hairyhenderson/go-fsimpl/issues/1450)) ([7c62dce](https://github.com/hairyhenderson/go-fsimpl/commit/7c62dce03b0ba43517b407b575ad83ead6cd4e2a))
+* **gomod:** update aws-sdk-go-v2 monorepo ([#1461](https://github.com/hairyhenderson/go-fsimpl/issues/1461)) ([f3b7d7b](https://github.com/hairyhenderson/go-fsimpl/commit/f3b7d7bd1472af1a2db12521de23013b5dc2d8f7))
+* **gomod:** update aws-sdk-go-v2 monorepo ([#1464](https://github.com/hairyhenderson/go-fsimpl/issues/1464)) ([9ca73f7](https://github.com/hairyhenderson/go-fsimpl/commit/9ca73f7dec32efdbc646e65efda0a119d9f4764c))
+* **gomod:** update aws-sdk-go-v2 monorepo ([#1467](https://github.com/hairyhenderson/go-fsimpl/issues/1467)) ([751e79c](https://github.com/hairyhenderson/go-fsimpl/commit/751e79c1d3863ea8e2af69e8144f8087535a2f99))
+* **gomod:** update aws-sdk-go-v2 monorepo ([#1470](https://github.com/hairyhenderson/go-fsimpl/issues/1470)) ([6505148](https://github.com/hairyhenderson/go-fsimpl/commit/65051489d2540c5198898c0f361c79a0e3dc7fd2))
+* **gomod:** update aws-sdk-go-v2 monorepo ([#1471](https://github.com/hairyhenderson/go-fsimpl/issues/1471)) ([9f106f0](https://github.com/hairyhenderson/go-fsimpl/commit/9f106f095d896872bdcc4337a9d5287ff3315a19))
+* **gomod:** update module github.com/aws/aws-sdk-go-v2/config to v1.32.37 ([#1444](https://github.com/hairyhenderson/go-fsimpl/issues/1444)) ([270b2c1](https://github.com/hairyhenderson/go-fsimpl/commit/270b2c1ac9d4a211737a0e979f2220815d840017))
+* **gomod:** update module github.com/aws/smithy-go to v1.27.10 ([#1459](https://github.com/hairyhenderson/go-fsimpl/issues/1459)) ([ecb0dd9](https://github.com/hairyhenderson/go-fsimpl/commit/ecb0dd92b4edf102a0643792b5f729624f46bf46))
+* **gomod:** update module github.com/aws/smithy-go to v1.27.8 ([#1442](https://github.com/hairyhenderson/go-fsimpl/issues/1442)) ([77716c3](https://github.com/hairyhenderson/go-fsimpl/commit/77716c35ab230367d3fd5a7e2c88bbbe664670cd))
+* **gomod:** update module github.com/aws/smithy-go to v1.27.9 ([#1454](https://github.com/hairyhenderson/go-fsimpl/issues/1454)) ([b4ddf74](https://github.com/hairyhenderson/go-fsimpl/commit/b4ddf74a4e6ad9a334a91563594517bd460db924))
+* **gomod:** update module github.com/aws/smithy-go to v1.28.0 ([#1462](https://github.com/hairyhenderson/go-fsimpl/issues/1462)) ([91256fa](https://github.com/hairyhenderson/go-fsimpl/commit/91256fa5116d0a845eebb63be69bc65ee54e9f20))
+* **gomod:** update module github.com/aws/smithy-go to v1.28.1 ([#1466](https://github.com/hairyhenderson/go-fsimpl/issues/1466)) ([a6e7b5f](https://github.com/hairyhenderson/go-fsimpl/commit/a6e7b5f93196244f5a84021c2acce466d39426a7))
+* **gomod:** update module github.com/fsouza/fake-gcs-server to v1.56.0 ([#1455](https://github.com/hairyhenderson/go-fsimpl/issues/1455)) ([a86f4bf](https://github.com/hairyhenderson/go-fsimpl/commit/a86f4bfd6892de960ee513848f64087787d0e5b6))
+* **gomod:** update module github.com/fsouza/fake-gcs-server to v1.56.1 ([#1456](https://github.com/hairyhenderson/go-fsimpl/issues/1456)) ([5c9e32f](https://github.com/hairyhenderson/go-fsimpl/commit/5c9e32f10679b4f8bfa4f1b8cdabc40e0f322558))
+* **gomod:** update module github.com/googleapis/gax-go/v2 to v2.24.0 ([#1451](https://github.com/hairyhenderson/go-fsimpl/issues/1451)) ([c64c7c9](https://github.com/hairyhenderson/go-fsimpl/commit/c64c7c98e1adf6066b7ffe709e0c1afb4553fc8a))
+* **gomod:** update module github.com/stretchr/testify to v1.12.0 ([#1434](https://github.com/hairyhenderson/go-fsimpl/issues/1434)) ([f236869](https://github.com/hairyhenderson/go-fsimpl/commit/f236869e1e8f3350558cfb588ee90853f8e4a302))
+* **gomod:** update module github.com/stretchr/testify to v1.12.1 ([#1448](https://github.com/hairyhenderson/go-fsimpl/issues/1448)) ([0b96a8f](https://github.com/hairyhenderson/go-fsimpl/commit/0b96a8f0b2d924b28c2481cd559cf0c4fc78191a))
+* **gomod:** update module go.opentelemetry.io/contrib/propagators/autoprop to v0.71.0 ([#1465](https://github.com/hairyhenderson/go-fsimpl/issues/1465)) ([e8771a0](https://github.com/hairyhenderson/go-fsimpl/commit/e8771a0819e3530f73996986354127446afe7ade))
+* **gomod:** update module golang.org/x/crypto to v0.55.0 ([#1438](https://github.com/hairyhenderson/go-fsimpl/issues/1438)) ([742828b](https://github.com/hairyhenderson/go-fsimpl/commit/742828b44327d6fea98da650335d9fb2a64bcdce))
+* **gomod:** update module golang.org/x/crypto to v0.56.0 [security] ([#1468](https://github.com/hairyhenderson/go-fsimpl/issues/1468)) ([0a506dc](https://github.com/hairyhenderson/go-fsimpl/commit/0a506dcd1a2ea9603e7870ab1c4c5fc4430374ac))
+* **gomod:** update module google.golang.org/api to v0.293.0 ([#1441](https://github.com/hairyhenderson/go-fsimpl/issues/1441)) ([c940c4a](https://github.com/hairyhenderson/go-fsimpl/commit/c940c4a90ba02dc633c7197e68d4097a1b648e61))
+* **gomod:** update module google.golang.org/api to v0.294.0 ([#1469](https://github.com/hairyhenderson/go-fsimpl/issues/1469)) ([e14507a](https://github.com/hairyhenderson/go-fsimpl/commit/e14507a4e383cb8a36cae9925b92e79e53f41221))
+* **gomod:** update module google.golang.org/api to v0.295.0 ([#1472](https://github.com/hairyhenderson/go-fsimpl/issues/1472)) ([3380164](https://github.com/hairyhenderson/go-fsimpl/commit/338016431c8b40b0687682c451e068aa5881ff18))
+* **gomod:** update module google.golang.org/grpc to v1.83.1 ([#1449](https://github.com/hairyhenderson/go-fsimpl/issues/1449)) ([abf0191](https://github.com/hairyhenderson/go-fsimpl/commit/abf01910483f2dfeb0540f22f854ea1f0c633093))
+* **gomod:** update module google.golang.org/grpc to v1.83.2 ([#1460](https://github.com/hairyhenderson/go-fsimpl/issues/1460)) ([7cee419](https://github.com/hairyhenderson/go-fsimpl/commit/7cee4192ce4120d5eadfc1a838e5a5393498a482))
+* **gomod:** update module google.golang.org/protobuf to v1.36.12 ([#1440](https://github.com/hairyhenderson/go-fsimpl/issues/1440)) ([a229e4e](https://github.com/hairyhenderson/go-fsimpl/commit/a229e4e9a4fdebf738b4739b23bc425438b2c88b))
+* **gomod:** update opentelemetry-go monorepo to v1.46.0 ([#1463](https://github.com/hairyhenderson/go-fsimpl/issues/1463)) ([883fc1c](https://github.com/hairyhenderson/go-fsimpl/commit/883fc1ccd10eb314c1527e44597d2b80c78d37de))
+
 ## [0.4.6](https://github.com/hairyhenderson/go-fsimpl/compare/v0.4.5...v0.4.6) (2026-08-14)
 
 
