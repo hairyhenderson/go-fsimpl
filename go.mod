@@ -33,7 +33,7 @@ require (
 	gocloud.dev v0.46.0
 	golang.org/x/crypto v0.56.0
 	golang.org/x/sync v0.22.0
-	google.golang.org/api v0.294.0
+	google.golang.org/api v0.295.0
 	google.golang.org/grpc v1.83.2
 	google.golang.org/protobuf v1.36.12
 	gotest.tools/v3 v3.5.2
