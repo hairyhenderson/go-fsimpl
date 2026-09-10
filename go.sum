@@ -883,6 +883,8 @@ github.com/googleapis/gax-go/v2 v2.23.0 h1:Tchl7qkvE7Ip3y+ztvNufYFvkfqTe7NfLTYGI
 github.com/googleapis/gax-go/v2 v2.23.0/go.mod h1:rBQKOVJCdb8IFEzg+FCwlt1LP/xMDGuqUXhUG+XMXEg=
 github.com/googleapis/gax-go/v2 v2.24.0 h1:myMaPYyF9MecEmvQqMqomIwn9t/4KCZN9qnwsS76wlg=
 github.com/googleapis/gax-go/v2 v2.24.0/go.mod h1:IaTHBDd7NHxSCiu0vEs8pQZu4dGZrWwuSoxCnk16OFM=
+github.com/googleapis/gax-go/v2 v2.24.1 h1:AtqTN21IXMMWo99LiEVAiBfNNQmO40d8xUfZI640mc0=
+github.com/googleapis/gax-go/v2 v2.24.1/go.mod h1:bWeBei0NVwaNZKb2y1HUBS7gLXIF3/Tu3pq7j8D2Tb0=
 github.com/gorilla/handlers v1.5.2 h1:cLTUSsNkgcwhgRqvCNmdbRWG0A3N4F+M2nWKdScwyEE=
 github.com/gorilla/handlers v1.5.2/go.mod h1:dX+xVpaxdSw+q0Qek8SSsl3dfMk3jNddUkMzo0GtH0w=
 github.com/gorilla/mux v1.8.1 h1:TuBL49tXwgrFYWhqrNgrUNEY92u81SPhu7sTdzQEiWY=
