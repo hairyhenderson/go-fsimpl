@@ -2,7 +2,7 @@ module github.com/hairyhenderson/go-fsimpl
 
 go 1.26.0
 
-toolchain go1.27.1
+toolchain go1.27.2
 
 require (
 	cloud.google.com/go/compute/metadata v0.10.0
