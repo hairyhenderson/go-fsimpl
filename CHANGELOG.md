@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.4.8](https://github.com/hairyhenderson/go-fsimpl/compare/v0.4.7...v0.4.8) (2026-10-09)
+
+
+### Bug Fixes
+
+* **gomod:** update aws-sdk-go-v2 monorepo ([#1508](https://github.com/hairyhenderson/go-fsimpl/issues/1508)) ([a77c596](https://github.com/hairyhenderson/go-fsimpl/commit/a77c596c6d1b135e51e31e1ee32a64e55dff65e2))
+* **gomod:** update module cloud.google.com/go/compute/metadata to v0.10.0 ([#1509](https://github.com/hairyhenderson/go-fsimpl/issues/1509)) ([2b8b225](https://github.com/hairyhenderson/go-fsimpl/commit/2b8b225f12e028fc4b97eb2651eb0b6452b182d2))
+* **gomod:** update module cloud.google.com/go/secretmanager to v1.22.0 ([#1510](https://github.com/hairyhenderson/go-fsimpl/issues/1510)) ([641361f](https://github.com/hairyhenderson/go-fsimpl/commit/641361fc701239c869fb2bc6d6c059e248a928dc))
+* **gomod:** update module github.com/aws/aws-sdk-go-v2/service/s3 to v1.113.2 ([#1500](https://github.com/hairyhenderson/go-fsimpl/issues/1500)) ([0ac630e](https://github.com/hairyhenderson/go-fsimpl/commit/0ac630e249dd84de382b84f9d9e3b3ead8968f66))
+* **gomod:** update module github.com/aws/aws-sdk-go-v2/service/s3 to v1.113.3 ([#1506](https://github.com/hairyhenderson/go-fsimpl/issues/1506)) ([6e5f6b3](https://github.com/hairyhenderson/go-fsimpl/commit/6e5f6b3eb685d6e51dbbcbd7957ada59d0975b2c))
+* **gomod:** update module github.com/aws/aws-sdk-go-v2/service/s3 to v1.114.0 ([#1515](https://github.com/hairyhenderson/go-fsimpl/issues/1515)) ([94d0231](https://github.com/hairyhenderson/go-fsimpl/commit/94d0231e7c2c8c651bc3f0652d75106449fa341c))
+* **gomod:** update module github.com/aws/aws-sdk-go-v2/service/ssm to v1.79.0 ([#1512](https://github.com/hairyhenderson/go-fsimpl/issues/1512)) ([be59c92](https://github.com/hairyhenderson/go-fsimpl/commit/be59c92f84c0172315dc2433760663fef1f30c07))
+* **gomod:** update module github.com/azure/azure-sdk-for-go/sdk/storage/azblob to v1.8.2 ([#1516](https://github.com/hairyhenderson/go-fsimpl/issues/1516)) ([6ee8708](https://github.com/hairyhenderson/go-fsimpl/commit/6ee87087ae6f284589e3478b379cff8e785db3dd))
+* **gomod:** update module github.com/googleapis/gax-go/v2 to v2.25.0 ([#1501](https://github.com/hairyhenderson/go-fsimpl/issues/1501)) ([89d8e87](https://github.com/hairyhenderson/go-fsimpl/commit/89d8e87a66105ace2bc6199fff71ffc9fccd13e9))
+* **gomod:** update module github.com/googleapis/gax-go/v2 to v2.26.0 ([#1507](https://github.com/hairyhenderson/go-fsimpl/issues/1507)) ([f16b565](https://github.com/hairyhenderson/go-fsimpl/commit/f16b5658134e049d007eaf11745ea51f105195b8))
+* **gomod:** update module github.com/googleapis/gax-go/v2 to v2.26.2 ([#1511](https://github.com/hairyhenderson/go-fsimpl/issues/1511)) ([5691dfa](https://github.com/hairyhenderson/go-fsimpl/commit/5691dfa792f0d1c953aeb64d17be79c91f981c59))
+* **gomod:** update module go.opentelemetry.io/contrib/propagators/autoprop to v0.72.0 ([#1522](https://github.com/hairyhenderson/go-fsimpl/issues/1522)) ([9f8ff75](https://github.com/hairyhenderson/go-fsimpl/commit/9f8ff7524cb66c88ffffbb151f8eed3711b4572a))
+* **gomod:** update module golang.org/x/sync to v0.24.0 ([#1520](https://github.com/hairyhenderson/go-fsimpl/issues/1520)) ([40294b9](https://github.com/hairyhenderson/go-fsimpl/commit/40294b96eddba5eb01d7bbf8ae3c23b9fddd5096))
+* **gomod:** update module google.golang.org/api to v0.299.0 ([#1503](https://github.com/hairyhenderson/go-fsimpl/issues/1503)) ([c4d53b1](https://github.com/hairyhenderson/go-fsimpl/commit/c4d53b1041561c6010ec3079eade416bbd19b670))
+* **gomod:** update module google.golang.org/api to v0.300.0 ([#1517](https://github.com/hairyhenderson/go-fsimpl/issues/1517)) ([a170168](https://github.com/hairyhenderson/go-fsimpl/commit/a170168b0a21437eb64de2e6c45be5485d5155ed))
+* **gomod:** update opentelemetry-go monorepo to v1.47.0 ([#1519](https://github.com/hairyhenderson/go-fsimpl/issues/1519)) ([ff06e8d](https://github.com/hairyhenderson/go-fsimpl/commit/ff06e8d9d4a7a7d9b9e178e885e8325f2c753be5))
+
 ## [0.4.7](https://github.com/hairyhenderson/go-fsimpl/compare/v0.4.6...v0.4.7) (2026-09-25)
 
 
