@@ -16,7 +16,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/ssm v1.79.0
 	github.com/aws/smithy-go v1.28.2
 	github.com/fsouza/fake-gcs-server v1.56.1
-	github.com/go-git/go-billy/v5 v5.9.1
+	github.com/go-git/go-billy/v5 v5.9.2
 	github.com/go-git/go-git/v5 v5.19.2
 	github.com/googleapis/gax-go/v2 v2.26.2
 	github.com/hashicorp/consul/api/v2 v2.0.0
