@@ -14,6 +14,7 @@ import (
 	awsv2cfg "github.com/aws/aws-sdk-go-v2/config"
 	s3v2 "github.com/aws/aws-sdk-go-v2/service/s3"
 	typesv2 "github.com/aws/aws-sdk-go-v2/service/s3/types"
+	"github.com/hairyhenderson/go-fsimpl/internal/awslog"
 	"gocloud.dev/blob"
 	"gocloud.dev/blob/s3blob"
 )
@@ -248,6 +249,8 @@ func V2ConfigFromURLParams(ctx context.Context, q url.Values) (awsv2.Config, err
 	if rateLimitCapacity > 0 {
 		rateLimiter = ratelimit.NewTokenRateLimit(uint(rateLimitCapacity))
 	}
+
+	opts = append(opts, awsv2cfg.WithLogger(awslog.Logger{}))
 
 	opts = append(opts, awsv2cfg.WithRetryer(func() awsv2.Retryer {
 		return retry.NewStandard(func(so *retry.StandardOptions) {
