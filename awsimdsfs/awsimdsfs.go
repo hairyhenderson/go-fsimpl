@@ -20,6 +20,7 @@ import (
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 	"github.com/hairyhenderson/go-fsimpl"
 	"github.com/hairyhenderson/go-fsimpl/internal"
+	"github.com/hairyhenderson/go-fsimpl/internal/awslog"
 )
 
 // withIMDSClienter is an fs.FS that can be configured to use the given Secrets
@@ -127,7 +128,9 @@ func (f *awsimdsFS) getClient(ctx context.Context) (IMDSClient, error) {
 		return f.imdsclient, nil
 	}
 
-	opts := [](func(*config.LoadOptions) error){}
+	opts := [](func(*config.LoadOptions) error){
+		config.WithLogger(awslog.Logger{}),
+	}
 	if f.httpclient != nil {
 		opts = append(opts, config.WithHTTPClient(f.httpclient))
 	}

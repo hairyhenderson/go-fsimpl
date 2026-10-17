@@ -20,6 +20,7 @@ import (
 	"github.com/hairyhenderson/go-fsimpl"
 	"github.com/hairyhenderson/go-fsimpl/awsimdsfs"
 	"github.com/hairyhenderson/go-fsimpl/internal"
+	"github.com/hairyhenderson/go-fsimpl/internal/awslog"
 )
 
 // withClienter is an [io/fs.FS] that can be configured to use the given
@@ -157,7 +158,9 @@ func (f *awssmpFS) getClient(ctx context.Context) (SSMClient, error) {
 		return f.ssmclient, nil
 	}
 
-	opts := [](func(*config.LoadOptions) error){}
+	opts := [](func(*config.LoadOptions) error){
+		config.WithLogger(awslog.Logger{}),
+	}
 	if f.httpclient != nil {
 		opts = append(opts, config.WithHTTPClient(f.httpclient))
 	}
