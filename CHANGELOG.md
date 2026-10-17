@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.0](https://github.com/hairyhenderson/go-fsimpl/compare/v0.4.9...v0.5.0) (2026-10-17)
+
+
+### Features
+
+* **aws:** route AWS SDK logs through slog ([#1540](https://github.com/hairyhenderson/go-fsimpl/issues/1540)) ([dca07a5](https://github.com/hairyhenderson/go-fsimpl/commit/dca07a5e9bbe893d880925d84a679de3dee13762))
+
 ## [0.4.9](https://github.com/hairyhenderson/go-fsimpl/compare/v0.4.8...v0.4.9) (2026-10-17)
 
 
