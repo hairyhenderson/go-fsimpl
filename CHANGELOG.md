@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.4.9](https://github.com/hairyhenderson/go-fsimpl/compare/v0.4.8...v0.4.9) (2026-10-17)
+
+
+### Bug Fixes
+
+* **gomod:** update aws-sdk-go-v2 monorepo ([#1538](https://github.com/hairyhenderson/go-fsimpl/issues/1538)) ([89d4aa8](https://github.com/hairyhenderson/go-fsimpl/commit/89d4aa8e2bc51d418d47a57ae29a094d1fe77c86))
+* **gomod:** update module github.com/aws/smithy-go to v1.28.5 ([#1533](https://github.com/hairyhenderson/go-fsimpl/issues/1533)) ([21a06f1](https://github.com/hairyhenderson/go-fsimpl/commit/21a06f1ef3ebea5a87527c755a4dc626f37bb617))
+
 ## [0.4.8](https://github.com/hairyhenderson/go-fsimpl/compare/v0.4.7...v0.4.8) (2026-10-16)
 
 
