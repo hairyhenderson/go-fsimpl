@@ -11,7 +11,6 @@ import (
 	"runtime"
 	"strconv"
 	"testing"
-	"time"
 
 	"github.com/hairyhenderson/go-fsimpl"
 	"github.com/hairyhenderson/go-fsimpl/gitfs"
@@ -93,8 +92,8 @@ func startGitDaemon(t *testing.T) string {
 		result.Assert(t, icmd.Expected{ExitCode: 0})
 	})
 
-	// give git time to start
-	time.Sleep(500 * time.Millisecond)
+	err := waitForPort(t.Context(), t, addr)
+	require.NoError(t, err)
 
 	return addr
 }

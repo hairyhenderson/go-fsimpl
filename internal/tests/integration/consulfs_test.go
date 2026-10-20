@@ -3,6 +3,7 @@
 package integration
 
 import (
+	"errors"
 	"io"
 	"io/fs"
 	"strconv"
@@ -32,6 +33,9 @@ type consulTestConfig struct {
 
 //nolint:funlen
 func setupConsulFSTest(t *testing.T) consulTestConfig {
+	requireCommand(t, "consul")
+	requireCommand(t, "vault")
+
 	pidDir := gotestfs.NewDir(t, "gofsimpl-inttests-pid")
 	t.Cleanup(pidDir.Remove)
 
@@ -100,7 +104,14 @@ func setupConsulFSTest(t *testing.T) consulTestConfig {
 
 	ctx := t.Context()
 
-	err := waitForURL(ctx, t, "http://"+consulAddr+"/v1/status/leader")
+	// the leader endpoint responds with "" until a leader is elected
+	err := waitForURLBody(ctx, t, "http://"+consulAddr+"/v1/status/leader", func(body []byte) error {
+		if string(body) == `""` {
+			return errors.New("no consul leader elected yet")
+		}
+
+		return nil
+	})
 	require.NoError(t, err)
 
 	vaultAddr := startVault(ctx, t)

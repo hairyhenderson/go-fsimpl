@@ -90,6 +90,8 @@ func tokenCreate(ctx context.Context, client *api.Client, policy string, uses in
 }
 
 func startVault(ctx context.Context, t *testing.T) string {
+	requireCommand(t, "vault")
+
 	pidDir := tfs.NewDir(t, "gofsimpl-inttests-vaultpid")
 	t.Cleanup(pidDir.Remove)
 
