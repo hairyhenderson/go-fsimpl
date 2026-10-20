@@ -19,6 +19,8 @@ type fakeClient struct {
 	params  map[string]*testVal
 	getErr  error
 	listErr error
+
+	getCalls int
 }
 
 var _ SSMClient = (*fakeClient)(nil)
@@ -27,6 +29,8 @@ func (c *fakeClient) GetParameter(
 	_ context.Context, params *ssm.GetParameterInput, _ ...func(*ssm.Options),
 ) (*ssm.GetParameterOutput, error) {
 	c.t.Helper()
+
+	c.getCalls++
 
 	if c.getErr != nil {
 		return nil, c.getErr
@@ -74,12 +78,14 @@ func (c *fakeClient) GetParametersByPath(
 
 	paramList := []types.Parameter{}
 
-	for k := range c.params {
+	for k, val := range c.params {
 		cond := strings.HasPrefix(k, *params.Path)
 
 		if cond {
 			paramList = append(paramList, types.Parameter{
-				Name: aws.String(k),
+				Name:  aws.String(k),
+				Value: aws.String(val.s),
+				Type:  val.t,
 			})
 		}
 	}
