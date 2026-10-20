@@ -228,7 +228,7 @@ func TestGitFS_Clone(t *testing.T) {
 
 	g := &gitFS{auth: NoopAuthenticator()}
 
-	fsys, _, err := g.gitClone(ctx, *tests.MustURL("file:///repo"), 0)
+	fsys, repo, err := g.gitClone(ctx, *tests.MustURL("file:///repo"), 0)
 	require.NoError(t, err)
 
 	f, err := fsys.Open("/foo/bar/hi.txt")
@@ -237,7 +237,12 @@ func TestGitFS_Clone(t *testing.T) {
 	b, _ := io.ReadAll(f)
 	assert.Equal(t, "hello world", string(b))
 
-	_, repo, err := g.gitClone(ctx, *tests.MustURL("file:///repo#master"), 0)
+	// with no ref, the remote's HEAD (mybranch, not master) is cloned
+	head, err := repo.Head()
+	require.NoError(t, err)
+	assert.Equal(t, "refs/heads/mybranch", head.Name().String())
+
+	_, repo, err = g.gitClone(ctx, *tests.MustURL("file:///repo#master"), 0)
 	require.NoError(t, err)
 
 	ref, err := repo.Reference(plumbing.NewBranchReferenceName("master"), true)
@@ -281,8 +286,12 @@ func TestGitFS_Clone_HTTPS(t *testing.T) {
 
 	g := &gitFS{auth: NoopAuthenticator()}
 
-	fsys, _, err := g.gitClone(ctx, *tests.MustURL("https://github.com/hairyhenderson/git-fixtures.git"), 0)
+	fsys, repo, err := g.gitClone(ctx, *tests.MustURL("https://github.com/hairyhenderson/git-fixtures.git"), 1)
 	require.NoError(t, err)
+
+	head, err := repo.Head()
+	require.NoError(t, err)
+	assert.Equal(t, "refs/heads/main", head.Name().String())
 
 	f, err := fsys.Open("small_test.json")
 	require.NoError(t, err)
