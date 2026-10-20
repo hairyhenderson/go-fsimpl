@@ -16,7 +16,6 @@ import (
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/transport"
-	"github.com/go-git/go-git/v5/plumbing/transport/client"
 	"github.com/go-git/go-git/v5/storage/memory"
 	"github.com/hairyhenderson/go-fsimpl"
 	"github.com/hairyhenderson/go-fsimpl/internal"
@@ -194,16 +193,10 @@ func (f *gitFS) gitClone(ctx context.Context, repoURL url.URL, depth int) (billy
 		return nil, nil, err
 	}
 
+	// an empty ref makes go-git follow the remote's HEAD
 	ref := refFromURL(u)
 	u.Fragment = ""
 	u.RawQuery = ""
-
-	// attempt to get the ref from the remote so we don't default to master
-	if ref == "" {
-		// err is ignored here - if we can't get the ref, we'll just use the
-		// default
-		ref, _ = f.refFromRemoteHead(ctx, &u)
-	}
 
 	opts := git.CloneOptions{
 		URL:           u.String(),
@@ -237,47 +230,4 @@ func (f *gitFS) gitClone(ctx context.Context, repoURL url.URL, depth int) (billy
 	}
 
 	return bfs, repo, nil
-}
-
-// refFromRemoteHead - extract the ref from the remote HEAD, to work around
-// hard-coded 'master' default branch in go-git.
-// Should be unnecessary once https://github.com/go-git/go-git/issues/249 is
-// fixed.
-func (f *gitFS) refFromRemoteHead(ctx context.Context, u *url.URL) (plumbing.ReferenceName, error) {
-	e, err := transport.NewEndpoint(u.String())
-	if err != nil {
-		return "", err
-	}
-
-	cli, err := client.NewClient(e)
-	if err != nil {
-		return "", err
-	}
-
-	authMethod, err := f.auth.Authenticate(u)
-	if err != nil {
-		return "", err
-	}
-
-	s, err := cli.NewUploadPackSession(e, authMethod)
-	if err != nil {
-		return "", err
-	}
-
-	info, err := s.AdvertisedReferencesContext(ctx)
-	if err != nil {
-		return "", err
-	}
-
-	refs, err := info.AllReferences()
-	if err != nil {
-		return "", err
-	}
-
-	headRef, ok := refs["HEAD"]
-	if !ok {
-		return "", errors.New("no HEAD ref found")
-	}
-
-	return headRef.Target(), nil
 }
