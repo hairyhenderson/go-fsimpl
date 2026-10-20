@@ -227,3 +227,31 @@ func TestAWSSMPFS_ReadDir(t *testing.T) {
 	require.NoError(t, err)
 	assert.Len(t, de, 3)
 }
+
+func TestAWSSMPFS_ReadDir_NoPerChildGet(t *testing.T) {
+	fsys, err := New(tests.MustURL("aws+smp:///sub"))
+	require.NoError(t, err)
+
+	client := clientWithValues(t, map[string]*testVal{
+		"/sub/a":    vs("aaa"),
+		"/sub/b":    vss("secure"),
+		"/sub/c/ca": vs("ccc"),
+	})
+	fsys = WithClientFS(client, fsys)
+
+	de, err := fs.ReadDir(fsys, ".")
+	require.NoError(t, err)
+	require.Len(t, de, 3)
+
+	// sizes come from the listed values, without a GetParameter per child
+	assert.Equal(t, 0, client.getCalls)
+
+	fi, err := de[0].Info()
+	require.NoError(t, err)
+	assert.Equal(t, int64(3), fi.Size())
+
+	fi, err = de[1].Info()
+	require.NoError(t, err)
+	assert.Equal(t, int64(6), fi.Size())
+	assert.True(t, de[2].IsDir())
+}

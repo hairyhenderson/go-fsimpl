@@ -335,8 +335,9 @@ func (f *awssmpFile) Stat() (fs.FileInfo, error) {
 	// no need for special handling for opaque paths, as "." will never hit this
 	// code path (Open sets f.fi to a DirInfo)
 	params, err := f.client.GetParametersByPath(f.ctx, &ssm.GetParametersByPathInput{
-		Path:      aws.String(path.Join(f.root, f.name) + "/"),
-		Recursive: aws.Bool(true),
+		Path:       aws.String(path.Join(f.root, f.name) + "/"),
+		Recursive:  aws.Bool(true),
+		MaxResults: aws.Int32(1),
 	})
 	if err != nil {
 		return nil, &fs.PathError{Op: "stat", Path: f.name, Err: convertAWSError(err)}
@@ -389,27 +390,25 @@ func (f *awssmpFile) getParameter() error {
 		return fmt.Errorf("getParameter: %w", convertAWSError(err))
 	}
 
-	body := *out.Parameter.Value
+	f.body = strings.NewReader(aws.ToString(out.Parameter.Value))
+	f.fi = paramFileInfo(f.name, out.Parameter)
 
-	n := int64(len(body))
-	f.body = strings.NewReader(body)
+	return nil
+}
 
+// paramFileInfo builds a fs.FileInfo for the named file from a parameter
+// returned by either GetParameter or GetParametersByPath.
+func paramFileInfo(name string, param *types.Parameter) fs.FileInfo {
 	// parameter versions are immutable, so the created date for this version
 	// is also the last modified date
-	modTime := out.Parameter.LastModifiedDate
-	if modTime == nil {
-		modTime = &time.Time{}
-	}
+	modTime := aws.ToTime(param.LastModifiedDate)
 
 	contentType := ""
-	if out.Parameter.DataType != nil && *out.Parameter.DataType == "text" {
+	if aws.ToString(param.DataType) == "text" {
 		contentType = "text/plain"
 	}
 
-	// populate fi
-	f.fi = internal.FileInfo(f.name, n, 0o444, *modTime, contentType)
-
-	return nil
+	return internal.FileInfo(name, int64(len(aws.ToString(param.Value))), 0o444, modTime, contentType)
 }
 
 // listPrefix returns the prefix for this directory
@@ -499,12 +498,9 @@ func (f *awssmpFile) list() error {
 			// given that directories are artificial, they have a zero time
 			child.fi = internal.DirInfo(name, time.Time{})
 		} else {
-			fi, err := child.Stat()
-			if err != nil {
-				return err
-			}
-
-			child.fi = fi
+			// GetParametersByPath already returned the value, so there's no
+			// need for a GetParameter call per child
+			child.fi = paramFileInfo(name, &entry)
 		}
 
 		f.children = append(f.children, &child)
