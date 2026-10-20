@@ -54,7 +54,7 @@ func waitForURL(ctx context.Context, t *testing.T, url string) error {
 func waitForURLBody(ctx context.Context, t *testing.T, url string, check func(body []byte) error) error {
 	t.Helper()
 
-	return poll(ctx, t, func() error {
+	return poll(ctx, t, func(ctx context.Context) error {
 		req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 		if err != nil {
 			return err
@@ -86,7 +86,7 @@ func waitForPort(ctx context.Context, t *testing.T, addr string) error {
 
 	d := net.Dialer{}
 
-	return poll(ctx, t, func() error {
+	return poll(ctx, t, func(ctx context.Context) error {
 		conn, err := d.DialContext(ctx, "tcp", addr)
 		if err != nil {
 			return err
@@ -97,8 +97,9 @@ func waitForPort(ctx context.Context, t *testing.T, addr string) error {
 }
 
 // poll calls check until it succeeds, checking often so servers that start
-// quickly don't hold up the test, and gives up after 20s.
-func poll(ctx context.Context, t *testing.T, check func() error) error {
+// quickly don't hold up the test, and gives up after 20s. check is given the
+// timeout context, so a stalled request or dial can't outlive the timeout.
+func poll(ctx context.Context, t *testing.T, check func(ctx context.Context) error) error {
 	t.Helper()
 
 	const (
@@ -113,7 +114,7 @@ func poll(ctx context.Context, t *testing.T, check func() error) error {
 	defer ticker.Stop()
 
 	for {
-		err := check()
+		err := check(ctx)
 		if err == nil {
 			return nil
 		}

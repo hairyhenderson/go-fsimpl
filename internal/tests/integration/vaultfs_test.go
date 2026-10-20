@@ -125,12 +125,10 @@ func startVault(ctx context.Context, t *testing.T) string {
 
 	t.Logf("Fired up Vault: %v", vault)
 
-	err = waitForURL(ctx, t, "http://"+vaultAddr+"/v1/sys/health")
-	require.NoError(t, err)
-
+	// register cleanup before waiting, so Vault is stopped and the token is
+	// restored even if it never becomes healthy
 	t.Cleanup(func() {
-		err := result.Cmd.Process.Kill()
-		require.NoError(t, err)
+		require.NoError(t, result.Cmd.Process.Kill())
 
 		_ = result.Cmd.Wait()
 
@@ -142,11 +140,14 @@ func startVault(ctx context.Context, t *testing.T) string {
 		homeDir := u.HomeDir
 		tokenFile := path.Join(homeDir, ".vault-token.bak")
 
-		info, err := os.Stat(tokenFile)
-		if err == nil && info.Mode().IsRegular() {
+		info, serr := os.Stat(tokenFile)
+		if serr == nil && info.Mode().IsRegular() {
 			_ = os.Rename(tokenFile, path.Join(homeDir, ".vault-token"))
 		}
 	})
+
+	err = waitForURL(ctx, t, "http://"+vaultAddr+"/v1/sys/health")
+	require.NoError(t, err)
 
 	return vaultAddr
 }
