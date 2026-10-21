@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.5.1](https://github.com/hairyhenderson/go-fsimpl/compare/v0.5.0...v0.5.1) (2026-10-21)
+
+
+### Bug Fixes
+
+* **gomod:** update module gocloud.dev to v0.47.0 ([#1553](https://github.com/hairyhenderson/go-fsimpl/issues/1553)) ([f5f1264](https://github.com/hairyhenderson/go-fsimpl/commit/f5f12640c5f8c4dda072e7e162ce9d3e9f8433ea))
+* **gomod:** update module google.golang.org/api to v0.303.0 ([#1551](https://github.com/hairyhenderson/go-fsimpl/issues/1551)) ([79aa976](https://github.com/hairyhenderson/go-fsimpl/commit/79aa976facd23c0b15897200e67d5b1f32e49562))
+* **gomod:** update module google.golang.org/api to v0.304.0 ([#1554](https://github.com/hairyhenderson/go-fsimpl/issues/1554)) ([0eeb644](https://github.com/hairyhenderson/go-fsimpl/commit/0eeb64450e101029c815a5dd9998aacab249cb28))
+
 ## [0.5.0](https://github.com/hairyhenderson/go-fsimpl/compare/v0.4.9...v0.5.0) (2026-10-21)
 
 
