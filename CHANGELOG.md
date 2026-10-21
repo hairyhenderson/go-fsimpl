@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.5.0](https://github.com/hairyhenderson/go-fsimpl/compare/v0.4.9...v0.5.0) (2026-10-21)
+
+
+### Features
+
+* **aws:** route AWS SDK logs through slog ([#1540](https://github.com/hairyhenderson/go-fsimpl/issues/1540)) ([dca07a5](https://github.com/hairyhenderson/go-fsimpl/commit/dca07a5e9bbe893d880925d84a679de3dee13762))
+
+
+### Bug Fixes
+
+* **awssmpfs:** avoid a GetParameter call per child in ReadDir ([#1547](https://github.com/hairyhenderson/go-fsimpl/issues/1547)) ([04c3fe2](https://github.com/hairyhenderson/go-fsimpl/commit/04c3fe25ccf7b3a7516234f7e8dd58b341644e8f))
+* **gitfs:** drop the extra remote HEAD lookup before cloning ([#1548](https://github.com/hairyhenderson/go-fsimpl/issues/1548)) ([68bd210](https://github.com/hairyhenderson/go-fsimpl/commit/68bd210ae9fd977f24081cc370526391bbe1da96))
+* **gomod:** update module google.golang.org/api to v0.302.0 ([#1546](https://github.com/hairyhenderson/go-fsimpl/issues/1546)) ([9728c9f](https://github.com/hairyhenderson/go-fsimpl/commit/9728c9fe5e52e3c51233a3833ee52b7b4d9b7d0e))
+
 ## [0.4.9](https://github.com/hairyhenderson/go-fsimpl/compare/v0.4.8...v0.4.9) (2026-10-17)
 
 
