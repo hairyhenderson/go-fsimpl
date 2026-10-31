@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.5.1](https://github.com/hairyhenderson/go-fsimpl/compare/v0.5.0...v0.5.1) (2026-10-30)
+
+
+### Bug Fixes
+
+* **gomod:** update aws-sdk-go-v2 monorepo ([#1568](https://github.com/hairyhenderson/go-fsimpl/issues/1568)) ([2c694f4](https://github.com/hairyhenderson/go-fsimpl/commit/2c694f4e017a81b10864b382075cc2d756d65121))
+* **gomod:** update module cloud.google.com/go/secretmanager to v1.23.0 ([#1571](https://github.com/hairyhenderson/go-fsimpl/issues/1571)) ([e085ff2](https://github.com/hairyhenderson/go-fsimpl/commit/e085ff2dc27e5dbc4f164f8a41053b0b39e46b19))
+* **gomod:** update module github.com/aws/aws-sdk-go-v2/service/s3 to v1.114.4 ([#1563](https://github.com/hairyhenderson/go-fsimpl/issues/1563)) ([647d70d](https://github.com/hairyhenderson/go-fsimpl/commit/647d70d931aa097dcf59d573c754a2863e9a571e))
+* **gomod:** update module github.com/aws/aws-sdk-go-v2/service/secretsmanager to v1.50.5 ([#1555](https://github.com/hairyhenderson/go-fsimpl/issues/1555)) ([9ec9aee](https://github.com/hairyhenderson/go-fsimpl/commit/9ec9aee20e4a60fd75c2034a63218f51d575fe89))
+* **gomod:** update module github.com/aws/aws-sdk-go-v2/service/ssm to v1.80.0 ([#1559](https://github.com/hairyhenderson/go-fsimpl/issues/1559)) ([75543f9](https://github.com/hairyhenderson/go-fsimpl/commit/75543f9a1e9f1ac273fcddf07023c13e832406cc))
+* **gomod:** update module github.com/aws/smithy-go to v1.28.6 ([#1564](https://github.com/hairyhenderson/go-fsimpl/issues/1564)) ([5dc043d](https://github.com/hairyhenderson/go-fsimpl/commit/5dc043d8c5ac212ab10e7ea16ffa1eb2497c250c))
+* **gomod:** update module github.com/googleapis/gax-go/v2 to v2.27.0 ([#1565](https://github.com/hairyhenderson/go-fsimpl/issues/1565)) ([1b1f673](https://github.com/hairyhenderson/go-fsimpl/commit/1b1f673269a61ea2f496d91c438222f062bf9374))
+* **gomod:** update module gocloud.dev to v0.47.0 ([#1553](https://github.com/hairyhenderson/go-fsimpl/issues/1553)) ([f5f1264](https://github.com/hairyhenderson/go-fsimpl/commit/f5f12640c5f8c4dda072e7e162ce9d3e9f8433ea))
+* **gomod:** update module google.golang.org/api to v0.303.0 ([#1551](https://github.com/hairyhenderson/go-fsimpl/issues/1551)) ([79aa976](https://github.com/hairyhenderson/go-fsimpl/commit/79aa976facd23c0b15897200e67d5b1f32e49562))
+* **gomod:** update module google.golang.org/api to v0.304.0 ([#1554](https://github.com/hairyhenderson/go-fsimpl/issues/1554)) ([0eeb644](https://github.com/hairyhenderson/go-fsimpl/commit/0eeb64450e101029c815a5dd9998aacab249cb28))
+* **gomod:** update module google.golang.org/api to v0.305.0 ([#1556](https://github.com/hairyhenderson/go-fsimpl/issues/1556)) ([57daa47](https://github.com/hairyhenderson/go-fsimpl/commit/57daa47092111f8966035f838fc4348f66a254eb))
+* **gomod:** update module google.golang.org/api to v0.306.0 ([#1561](https://github.com/hairyhenderson/go-fsimpl/issues/1561)) ([799a23c](https://github.com/hairyhenderson/go-fsimpl/commit/799a23ce3f289738eff82c1d35bfaeda8d8db63f))
+* **gomod:** update module google.golang.org/api to v0.307.0 ([#1566](https://github.com/hairyhenderson/go-fsimpl/issues/1566)) ([055e846](https://github.com/hairyhenderson/go-fsimpl/commit/055e8468e4e15cb457cb49280237d6fde72f075c))
+* **gomod:** update module google.golang.org/api to v0.308.0 ([#1569](https://github.com/hairyhenderson/go-fsimpl/issues/1569)) ([67d0c27](https://github.com/hairyhenderson/go-fsimpl/commit/67d0c277e862df48a02844e74b9ae4669659db7e))
+
 ## [0.5.0](https://github.com/hairyhenderson/go-fsimpl/compare/v0.4.9...v0.5.0) (2026-10-21)
 
 
