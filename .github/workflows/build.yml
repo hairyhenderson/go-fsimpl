@@ -21,7 +21,7 @@ jobs:
       matrix:
         goarch: [ '386', 'amd64' ]
     container:
-      image: ghcr.io/hairyhenderson/gomplate-ci-build@sha256:908b95ffb7a2181b6d0baddce37240780ed0951b33da5aac3f081910a744345d
+      image: ghcr.io/hairyhenderson/gomplate-ci-build@sha256:a9d69f0c45917ccb5617de9af8a1b9a4604d2b3bd2963cbec870bba32525529b
     steps:
       - run: |
           git config --global user.email "bogus@example.com"
