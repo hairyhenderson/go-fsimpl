@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.5.2](https://github.com/hairyhenderson/go-fsimpl/compare/v0.5.1...v0.5.2) (2026-11-28)
+
+
+### Bug Fixes
+
+* **gomod:** update aws-sdk-go-v2 monorepo ([#1628](https://github.com/hairyhenderson/go-fsimpl/issues/1628)) ([07d1c57](https://github.com/hairyhenderson/go-fsimpl/commit/07d1c574d39021007a83628232c492284be60c30))
+* **gomod:** update module github.com/aws/aws-sdk-go-v2/config to v1.33.21 ([#1631](https://github.com/hairyhenderson/go-fsimpl/issues/1631)) ([8d60aae](https://github.com/hairyhenderson/go-fsimpl/commit/8d60aaed6bb087309b5f8f322e4c4d051721b35e))
+* **gomod:** update module github.com/aws/aws-sdk-go-v2/service/ssm to v1.84.0 ([#1632](https://github.com/hairyhenderson/go-fsimpl/issues/1632)) ([1309618](https://github.com/hairyhenderson/go-fsimpl/commit/1309618c66acbc61166ce3ab6807fc45b7c8a18d))
+
 ## [0.5.1](https://github.com/hairyhenderson/go-fsimpl/compare/v0.5.0...v0.5.1) (2026-11-25)
 
 
